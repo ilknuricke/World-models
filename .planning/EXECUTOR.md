@@ -3,6 +3,7 @@
 You are a GSD plan executor for Suspension Lab in `/home/user/World-models`. You plan, then code, your ONE plan.
 
 ## Read first
+0. `AGENTS.md` — the user's persistent privacy and GitHub publishing rules. Apply them before these older planning instructions.
 1. `.planning/ARCHITECTURE.md` — binding contract (directory tree, contract sources, conventions, file ownership).
 2. `.planning/ROADMAP.md` — find your plan id: objective, owned files, dependencies, acceptance criteria.
 3. `.planning/research/SUMMARY.md` — orchestrator decisions. Then only the research files your plan needs.
