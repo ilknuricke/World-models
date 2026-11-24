@@ -4,7 +4,7 @@
  * two HUD boxes overlap (also with every aid lamp lit and with the coach line up), and the tyre contact points of the
  * car in the default chase view are not covered by any HUD box. Touch-driving on a landscape phone (844x390) and a
  * tablet (1024x768): nothing overlaps the steering slider or the pedals, the telemetry card folds (tablet) or rests
- * (phone), and a long coach line stays a sensible width above the controls.
+ * (phone), and a long coach line stays readable below the top-right controls.
  * Screenshots go to SHOTS_DIR (software renderer).
  */
 import { mkdirSync } from 'node:fs';
@@ -22,6 +22,7 @@ const HUD = [
   '.sl-controls-amp',
   '.sl-controls-bc',
   '.sl-controls-br',
+  '.sl-narration',
   '.sl-telemetry-panel',
   '.sl-engineer',
   '.sl-teaching-overlays-trace',
@@ -33,7 +34,7 @@ const HUD = [
   '.sl-drive-steer',
   '.sl-drive-pedals',
 ];
-const LONG_LINE = 'Lifting off mid-corner moved load onto the front tyres; the lighter rear lost grip and the car rotated.';
+const LONG_LINE = 'Viraj ortasında gazı bırakmak yükü ön lastiklere aktardı; hafifleyen arka taraf tutunmayı kaybetti ve araç döndü.';
 
 interface Box {
   sel: string;
@@ -88,7 +89,7 @@ async function showCoach(page: Page, text: string | null): Promise<void> {
     caption.querySelector('.sl-coach-text')!.textContent = t ?? '';
     const chip = caption.querySelector<HTMLElement>('.sl-coach-chip')!;
     chip.hidden = t === null;
-    chip.textContent = 'Speed 64 km/h';
+    chip.textContent = 'Hız 64 km/h';
   }, text);
 }
 
@@ -143,7 +144,7 @@ test.describe('11-05 driving layout (desktop)', () => {
         if (phase === 'settled') await page.screenshot({ path: join(SHOTS, `11-05-manual-${tag}.png`) });
       }
 
-      // a long coach line (top centre while driving) and every lamp lit: still no overlap, the tyres still clear
+      // A long coach line below the top-right controls and every lamp lit: no overlap, tyres still clear.
       await showCoach(page, LONG_LINE);
       await page.evaluate(() => {
         for (const l of document.querySelectorAll<HTMLElement>('.sl-drive-lamp')) l.hidden = false;
@@ -198,8 +199,12 @@ for (const [name, viewport, isMobile] of [
       expect(coach).toBeDefined();
       await page.screenshot({ path: join(SHOTS, `11-05-touch-${name}.png`) });
       expect.soft(overlaps(list, viewport), `${name} coach`).toEqual([]);
-      expect(coach.w).toBeGreaterThanOrEqual(Math.min(420, viewport.width * 0.45)); // not a narrow column
-      expect(coach.h).toBeLessThanOrEqual(90); // at most three lines
+      expect(coach.w).toBeGreaterThanOrEqual(280); // a readable card rather than a narrow strip over the car
+      expect(coach.w).toBeLessThanOrEqual(316);
+      expect(coach.h).toBeLessThanOrEqual(140);
+      const controls = list.find((b) => b.sel === '.sl-controls-br')!;
+      expect(coach.y).toBeGreaterThan(controls.y + controls.h);
+      expect(coach.x + coach.w).toBeLessThanOrEqual(viewport.width - 16);
       console.log(`[11-05] ${name}\n${report.join('\n')}`);
       await showCoach(page, null);
       await expectHealthyBoot(page, errors);

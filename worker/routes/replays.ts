@@ -109,7 +109,7 @@ const r = new Hono<{ Bindings: Env }>();
 r.post(API.replays, async (c) => {
   // The switch: without the Turnstile secret, saving is off (labelled; fragment links still work).
   const secret = c.env.TURNSTILE_SECRET;
-  if (!secret) return c.json({ error: 'not_configured', message: 'Saving replays is not enabled on this server.' }, 503);
+  if (!secret) return c.json({ error: 'not_configured', message: 'Bu sunucuda tekrar kaydı etkin değil.' }, 503);
   if (Number(c.req.header('content-length') ?? 0) > MAX_BODY_BYTES) return fail(c, 413, 'too_large');
   const raw = await readCapped(c.req.raw.body, MAX_BODY_BYTES);
   if (!raw) return fail(c, 413, 'too_large');

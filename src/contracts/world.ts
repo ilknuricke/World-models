@@ -21,12 +21,12 @@ export interface SurfaceProps {
 
 /** Research m2/11 §c2 and m2/04 §9: the wet-tile value follows published test-facility figures, the rest are estimates. */
 export const SURFACES: Readonly<Record<SurfaceKind, SurfaceProps>> = {
-  asphalt: { kind: 'asphalt', label: 'Dry asphalt', muScale: 1, rollingResistance: 0.012, wet: false },
-  'asphalt-wet': { kind: 'asphalt-wet', label: 'Wet asphalt', muScale: 0.65, rollingResistance: 0.014, wet: true },
-  kerb: { kind: 'kerb', label: 'Kerb', muScale: 0.9, rollingResistance: 0.015, wet: false },
-  pave: { kind: 'pave', label: 'Cobbles', muScale: 0.85, rollingResistance: 0.015, wet: false },
-  grass: { kind: 'grass', label: 'Grass', muScale: 0.45, rollingResistance: 0.06, wet: false },
-  'ceramic-wet': { kind: 'ceramic-wet', label: 'Wet ceramic tiles', muScale: 0.13, rollingResistance: 0.015, wet: true },
+  asphalt: { kind: 'asphalt', label: 'Kuru asfalt', muScale: 1, rollingResistance: 0.012, wet: false },
+  'asphalt-wet': { kind: 'asphalt-wet', label: 'Islak asfalt', muScale: 0.65, rollingResistance: 0.014, wet: true },
+  kerb: { kind: 'kerb', label: 'Bordür', muScale: 0.9, rollingResistance: 0.015, wet: false },
+  pave: { kind: 'pave', label: 'Arnavut kaldırımı', muScale: 0.85, rollingResistance: 0.015, wet: false },
+  grass: { kind: 'grass', label: 'Çim', muScale: 0.45, rollingResistance: 0.06, wet: false },
+  'ceramic-wet': { kind: 'ceramic-wet', label: 'Islak seramik zemin', muScale: 0.13, rollingResistance: 0.015, wet: true },
 };
 
 /** Zone footprint. rect: (x, y) is the centre of the START edge, the zone runs `length` along `heading`. path: a

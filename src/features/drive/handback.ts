@@ -44,7 +44,7 @@ export function nearestSpawn(x: number, y: number, loopDistance: number, station
 
 /** The Returning chip's words for the autopilot state. */
 export function returningLabel(state: RecoveryState | undefined): string {
-  return state === 'track' || state === 'resume' ? 'Rejoining the lap…' : 'Finding the line…';
+  return state === 'track' || state === 'resume' ? 'Tura dönülüyor…' : 'Sürüş çizgisi aranıyor…';
 }
 
 /** Fade overlay opacity for a fade started `t` s ago; `withOut` = it fades out first (we start the action). */

@@ -54,5 +54,5 @@ export const LIVE_PATCH: Partial<AppState> = { paused: false, timeScale: 1, cloc
 
 /** Amplification text (HON-02 / ARCHITECTURE §14.2); the factor comes from the store. */
 export function amplificationText(amplification: number): string {
-  return `Motion ×${amplification} · values true scale`;
+  return `Hareket ×${amplification} · değerler gerçek ölçekte`;
 }

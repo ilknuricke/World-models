@@ -1,22 +1,28 @@
 /**
- * `cafe-racer` VehicleVisual: a Thruxton-style cafe racer built entirely from code (no asset, no badges).
+ * `cafe-racer` VehicleVisual: a procedural Thruxton-style cafe racer with an imported, textured human rider.
  * Body (frame, parallel-twin engine, sculpted tank with knee cut-outs, seat and hump, exhausts, rear-sets) is
  * rigid with the sprung body and posed from bodyPosition/bodyRotation: the sim leans the body about the vehicle-frame
  * origin on the ground, i.e. about the contact line. Wheels are posed from wheelPosition/wheelRotation and spun by
  * CornerFrame.spin; the chain runs follow the rear sprocket. The front end (fork, yokes, bars, headlight) and all
  * suspension parts belong to the `moto-planar` suspension visual.
+ * The rider sits on the sprung body; skeletal arms keep both hands on the steered clip-ons.
  *
- * Draw calls: paint, body palette, x-ray ghost (hidden when off), 2 wheels, 2 chain runs.
+ * Draw calls: paint, body palette, x-ray ghost (hidden when off), 2 wheels, 2 chain runs, batched rider materials.
  * Coordinates: authored in three.js vehicle space (x fwd, y up, z = right = -sim y), metres.
  */
 import { BoxGeometry, Group, Matrix4, Mesh, Quaternion, Shape, Vector2, Vector3, type BufferGeometry, type Material, type MeshStandardMaterial } from 'three';
 import type { VehicleVisual, VehicleVisualDefinition } from '../../../contracts/services';
 import type { TelemetryFrame } from '../../../contracts/telemetry';
 import { simQuatToThree, simToThree, type Vec3 } from '../../../contracts/units';
-import type { MotorcycleDefinition, VehicleDefinition } from '../../../contracts/vehicle';
+import type { MotorcycleDefinition } from '../../../contracts/vehicle';
 import { bakedDisc, bakedTube, mergeParts } from '../../../kit3d/tube';
 import { FORK_OFFSET, FORK_RAKE, HEAD_ABOVE_AXLE, steeringPoints, SWINGARM_PIVOT } from '../../../sim-core/content/cafe-racer';
+import { motoClassic } from '../../../sim-core/content/moto-classic';
+import { motoModern } from '../../../sim-core/content/moto-modern';
+import { motoTelelever } from '../../../sim-core/content/moto-telelever';
 import { createMotoPalette, disposeMotoPalette, motoPaint, type MotoFinish } from './palette';
+import { createRider, type RiderVisual } from './rider';
+import { loadRiggedRider } from './rigged-rider';
 import { addDither, createGhostMaterial, createPaintMaterial, type PaintSpec } from './shaders';
 import {
   basis,
@@ -56,9 +62,12 @@ export const DEFAULT_PAINT: PaintSpec = {
 };
 
 export interface CafeRacerOptions {
+  /** Loaded human model; production always supplies this through the async visual loader. */
+  readonly rider?: RiderVisual;
   /** Frame hardpoints (sim vehicle frame). Pass the default suspension's values so the head tube lines up. */
   readonly steeringHead?: Vec3;
   readonly rake?: number;
+  readonly forkOffset?: number;
   readonly swingarmPivot?: Vec3;
   readonly paint?: PaintSpec;
 }
@@ -69,6 +78,7 @@ export interface CafeRacerVisual extends VehicleVisual {
 }
 
 const V = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
+const RIDER_FRONTS = new Map([motoClassic, motoModern, motoTelelever].map((preset) => [preset.id, preset.front]));
 
 /** Rim (bead-seat) radius for a tyre: 17 in, or 18 in when the sidewall would be tall. */
 function rimRadius(tyreRadius: number): number {
@@ -347,6 +357,14 @@ export function buildCafeRacer(vehicle: MotorcycleDefinition, options: CafeRacer
   ghost.renderOrder = 10;
   ghost.visible = false;
   const shadowCasters = [paintMesh, bodyworkMesh];
+  const rider = options.rider ?? createRider({ steeringHead: sh, rake, forkOffset: options.forkOffset ?? FORK_OFFSET, tyreWidth: vehicle.front.tyre.width, swingarmPivot: pv });
+  body.add(rider.root);
+  meshes.push(...rider.meshes);
+  shadowCasters.push(...rider.meshes);
+  for (const material of new Set(rider.meshes.flatMap((mesh) => Array.isArray(mesh.material) ? mesh.material : [mesh.material]))) {
+    addDither(material, xray, 'moto-rider');
+  }
+  const presetRiderGeometry = options.steeringHead === undefined && options.rake === undefined && options.forkOffset === undefined;
 
   const wheel = (id: 'f' | 'r', tyre: MotorcycleDefinition['front']['tyre'], spokes: number, hubHalf: number, sprocket: boolean) => {
     const hub = new Group();
@@ -402,6 +420,7 @@ export function buildCafeRacer(vehicle: MotorcycleDefinition, options: CafeRacer
     update(t: TelemetryFrame): void {
       simToThree(t.bodyPosition.x, t.bodyPosition.y, t.bodyPosition.z, body.position);
       simQuatToThree(t.bodyRotation, body.quaternion);
+      rider.update(t.steer, presetRiderGeometry ? RIDER_FRONTS.get(t.suspensionId) : undefined);
       for (let i = 0; i < t.corners.length; i++) {
         const c = t.corners[i]!;
         const w = c.id === 'f' ? front : c.id === 'r' ? rear : undefined;
@@ -427,6 +446,7 @@ export function buildCafeRacer(vehicle: MotorcycleDefinition, options: CafeRacer
     },
     dispose(): void {
       root.removeFromParent();
+      rider.dispose();
       for (const g of geometries) g.dispose();
       for (const m of materials) m.dispose();
       for (const m of [bodyMat, bodyworkMat, wheelMat] as MeshStandardMaterial[]) disposeMotoPalette(m);
@@ -478,8 +498,14 @@ function placeRun(mesh: Mesh, sign: number, a: Vector3, b: Vector3, ra: number, 
 
 export const cafeRacerVisual: VehicleVisualDefinition = {
   id: CAFE_RACER_VISUAL_ID,
-  load(vehicle: VehicleDefinition): Promise<VehicleVisual> {
-    if (vehicle.class !== 'motorcycle') return Promise.reject(new Error(`${CAFE_RACER_VISUAL_ID}: motorcycle visual, got vehicle class "${vehicle.class}"`));
-    return Promise.resolve(buildCafeRacer(vehicle));
+  async load(vehicle, ctx): Promise<VehicleVisual> {
+    if (vehicle.class !== 'motorcycle') throw new Error(`${CAFE_RACER_VISUAL_ID}: motorcycle visual, got vehicle class "${vehicle.class}"`);
+    const rider = await loadRiggedRider(ctx.assets.url('rider/rocketbox-male'));
+    try {
+      return buildCafeRacer(vehicle, { rider });
+    } catch (error) {
+      rider.dispose();
+      throw error;
+    }
   },
 };

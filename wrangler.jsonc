@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
+  // Generic offline config. Keep deployment account/resource IDs in ignored wrangler.local.jsonc.
   "name": "suspension-lab",
   "main": "./worker/index.ts",
   "compatibility_date": "2026-11-20",
@@ -24,12 +25,11 @@
     {
       "binding": "REPLAYS",
       "database_name": "suspension-lab-replays",
-      "database_id": "012e9d77-53a2-46b2-b1df-57a244e5d078",
       "migrations_dir": "worker/migrations"
     }
   ],
-  "ai": { "binding": "AI" },
-  "analytics_engine_datasets": [{ "binding": "STATS", "dataset": "suspension_lab_events" }],
+  "ai": { "binding": "AI", "remote": true },
+  // Anonymous usage statistics are optional. Leave Analytics Engine unbound until explicitly enabled on this account.
   "vars": { "APP_VERSION": "dev" },
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

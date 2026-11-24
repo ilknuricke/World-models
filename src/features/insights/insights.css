@@ -1,69 +1,4 @@
-/*
- * Insight caption (research 14 D7/D8): one line, bottom-centre above the suspension control (04-05 layout,
- * --sl-hud-* from controls.css); never wider than the gap between the two columns. Tokens only.
- */
-.sl-insights {
-  /* the suspension control and its descriptor, the drive pill and hint (--sl-hud-drive-h, inside --sl-hud-susp-h) and
-     the drive action row when one is shown (it widens the pill-to-hint gap but is not part of --sl-hud-drive-h) */
-  --sl-insights-controls: calc(var(--sl-hud-susp-h, 96px) + var(--sl-drive-action-h, 0px));
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--margin) + var(--sl-insights-controls));
-  transform: translateX(-50%);
-  zoom: var(--sl-hud-zoom, 1);
-  width: max-content;
-  max-width: min(640px, calc(100vw / var(--sl-hud-zoom, 1) - 2 * (var(--margin) + var(--sl-hud-col, 316px) + var(--sp-4))));
-  pointer-events: none;
-}
-#overlay > .sl-insights {
-  pointer-events: none;
-}
-.sl-insights[hidden],
-.sl-insights [hidden] {
-  display: none;
-}
-
-.sl-insights-caption {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  margin: 0;
-  padding: var(--sp-2) var(--sp-4);
-  color: var(--text-1);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-  border: 1px solid var(--hair);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-panel);
-  animation: sl-insights-in var(--dur-caption-in) var(--ease);
-  transition: opacity var(--dur-caption-out) cubic-bezier(0.5, 0, 0.75, 0);
-}
-.sl-insights-caption.is-leaving {
-  opacity: 0;
-}
-
-@keyframes sl-insights-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-.sl-insights-chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding-left: var(--sp-3);
-  border-left: 1px solid var(--hair-strong);
-  color: var(--accent);
-  white-space: nowrap;
-}
-.sl-insights-caption.is-warn .sl-insights-chip {
-  color: var(--warn);
-}
+/* Shared explanation-card layout and animation live in ui/messages.css. */
 .sl-insights-chip-label {
   color: var(--text-2);
   font-family: var(--font-sans);
@@ -75,12 +10,4 @@
 .sl-insights-before,
 .sl-insights-arrow {
   color: var(--text-2);
-}
-
-@media (max-width: 640px) {
-  .sl-insights-caption {
-    flex-wrap: wrap;
-    row-gap: var(--sp-1);
-    border-radius: var(--radius-panel);
-  }
 }

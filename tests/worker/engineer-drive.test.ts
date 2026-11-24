@@ -151,7 +151,7 @@ function generate(name: keyof typeof SCENARIOS): EngineerTelemetry & { readonly 
 const fs = (await import(/* @vite-ignore */ `node:${'fs'}`)) as { existsSync(p: string): boolean; readFileSync(p: string, e: 'utf8'): string; writeFileSync(p: string, d: string): void };
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 const { existsSync, readFileSync, writeFileSync } = fs;
-const fixture = (name: string): string => decodeURIComponent(new URL(`../fixtures/${name}`, (import.meta as unknown as { url: string }).url).pathname);
+const fixture = (name: string): string => decodeURIComponent(new URL(`../fixtures/${name}`, (import.meta as unknown as { url: string }).url).pathname).replace(/^\/([A-Za-z]:\/)/, '$1');
 const FIXTURE = fixture('12-03-drive-scenarios.json');
 type Name = 'liftoff' | 'understeer' | 'abs' | 'traction' | 'lockup' | 'steady';
 const generated = Object.fromEntries((Object.keys(SCENARIOS) as (keyof typeof SCENARIOS)[]).map((n) => [n, generate(n)])) as Record<Name, ReturnType<typeof generate>>;
@@ -248,17 +248,32 @@ describe('labels, chips and rule-based answers per event kind', () => {
 
   it('nothing detected: says so instead of inventing a cause; a second event is carried but the primary explained', () => {
     const none = ruleAnswer('Why did I spin?', undefined, S.steady);
-    expect(none).toMatch(/No slide, lock-up or other driving event was detected/);
+    expect(none).toMatch(/kayma, kilitlenme veya başka bir sürüş olayı algılanmadı/);
     expect(ungroundedNumbers(none, S.steady)).toEqual([]);
     const both = { ...S.liftoff, drive: { ...S.liftoff.drive, detected: `${S.liftoff.drive.detected}; also stability assist braked one wheel` } };
-    expect(ruleAnswer('Why?', undefined, both)).toMatch(/^Lifting off the throttle/);
+    expect(ruleAnswer('Why?', undefined, both)).toMatch(/^Virajda gazı bırakınca/);
   });
 
   it('driving glossary and the switch question without a swap event', () => {
-    expect(ruleAnswer('What is understeer?', undefined, S.steady)).toMatch(/front tyres reach their grip limit first/);
-    expect(ruleAnswer('What does ABS do?', undefined, S.steady)).toMatch(/anti-lock assist/);
-    expect(ruleAnswer('What changed when I switched to multi-link?', undefined, S.steady)).toMatch(/strut and the double wishbone drive almost the same/);
-    expect(ruleAnswer('Which suspension is best?', undefined, S.steady)).toMatch(/None is best overall/);
+    expect(ruleAnswer('What is understeer?', undefined, S.steady)).toMatch(/ön lastikler tutuş sınırına önce ulaşır/);
+    expect(ruleAnswer('Önden kayma nedir?', undefined, S.steady)).toMatch(/ön lastikler tutuş sınırına önce ulaşır/);
+    expect(ruleAnswer('What does ABS do?', undefined, S.steady)).toMatch(/ABS desteği/);
+    expect(ruleAnswer('ABS ne yapar?', undefined, S.steady)).toMatch(/^ABS desteği/);
+    expect(ruleAnswer('Çekiş desteği ne yapar?', undefined, S.steady)).toMatch(/^Çekiş desteği/);
+    expect(ruleAnswer('What changed when I switched to multi-link?', undefined, S.steady)).toMatch(/MacPherson ve çift salıncakla sürüş neredeyse aynıdır/);
+    expect(ruleAnswer('Which suspension is best?', undefined, S.steady)).toMatch(/Her koşulda en iyi olan bir tür yoktur/);
+  });
+
+  it.each([
+    ['ÖNDEN KAYMA NEDİR?', /^Önden kaymada/],
+    ['ARKADAN KAYMA NEDİR?', /^Arkadan kaymada/],
+    ['ABS NEDİR?', /^ABS desteği/],
+    ['ÇEKİŞ DESTEĞİ NE YAPAR?', /^Çekiş desteği/],
+    ['DENGE DESTEĞİ NE YAPAR?', /^Denge desteği/],
+    ['WHAT DOES TRACTION CONTROL DO?', /^Çekiş desteği/],
+    ['WHAT CHANGED WHEN I SWITCHED TO MULTI-LINK?', /^Bu modelde MacPherson/],
+  ] as const)('recognizes uppercase Turkish and English driving question "%s"', (question, answer) => {
+    expect(ruleAnswer(question, undefined, S.steady)).toMatch(answer);
   });
 });
 
@@ -270,7 +285,7 @@ describe('prompt and number check while driving', () => {
     expect(text).toMatch(/Explain ONLY what DETECTED names/);
     expect(text).not.toMatch(/^3\. A question like/m);
     expect(text).toContain(factsFor('car', 'macpherson', true));
-    expect(text).toMatch(/STATION: Steering circle\./);
+    expect(text).toMatch(/STATION: Dairesel sürüş\./);
     expect(text).toMatch(/DETECTED: rear slide after lifting off the throttle/);
     expect(text).toMatch(/most throttle in the half second before the event, percent: 70/);
     expect(text).not.toMatch(/self-driving|rigid links\)/);
@@ -291,6 +306,17 @@ describe('prompt and number check while driving', () => {
     expect(tools.map((t) => t.function.name)).toEqual(['set_view', 'highlight_component']);
     expect(res.body.actions).toEqual([{ tool: 'set_view', args: { view: 'closeup', corner: 'rl' } }]);
     expect(res.body.source).toBe('model');
+  });
+
+  it.each(['manual', 'returning', 'replay'] as const)('never applies an explicit slow-motion command in %s mode, with or without AI', async (mode) => {
+    const telemetry = { ...S.steady, drive: { ...S.steady.drive, mode } };
+    const ai = {
+      run: async () => ({ choices: [{ message: { content: 'Tekerleklerin hareketini izleyebilirsin.', tool_calls: [{ function: { name: 'set_slow_motion', arguments: '{"scale":0.25}' } }] } }] }),
+    } as unknown as Ai;
+    for (const binding of [ai, undefined]) {
+      const res = await answer(req('AĞIR ÇEKİMDE GÖSTER', telemetry), binding);
+      expect(res.body.actions).toEqual([]);
+    }
   });
 
   it('unit-aware: a number with a unit must match a payload value of that unit', () => {

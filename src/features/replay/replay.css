@@ -13,6 +13,11 @@
   display: none;
 }
 
+/* The interactive popover takes precedence over the telemetry card in the same corner. */
+#overlay > .sl-drive-actions:has(.sl-replay-share:not([hidden])) {
+  z-index: 5;
+}
+
 .sl-replay-row {
   display: flex;
   align-items: center;
@@ -171,7 +176,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  width: min(420px, calc(100vw - 2 * var(--margin)));
+  width: min(420px, calc(100vw / var(--sl-hud-zoom, 1) - 2 * var(--margin)));
   padding: var(--sp-3);
   border-radius: var(--radius-panel);
 }
@@ -238,6 +243,10 @@
   overflow: hidden;
 }
 /* driving: the chips sit at the right edge, so the popover opens leftwards from it */
+.sl-drive-actions.is-driving > .sl-replay {
+  /* Anchor the popover to the whole right-aligned row, rather than its individual replay chip. */
+  position: static;
+}
 .sl-drive-actions.is-driving .sl-replay-share,
 .sl-drive-actions.is-driving .sl-replay-note {
   left: auto;

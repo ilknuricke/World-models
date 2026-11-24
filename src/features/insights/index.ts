@@ -1,5 +1,5 @@
 /**
- * Insights (plan 04-03, research 14 D7 / A7): one caption line bottom-centre, driven by the section's phenomenon
+ * Insights (plan 04-03, research 14 D7 / A7): one compact caption below the right-hand controls, driven by the section's phenomenon
  * and simulation events (rules.ts), at most one per 8 s, 6 s visible, announced politely to screen readers and
  * on the bus (`insight:shown`). On a suspension swap, after 1 s of settling, a delta chip compares the previous
  * suspension with the new one at the same place on the lap (lap-record.ts). Silent during attract mode.
@@ -10,12 +10,14 @@ import type { FeatureContext, FeatureModule, FrameInfo } from '../../contracts/a
 import type { TelemetryFrame } from '../../contracts/telemetry';
 import type { Phenomenon } from '../../contracts/track';
 import { h, mount } from '../../ui/dom';
+import { acquireNarration, type MessageNarration } from '../../ui/narration';
 import { computeDelta, formatDelta, LapRecord } from './lap-record';
 import { fill, InsightEngine, type Insight } from './rules';
 import './insights.css';
 
 const SAMPLE_DT = 1 / 30;
 const SETTLE_S = 1;
+const CORNER_LABEL: Readonly<Record<string, string>> = { fl: 'SÖ', fr: 'SĞÖ', rl: 'SA', rr: 'SĞA', f: 'ÖN', r: 'ARKA' };
 /** Visible time and exit fade, in SIMULATION seconds: a paused or slowed lab keeps the caption readable. */
 const VISIBLE_S = 6;
 const LEAVE_S = 0.3;
@@ -35,6 +37,7 @@ interface State {
   readonly chip: HTMLElement;
   /** Screen-reader copy of each new caption; the live chip numbers are not announced. */
   readonly announce: HTMLElement;
+  readonly narration: MessageNarration;
   readonly engine: InsightEngine;
   rec: LapRecord;
   lastSimTime: number;
@@ -68,6 +71,7 @@ function present(s: State, id: string, text: string, chip: readonly (Node | stri
   s.caption.hidden = false;
   const shown = s.caption.textContent ?? text;
   s.announce.textContent = shown;
+  s.narration.say(text);
   s.ctx.bus.emit('insight:shown', { id, text: shown });
 }
 
@@ -87,7 +91,8 @@ function showDelta(s: State, t: TelemetryFrame, swap: Swap): boolean {
   const pair = `${suspensionLabel(c, swap.previous)} → ${suspensionLabel(c, c.sim.current.suspension.id)}`;
   const d = computeDelta(s.rec, swap.previous, t, p, swap.section === t.sectionIndex ? swap.s : null);
   if (!d) return false;
-  const f = formatDelta(d, d.corner < 0 ? '' : t.corners[d.corner]!.id.toUpperCase());
+  const cornerId = d.corner < 0 ? '' : t.corners[d.corner]!.id;
+  const f = formatDelta(d, CORNER_LABEL[cornerId] ?? cornerId.toLocaleUpperCase('tr-TR'));
   present(
     s,
     'delta',
@@ -95,7 +100,7 @@ function showDelta(s: State, t: TelemetryFrame, swap: Swap): boolean {
     [
       h('span', { class: 'sl-insights-chip-label' }, f.label),
       h('span', { class: 'sl-insights-before' }, f.before),
-      h('span', { class: 'sl-insights-arrow', 'aria-label': 'to' }, '→'),
+      h('span', { class: 'sl-insights-arrow', 'aria-label': 'sonra' }, '→'),
       h('span', { class: 'sl-insights-after' }, f.after),
     ],
     false,
@@ -104,6 +109,7 @@ function showDelta(s: State, t: TelemetryFrame, swap: Swap): boolean {
 }
 
 function resetVehicle(s: State): void {
+  s.narration.clear();
   const sim = s.ctx.sim.current;
   s.rec = new LapRecord(s.ctx.sim.frame.corners.length, sim.track.length);
   s.swap = null;
@@ -117,6 +123,8 @@ const insights: FeatureModule = {
   phase: 'overlay',
 
   init(c) {
+    const narration = acquireNarration(c.dom.overlay);
+    c.addDisposer(() => narration.dispose());
     const text = h('span', { class: 'sl-insights-text' });
     const chip = h('span', { class: 'sl-insights-chip sl-num', hidden: true });
     const caption = h('p', { class: 'sl-insights-caption', hidden: true }, text, chip);
@@ -132,6 +140,7 @@ const insights: FeatureModule = {
       text,
       chip,
       announce,
+      narration,
       engine: new InsightEngine(),
       rec: new LapRecord(1, 1),
       lastSimTime: Number.NEGATIVE_INFINITY,
@@ -158,6 +167,7 @@ const insights: FeatureModule = {
     });
     c.on('drive:mode', ({ mode }) => {
       if (mode !== 'auto') {
+        s.narration.clear();
         s.caption.hidden = true;
         s.hideAt = Number.POSITIVE_INFINITY;
         s.live = null;
@@ -174,8 +184,9 @@ const insights: FeatureModule = {
       if (i) showInsight(s, i);
     });
     c.watch((state) => {
-      s.quiet = state.attract || !state.hudVisible;
+      s.quiet = state.attract || !state.hudVisible || state.driveMode !== 'auto';
       root.hidden = s.quiet;
+      if (s.quiet) s.narration.clear();
     });
     c.addDisposer(() => {
       st = undefined;
@@ -189,6 +200,7 @@ const insights: FeatureModule = {
     if (t.simTime >= s.hideAt) {
       s.caption.classList.add('is-leaving');
       if (t.simTime >= s.hideAt + LEAVE_S) {
+        s.narration.clear(false);
         s.caption.hidden = true;
         s.hideAt = Number.POSITIVE_INFINITY;
         s.live = null;

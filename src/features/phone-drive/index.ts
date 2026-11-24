@@ -24,7 +24,7 @@ const TOAST_S = 6;
 /** Beyond this distance from the driving line a failsafe hand-back is an immediate release (drive/handback.ts). */
 const LOOP_NEAR = 40;
 
-const LEVEL_WORD: Readonly<Record<LinkLevel, string>> = { ok: 'Good link', amber: 'Slow link', red: 'Weak link' };
+const LEVEL_WORD: Readonly<Record<LinkLevel, string>> = { ok: 'İyi bağlantı', amber: 'Yavaş bağlantı', red: 'Zayıf bağlantı' };
 const LEVEL_RANK: Readonly<Record<LinkLevel, number>> = { ok: 0, amber: 1, red: 2 };
 
 let frameHandler: ((frame: FrameInfo) => void) | undefined;
@@ -90,12 +90,12 @@ function init(ctx: FeatureContext): void {
     const d = ctx.sim.frame.drive;
     const onLoop = !annex.has(d.zone) && Math.abs(d.lineOffset) <= LOOP_NEAR;
     bus.emit('drive:request', onLoop ? { mode: 'auto' } : { mode: 'auto', immediate: true });
-    if (lost) toast(onLoop ? 'The car is returning to the lap.' : 'The car is back on the lap.');
+    if (lost) toast(onLoop ? 'Otomobil tura dönüyor.' : 'Otomobil tura döndü.');
   };
 
   // ---------------------------------------------------------------- DOM: the card and the note
-  const title = h('span', { class: 'sl-phone-drive-title sl-label' }, 'Drive from your phone');
-  const fold = h('button', { class: 'sl-phone-drive-fold', type: 'button', 'aria-expanded': 'true' }, 'Hide');
+  const title = h('span', { class: 'sl-phone-drive-title sl-label' }, 'Telefonunuzdan sürün');
+  const fold = h('button', { class: 'sl-phone-drive-fold', type: 'button', 'aria-expanded': 'true' }, 'Gizle');
   const qr = h('div', { class: 'sl-phone-drive-qr' });
   const body = h(
     'div',
@@ -104,8 +104,8 @@ function init(ctx: FeatureContext): void {
     h(
       'div',
       { class: 'sl-phone-drive-meta' },
-      h('p', { class: 'sl-phone-drive-lead' }, 'Scan with the phone camera'),
-      h('p', { class: 'sl-phone-drive-note' }, 'Hold it like a wheel: slider and pedals, tilt if you like. One driver at a time.'),
+      h('p', { class: 'sl-phone-drive-lead' }, 'Telefon kamerasıyla tarayın'),
+      h('p', { class: 'sl-phone-drive-note' }, 'Direksiyon gibi tutun: sürgü ve pedalları kullanın; isterseniz eğerek yön verin. Aynı anda tek sürücü.'),
     ),
   );
   const dot = h('span', { class: 'sl-phone-drive-dot', 'aria-hidden': 'true' });
@@ -114,7 +114,7 @@ function init(ctx: FeatureContext): void {
   const status = h('div', { class: 'sl-phone-drive-status', role: 'status' }, dot, statusText, linkWord);
   const root = h(
     'section',
-    { class: 'sl-phone-drive', 'aria-label': 'Drive from your phone', hidden: true },
+    { class: 'sl-phone-drive', 'aria-label': 'Telefonunuzdan sürün', hidden: true },
     h('header', { class: 'sl-phone-drive-head' }, title, fold),
     body,
     status,
@@ -123,7 +123,7 @@ function init(ctx: FeatureContext): void {
   const toastEl = h(
     'div',
     { class: 'sl-phone-drive-toast', role: 'status', 'aria-live': 'polite', hidden: true },
-    h('span', { class: 'sl-phone-drive-toast-title' }, 'Phone controller lost'),
+    h('span', { class: 'sl-phone-drive-toast-title' }, 'Telefon kumandasıyla bağlantı kesildi'),
     toastText,
   );
   ctx.addDisposer(mount(ctx.dom.overlay, root));
@@ -145,14 +145,14 @@ function init(ctx: FeatureContext): void {
     if (target === rendered) return;
     rendered = target;
     // the QR encoder (uqr) only loads on a big screen that has a driver key
-    void import('./qr').then(({ qrSvg }) => rendered === target && qr.replaceChildren(qrSvg(target, `QR code: drive room ${code} from your phone`)));
+    void import('./qr').then(({ qrSvg }) => rendered === target && qr.replaceChildren(qrSvg(target, `QR kodu: ${code} odasında telefonunuzdan sürün`)));
   }
   fold.addEventListener('click', (e) => {
     if (e.detail > 0) fold.blur();
     folded = !folded;
     root.toggleAttribute('data-folded', folded);
     fold.setAttribute('aria-expanded', String(!folded));
-    fold.textContent = folded ? 'Show code' : 'Hide';
+    fold.textContent = folded ? 'Kodu göster' : 'Gizle';
   });
 
   // ---------------------------------------------------------------- per frame: phases, badge, tel, card state
@@ -211,7 +211,7 @@ function init(ctx: FeatureContext): void {
       if (state === 'paired' && !folded) fold.click(); // the code steps aside once a phone is there
       if (state === 'waiting' && folded) fold.click();
     }
-    const text = state === 'driving' ? 'Driven from a phone' : state === 'paired' ? (mode === 'returning' ? 'Phone connected · returning' : 'Phone connected · press Gas to drive') : 'Waiting for a phone';
+    const text = state === 'driving' ? 'Telefondan kontrol ediliyor' : state === 'paired' ? (mode === 'returning' ? 'Telefon bağlı · tura dönülüyor' : 'Telefon bağlı · sürmek için Gaza basın') : 'Telefon bekleniyor';
     if (text !== shown.text) statusText.textContent = shown.text = text;
     const lv: LinkLevel | '' = state === 'waiting' ? '' : worst;
     if (lv !== shown.level) {

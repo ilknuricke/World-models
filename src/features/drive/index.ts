@@ -26,12 +26,12 @@ import './drive.css';
 
 type HintKind = 'none' | 'prompt' | 'controls' | 'pad' | 'station' | 'note' | 'cue';
 
-const MODE_LABEL: Readonly<Record<DriveMode, string>> = { auto: 'Auto', manual: 'Manual', returning: 'Returning', replay: 'Replay' };
+const MODE_LABEL: Readonly<Record<DriveMode, string>> = { auto: 'Otomatik', manual: 'Manuel', returning: 'Dönülüyor', replay: 'Tekrar' };
 const ANNOUNCE: Readonly<Record<DriveMode, string>> = {
-  auto: 'Auto. The car drives the lap.',
-  manual: 'Manual. You are driving. Enter hands back to Auto.',
-  returning: 'Returning to the lap. Any driving key takes the wheel back.',
-  replay: 'Replay.',
+  auto: 'Otomatik. Araç turu kendi sürüyor.',
+  manual: 'Manuel. Kontrol sizde. Enter otomatik sürüşe bırakır.',
+  returning: 'Tura dönülüyor. Herhangi bir sürüş tuşuyla kontrolü geri alabilirsiniz.',
+  replay: 'Tekrar.',
 };
 /** How long a station's note and a short note (controller, back on the road) stay, s. */
 const STATION_NOTE_S = 9;
@@ -71,30 +71,30 @@ export default {
     const hintPrompt = h(
       'span',
       { class: 'sl-drive-hint-row', 'data-kind': 'prompt' },
-      h('span', { class: 'sl-drive-fine' }, 'Press ', ...kbd('W'), ' or ', ...kbd('↑'), ' to take the wheel'),
-      h('span', { class: 'sl-drive-padtext' }, 'Press ', ...kbd('A'), ' or move a stick to take the wheel'),
-      h('span', { class: 'sl-drive-coarse' }, 'Tap Manual to drive'),
+      h('span', { class: 'sl-drive-fine' }, 'Basın: ', ...kbd('W'), ' veya ', ...kbd('↑'), ' · direksiyona geçin'),
+      h('span', { class: 'sl-drive-padtext' }, 'Basın: ', ...kbd('A'), ' veya direksiyona geçmek için oyun çubuğunu hareket ettirin'),
+      h('span', { class: 'sl-drive-coarse' }, 'Sürmek için Manuel seçeneğine dokunun'),
     );
     const hintControls = h(
       'span',
       { class: 'sl-drive-hint-row', 'data-kind': 'controls' },
-      h('span', { class: 'sl-drive-hint-group' }, ...kbd('W', 'A', 'S', 'D'), h('span', { class: 'sl-drive-hint-or' }, 'or arrows'), 'Drive'),
-      group(['R'], 'Reset'),
-      group(['Enter'], 'Hand back'),
+      h('span', { class: 'sl-drive-hint-group' }, ...kbd('W', 'A', 'S', 'D'), h('span', { class: 'sl-drive-hint-or' }, 'veya ok tuşları'), 'Sür'),
+      group(['R'], 'Sıfırla'),
+      group(['Enter'], 'Kontrolü bırak'),
     );
-    const hintPad = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'pad' }, group(['Stick'], 'Steer'), group(['RT', 'LT'], 'Gas, brake'), group(['Y'], 'Reset'), group(['A'], 'Hand back'));
+    const hintPad = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'pad' }, group(['Çubuk'], 'Yön ver'), group(['RT', 'LT'], 'Gaz, fren'), group(['Y'], 'Sıfırla'), group(['A'], 'Kontrolü bırak'));
     const stationName = h('span', { class: 'sl-drive-station-name' });
     const stationText = h('span', { class: 'sl-drive-station-text' });
     const hintStation = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'station' }, stationName, stationText);
     const noteText = h('span');
     const hintNote = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'note' }, noteText);
     const cueCount = h('span', { class: 'sl-drive-cue-count' });
-    const hintCue = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'cue' }, 'Back to Auto in ', cueCount, h('span', { class: 'sl-drive-hint-or' }, '· press any key'));
+    const hintCue = h('span', { class: 'sl-drive-hint-row', 'data-kind': 'cue' }, 'Otomatik sürüşe kalan: ', cueCount, h('span', { class: 'sl-drive-hint-or' }, '· herhangi bir tuşa basın'));
     const hint = h('div', { class: 'sl-drive-hint', 'aria-hidden': 'true' }, hintPrompt, hintControls, hintPad, hintStation, hintNote, hintCue);
 
-    const autoLabel = h('span', { class: 'sl-drive-seg-label' }, 'Auto');
+    const autoLabel = h('span', { class: 'sl-drive-seg-label' }, 'Otomatik');
     const segAuto = h('span', { class: 'sl-drive-seg', 'data-mode': 'auto' }, h('span', { class: 'sl-drive-dot', 'aria-hidden': 'true' }), autoLabel, ...kbd('Enter'));
-    const segManual = h('span', { class: 'sl-drive-seg', 'data-mode': 'manual' }, h('span', { class: 'sl-drive-dot', 'aria-hidden': 'true' }), 'Manual', ...kbd('W'));
+    const segManual = h('span', { class: 'sl-drive-seg', 'data-mode': 'manual' }, h('span', { class: 'sl-drive-dot', 'aria-hidden': 'true' }), 'Manuel', ...kbd('W'));
     const toggle = h(
       'button',
       { type: 'button', class: 'sl-drive-toggle', 'aria-keyshortcuts': 'Enter' },
@@ -105,11 +105,11 @@ export default {
     const speed = h('span', { class: 'sl-drive-speed' });
     const gear = h('span', { class: 'sl-drive-gear' });
     const readout = h('span', { class: 'sl-drive-readout', 'aria-hidden': 'true' }, speed, h('span', { class: 'sl-drive-unit' }, 'km/h'), gear);
-    const note = h('span', { class: 'sl-drive-note' }, 'Auto only for this vehicle');
+    const note = h('span', { class: 'sl-drive-note' }, 'Bu araçta yalnızca otomatik sürüş var');
 
     // Returning (10-04): the autopilot is bringing the car back; "Rejoin now" releases at once (a faded cut)
-    const returnText = h('span', { class: 'sl-drive-return-text' }, 'Finding the line…');
-    const rejoinBtn = h('button', { type: 'button', class: 'sl-drive-rejoin', title: 'Rejoin the live lap now' }, 'Rejoin now');
+    const returnText = h('span', { class: 'sl-drive-return-text' }, 'Sürüş çizgisi aranıyor…');
+    const rejoinBtn = h('button', { type: 'button', class: 'sl-drive-rejoin', title: 'Canlı tura hemen dön' }, 'Şimdi dön');
     const returnChip = h('span', { class: 'sl-drive-return' }, h('span', { class: 'sl-drive-return-dot', 'aria-hidden': 'true' }), returnText, rejoinBtn);
 
     // handling HUD (09-05), Manual only: aid lamps + the Approximate badge in the pill (icon + text, shown only while
@@ -119,7 +119,7 @@ export default {
     const aidsTag = h('span', { class: 'sl-drive-aids-tag' });
     const aidsBtn = h(
       'button',
-      { type: 'button', class: 'sl-drive-aids-btn', title: 'Assists', 'aria-expanded': 'false', 'aria-controls': 'sl-drive-aids-panel' },
+      { type: 'button', class: 'sl-drive-aids-btn', title: 'Sürüş destekleri', 'aria-expanded': 'false', 'aria-controls': 'sl-drive-aids-panel' },
       icon('assists'),
       aidsTag,
     );
@@ -136,18 +136,18 @@ export default {
     // rumble toggle: only while a pad that can rumble is connected
     const rumbleSwitch = h('input', { type: 'checkbox', role: 'switch', class: 'sl-drive-switch', 'aria-labelledby': 'sl-drive-rumble', 'aria-describedby': 'sl-drive-rumble-hint' });
     rumbleSwitch.checked = true;
-    const rumbleRow = switchRow('sl-drive-rumble', 'Controller rumble', 'A light buzz on kerbs, bumps and at the grip limit', rumbleSwitch);
+    const rumbleRow = switchRow('sl-drive-rumble', 'Oyun kumandası titreşimi', 'Bordürlerde, tümseklerde ve tutunma sınırında hafif titreşim', rumbleSwitch);
     rumbleRow.hidden = true;
     const aidsPanel = h(
       'div',
       { id: 'sl-drive-aids-panel', class: 'sl-drive-aids-panel sl-drive-panel', role: 'group', 'aria-labelledby': 'sl-drive-aids-title', hidden: true },
-      h('div', { class: 'sl-drive-aids-head' }, h('span', { id: 'sl-drive-aids-title', class: 'sl-drive-aids-title' }, 'Assists'), h('span', { class: 'sl-drive-aids-model' }, 'Assist: simplified model')),
+      h('div', { class: 'sl-drive-aids-head' }, h('span', { id: 'sl-drive-aids-title', class: 'sl-drive-aids-title' }, 'Sürüş destekleri'), h('span', { class: 'sl-drive-aids-model' }, 'Destek: basitleştirilmiş model')),
       ...AID_KEYS.map((key, i) => switchRow(`sl-drive-aid-${key}`, AID_COPY[key].name, AID_COPY[key].hint, switches[i]!)),
       rumbleRow,
     );
 
     // stations (10-04): experiments on the proving ground, never challenges (copy from the world content)
-    const stationsLabel = h('span', { class: 'sl-drive-stations-label' }, 'Stations');
+    const stationsLabel = h('span', { class: 'sl-drive-stations-label' }, 'Deney noktaları');
     const stationsBtn = h(
       'button',
       { type: 'button', class: 'sl-drive-stations-btn', 'aria-expanded': 'false', 'aria-controls': 'sl-drive-stations-panel', hidden: true },
@@ -233,7 +233,7 @@ export default {
       note.classList.remove('is-pulse');
       void note.offsetWidth; // restart the pulse
       note.classList.add('is-pulse');
-      say('Manual driving is not available for this vehicle.');
+      say('Bu araçta manuel sürüş kullanılamıyor.');
     };
     const takeOver = () => {
       if (!available()) return refuse();
@@ -265,8 +265,8 @@ export default {
       const d = c.sim.frame.drive;
       if (handBackKind(d.zone, d.lineOffset, annexZones()) === 'return') bus.emit('drive:request', { mode: 'auto' });
       else {
-        showNote('Returning to the lap');
-        say('Returning to the lap.');
+        showNote('Tura dönülüyor');
+        say('Tura dönülüyor.');
         fadeThen(release);
       }
     };
@@ -307,11 +307,11 @@ export default {
         rumbleRow.hidden = !canRumble(next);
         root.classList.toggle('has-pad', next !== null);
         if (next && !was) {
-          showNote('Controller connected');
-          say('Controller connected.');
+          showNote('Oyun kumandası bağlandı');
+          say('Oyun kumandası bağlandı.');
         } else if (!next && was) {
-          showNote('Controller disconnected');
-          say('Controller disconnected. Keyboard still drives.');
+          showNote('Oyun kumandasının bağlantısı kesildi');
+          say('Oyun kumandasının bağlantısı kesildi. Klavyeyle sürmeye devam edebilirsiniz.');
         }
       },
     );
@@ -420,8 +420,8 @@ export default {
     let listOf: readonly StationDefinition[] | null = null;
     const renderStations = () => {
       const auto = !isDriving(mode());
-      stationsTitle.textContent = auto ? 'Drive the proving ground' : 'Stations';
-      stationsSub.textContent = auto ? 'Pick a place to try' : 'Drive to a place';
+      stationsTitle.textContent = auto ? 'Test alanında sür' : 'Deney noktaları';
+      stationsSub.textContent = auto ? 'Denemek için bir yer seçin' : 'Bir deney noktasına sürün';
       const list = stations();
       if (list === listOf) return;
       listOf = list;
@@ -430,7 +430,7 @@ export default {
           const b = h(
             'button',
             { type: 'button', class: 'sl-drive-station', 'data-station': st.id },
-            h('span', { class: 'sl-drive-station-row' }, h('span', { class: 'sl-drive-aid-name' }, st.name), st.suspension ? null : h('span', { class: 'sl-drive-station-tag' }, 'Tyre grip, not suspension')),
+            h('span', { class: 'sl-drive-station-row' }, h('span', { class: 'sl-drive-aid-name' }, st.name), st.suspension ? null : h('span', { class: 'sl-drive-station-tag' }, 'Lastik tutunması deneyi')),
             h('span', { class: 'sl-drive-aid-hint' }, st.experiment),
           );
           b.addEventListener('click', (e) => goStation(st, e.detail === 0));
@@ -473,14 +473,14 @@ export default {
         const world = c.sim.current.world;
         const loopDistance = world ? Math.abs(world.project(d.x, d.y, NaN, fr).l) : Number.NaN;
         const spawn = nearestSpawn(d.x, d.y, loopDistance, stations());
-        showNote('Back inside the proving ground');
-        say('Out of bounds. Back inside the proving ground.');
+        showNote('Test alanına geri dönüldü');
+        say('Alan dışına çıktınız. Test alanına geri dönüldü.');
         fadeThen(() => bus.emit('drive:reset', spawn ? { spawn } : {}));
       } else if (e.kind === 'fault') {
         // the plant restored its last good state; repeated restores mean the car cannot settle: put it on the road
         if (!noteFault(faultTimes, e.simTime) || mode() !== 'manual') return;
-        showNote('Reset to road');
-        say('The model could not settle. Reset to road.');
+        showNote('Yola geri dönüldü');
+        say('Model kararlı hale gelemedi. Yola geri dönüldü.');
         fadeThen(() => bus.emit('drive:reset', {}));
       }
     });
@@ -534,7 +534,9 @@ export default {
       noteS = Math.max(0, noteS - dt);
       let kind: HintKind = 'none';
       if (driving) {
-        idleS += dt;
+        // An open action popover is active use, including a verification iframe whose input stays in its frame.
+        // Resume a full idle period after it closes rather than cutting off the visitor's pending action.
+        idleS = actions.querySelector('[aria-expanded="true"]') ? 0 : idleS + dt;
         controlsS = Math.max(0, controlsS - dt);
         idleState(idleS, c.flags.screen, idle);
         if (idle.handBack) handBack();
@@ -548,8 +550,8 @@ export default {
         idleS = offLap() && !store.get().paused ? idleS + dt : 0;
         if (idleS >= TIMING.rejoinAfter && !c.flags.e2e) {
           idleS = 0;
-          showNote('Rejoining the live lap');
-          say('Rejoining the live lap.');
+          showNote('Canlı tura dönülüyor');
+          say('Canlı tura dönülüyor.');
           fadeThen(release);
         }
         if (m === 'auto') autoS += dt;
@@ -558,7 +560,7 @@ export default {
       }
       setHint(kind);
       if (kind === 'cue' && idle.countdown !== shown.countdown) {
-        if (shown.countdown <= 0) say(`Back to Auto in ${idle.countdown} seconds. Press any key to keep driving.`);
+        if (shown.countdown <= 0) say(`${idle.countdown} saniye sonra otomatik sürüşe dönülecek. Sürmeye devam etmek için herhangi bir tuşa basın.`);
         shown.countdown = idle.countdown;
         cueCount.textContent = String(idle.countdown);
       } else if (kind !== 'cue') shown.countdown = 0;
@@ -572,16 +574,16 @@ export default {
         actions.classList.toggle('is-driving', driving);
         pill.classList.toggle('is-unavailable', !can && !driving);
         pill.classList.toggle('is-returning', m === 'returning');
-        autoLabel.textContent = driving ? 'Auto' : MODE_LABEL[m];
+        autoLabel.textContent = driving ? 'Otomatik' : MODE_LABEL[m];
         toggle.setAttribute('aria-pressed', String(driving));
         if (!can && !driving) {
           toggle.setAttribute('aria-disabled', 'true');
-          toggle.setAttribute('aria-label', `Driving mode: ${MODE_LABEL[m]}. Manual driving is not available for this vehicle`);
-          toggle.title = 'Auto only for this vehicle';
+          toggle.setAttribute('aria-label', `Sürüş modu: ${MODE_LABEL[m]}. Bu araçta manuel sürüş kullanılamıyor`);
+          toggle.title = 'Bu araçta yalnızca otomatik sürüş var';
         } else {
           toggle.removeAttribute('aria-disabled');
-          toggle.setAttribute('aria-label', driving ? 'Driving mode: Manual. Hand back to Auto' : `Driving mode: ${MODE_LABEL[m]}. Take the wheel`);
-          toggle.title = driving ? 'Hand back to Auto (Enter)' : 'Take the wheel (W, ↑ or Enter)';
+          toggle.setAttribute('aria-label', driving ? 'Sürüş modu: Manuel. Otomatik sürüşe bırak' : `Sürüş modu: ${MODE_LABEL[m]}. Direksiyona geç`);
+          toggle.title = driving ? 'Otomatik sürüşe bırak (Enter)' : 'Direksiyona geç (W, ↑ veya Enter)';
         }
         if (!stationsPanel.hidden) renderStations();
       }
@@ -591,11 +593,11 @@ export default {
         stationsBtn.hidden = nStations === 0;
         if (nStations === 0) setOpen(stationsPanel, false);
       }
-      stationsBtn.setAttribute('aria-label', driving ? 'Stations: drive to an experiment on the proving ground' : 'Drive the proving ground: pick an experiment');
+      stationsBtn.setAttribute('aria-label', driving ? 'Deney noktaları: test alanındaki bir deneye sürün' : 'Test alanında sür: bir deney seçin');
       const off = offLap();
       pill.classList.toggle('is-off-lap', off);
       if (m === 'returning' || off) {
-        const label = off ? 'Off the live lap' : returningLabel((c.sim.current.drive as DriveHost | undefined)?.autopilot?.state);
+        const label = off ? 'Canlı turun dışında' : returningLabel((c.sim.current.drive as DriveHost | undefined)?.autopilot?.state);
         if (label !== shown.returning) returnText.textContent = shown.returning = label;
       }
       const lit = updateLamps(t.drive, driving, dt, lampHold);

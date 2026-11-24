@@ -27,29 +27,29 @@ export interface Template {
   readonly priority: number;
 }
 
-const SPEED = 'Speed {speed}';
+const SPEED = 'Hız {speed}';
 export const TEMPLATES: Readonly<Record<string, Template>> = {
   'slide-rear-lift': {
     id: 'slide-rear-lift',
-    text: 'Lifting off mid-corner moved load onto the front tyres; the lighter rear lost grip and the car rotated.',
+    text: 'Virajda gazı bırakınca yük ön lastiklere geçti; hafifleyen arka taraf tutuşunu kaybetti ve araç döndü.',
     chip: SPEED,
     warn: true,
     priority: 5,
   },
-  'slide-rear': { id: 'slide-rear', text: 'The rear tyres went past their grip and the tail stepped out. Ease the throttle and steer where you want to go.', chip: SPEED, warn: true, priority: 4 },
-  'slide-front': { id: 'slide-front', text: 'The front tyres went past their grip, so the car ran wide instead of turning. Less steering and less speed give it back.', chip: SPEED, warn: true, priority: 4 },
-  lockup: { id: 'lockup', text: 'The {wheel} wheel locked under braking, and a sliding tyre cannot steer. Ease the brake until it turns again.', chip: SPEED, warn: true, priority: 4 },
-  wheelspin: { id: 'wheelspin', text: 'The {wheel} wheel spun up: more drive than its grip could take. Squeeze the throttle in gradually.', chip: SPEED, warn: true, priority: 3 },
-  'hard-stop': { id: 'hard-stop', text: 'A hard stop: braking moved load onto the front tyres and the nose dived.', chip: 'From {from}', priority: 3 },
-  'strike-kerb': { id: 'strike-kerb', text: 'The {wheel} wheel hit the kerb: its spring took the hit and the damper settled it.', chip: 'Travel {corner} {travel}', priority: 3 },
-  'strike-bump': { id: 'strike-bump', text: 'The {wheel} wheel hit a bump: one corner moves, the body stays calmer.', chip: 'Travel {corner} {travel}', priority: 2 },
-  'wheel-lift': { id: 'wheel-lift', text: 'The {wheel} wheel went light: with almost no load it has almost no grip.', chip: 'Load {corner} {load}', warn: true, priority: 2 },
-  'bump-stop': { id: 'bump-stop', text: 'The {wheel} wheel used up its travel and touched the bump stop.', chip: 'Travel {corner} {travel}', warn: true, priority: 2 },
-  'aid-abs': { id: 'aid-abs', text: 'Anti-lock assist eased the brakes so the wheels kept turning and the car could still steer.', chip: 'Assist · simplified model', priority: 2 },
-  'aid-traction': { id: 'aid-traction', text: 'Traction assist trimmed the engine as the driven wheels began to spin.', chip: 'Assist · simplified model', priority: 2 },
-  'aid-stability': { id: 'aid-stability', text: 'Stability assist braked one wheel to keep the car pointing where you steer.', chip: 'Assist · simplified model', priority: 2 },
-  swap: { id: 'swap', text: 'Now on {suspension}. Drive the same corner the same way: notice how much steering it needs and how the rear settles.', priority: 1 },
-  'swap-same': { id: 'swap-same', text: 'Now on {suspension}. In this model it drives almost like {previous}: the linkage moves differently, the feel hardly changes.', priority: 1 },
+  'slide-rear': { id: 'slide-rear', text: 'Arka lastikler tutuş sınırını aştı ve arka taraf kaydı. Gazı azaltın ve direksiyonu gitmek istediğiniz yöne çevirin.', chip: SPEED, warn: true, priority: 4 },
+  'slide-front': { id: 'slide-front', text: 'Ön lastikler tutuş sınırını aştığı için araç dönmek yerine virajın dışına açıldı. Hızı ve direksiyon açısını azaltmak tutuşu geri kazandırır.', chip: SPEED, warn: true, priority: 4 },
+  lockup: { id: 'lockup', text: '{wheel} tekerlek frenlemede kilitlendi; kayan lastik yönlendirme yapamaz. Yeniden dönene kadar freni azaltın.', chip: SPEED, warn: true, priority: 4 },
+  wheelspin: { id: 'wheelspin', text: '{wheel} tekerlek patinaja düştü: çekiş kuvveti tutuşunu aştı. Gaza kademeli basın.', chip: SPEED, warn: true, priority: 3 },
+  'hard-stop': { id: 'hard-stop', text: 'Sert frenlemede yük ön lastiklere geçti ve burun öne daldı.', chip: 'Başlangıç hızı {from}', priority: 3 },
+  'strike-kerb': { id: 'strike-kerb', text: '{wheel} tekerlek bordüre çarptı: yay darbeyi karşıladı, amortisör salınımı söndürdü.', chip: 'Hareket {corner} {travel}', priority: 3 },
+  'strike-bump': { id: 'strike-bump', text: '{wheel} tekerlek tümseğe çıktı: tek köşe hareket ederken gövde daha sakin kalır.', chip: 'Hareket {corner} {travel}', priority: 2 },
+  'wheel-lift': { id: 'wheel-lift', text: '{wheel} tekerleğin yükü azaldı: yük neredeyse sıfırken tutuş da neredeyse sıfırdır.', chip: 'Yük {corner} {load}', warn: true, priority: 2 },
+  'bump-stop': { id: 'bump-stop', text: '{wheel} tekerlek hareket mesafesini tüketti ve darbe takozuna dayandı.', chip: 'Hareket {corner} {travel}', warn: true, priority: 2 },
+  'aid-abs': { id: 'aid-abs', text: 'ABS desteği fren kuvvetini azalttı; böylece tekerlekler dönmeye devam etti ve araç yönlendirilebildi.', chip: 'Sürüş desteği · basitleştirilmiş model', priority: 2 },
+  'aid-traction': { id: 'aid-traction', text: 'Çekiş desteği, tahrik tekerlekleri patinaja başlayınca motor gücünü azalttı.', chip: 'Sürüş desteği · basitleştirilmiş model', priority: 2 },
+  'aid-stability': { id: 'aid-stability', text: 'Denge desteği, aracı direksiyonla gösterdiğiniz yönde tutmak için tek tekerleğe fren uyguladı.', chip: 'Sürüş desteği · basitleştirilmiş model', priority: 2 },
+  swap: { id: 'swap', text: 'Şimdi {suspension} kullanılıyor. Aynı virajı aynı şekilde dönün: gereken direksiyon açısını ve arka tarafın nasıl oturduğunu gözlemleyin.', priority: 1 },
+  'swap-same': { id: 'swap-same', text: 'Şimdi {suspension} kullanılıyor. Bu modelde sürüşü {previous} ile neredeyse aynı: bağlantılar farklı hareket etse de sürüş hissi pek değişmez.', priority: 1 },
 };
 
 /**
@@ -82,8 +82,8 @@ export function templateFor(m: CoachMoment): Template | null {
   }
 }
 
-const CORNER_NAME: readonly string[] = ['front-left', 'front-right', 'rear-left', 'rear-right'];
-const CORNER_SHORT: readonly string[] = ['FL', 'FR', 'RL', 'RR'];
+const CORNER_NAME: readonly string[] = ['sol ön', 'sağ ön', 'sol arka', 'sağ arka'];
+const CORNER_SHORT: readonly string[] = ['SÖ', 'SĞÖ', 'SA', 'SĞA'];
 const signed = (v: number, d: number, unit: string) => (v > 0 && fmt(v, d) !== fmt(0, d) ? '+' : '') + fmt(v, d) + unit;
 const speedText = (mps: number) => fmt(kmh(Math.abs(mps)), 0) + ' km/h';
 
@@ -116,7 +116,7 @@ export function compose(tpl: Template, m: CoachMoment, t: TelemetryFrame, label:
 
 /** Station card shown on entering a zone with stations: what to try there (copy from the world, no digits). */
 export function stationLine(st: StationDefinition): Line {
-  return { id: `station:${st.id}`, text: `${st.name}: ${st.experiment}`, chip: st.suspension ? '' : 'Tyre grip, not suspension', warn: false, priority: 6 };
+  return { id: `station:${st.id}`, text: `${st.name}: ${st.experiment}`, chip: st.suspension ? '' : 'Lastik tutuşu; süspansiyon etkisi değil', warn: false, priority: 6 };
 }
 
 /** The station of `zone` whose spawn is nearest to (x, y), or undefined. */

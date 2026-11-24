@@ -24,7 +24,7 @@ import { CAFE_RACER, MOTO_SUSPENSIONS, STATIC_POSE, createMotoFrame, poseMotoFra
 const DEG = Math.PI / 180;
 
 function build(susp: MotorcycleSuspensionDefinition): { bike: CafeRacerVisual; parts: MotoPlanarVisual } {
-  const bike = buildCafeRacer(CAFE_RACER, { steeringHead: susp.front.steeringHead, rake: susp.front.rake, swingarmPivot: susp.rear.pivot });
+  const bike = buildCafeRacer(CAFE_RACER, { steeringHead: susp.front.steeringHead, rake: susp.front.rake, forkOffset: susp.front.offset, swingarmPivot: susp.rear.pivot });
   const parts = buildMotoPlanar(susp, CAFE_RACER);
   return { bike, parts };
 }
@@ -85,7 +85,10 @@ describe('05-02 cafe racer + moto-planar visuals', () => {
       const partMeshes = vis(parts.inspect().meshes);
       const tris = (ms: readonly Mesh[]) => ms.reduce((s, m) => s + (m.geometry.index ? m.geometry.index.count : m.geometry.getAttribute('position').count) / 3, 0);
       console.log(`${susp.id}: bike ${bikeMeshes.length} draws / ${Math.round(tris(bikeMeshes))} tris, suspension ${partMeshes.length} draws / ${Math.round(tris(partMeshes))} tris`);
-      expect(bikeMeshes.length).toBeLessThanOrEqual(7);
+      const riderMeshes = bikeMeshes.filter((mesh) => mesh.name.startsWith('rider:'));
+      expect(riderMeshes.length).toBeGreaterThan(0);
+      expect(riderMeshes.length).toBeLessThanOrEqual(8);
+      expect(bikeMeshes.length - riderMeshes.length).toBeLessThanOrEqual(7);
       expect(partMeshes.length).toBeLessThanOrEqual(26);
       expect(tris(bikeMeshes) + tris(partMeshes)).toBeLessThan(150000);
       bike.dispose();
@@ -217,11 +220,13 @@ describe('05-02 cafe racer + moto-planar visuals', () => {
     bike.setXray(0);
     expect(ghost.visible).toBe(false);
     const box = new Box3().setFromObject(bike.root);
-    expect(box.max.y).toBeLessThan(1.15);
+    expect(box.max.y).toBeGreaterThan(1.35);
+    expect(box.max.y).toBeLessThan(1.8);
     bike.dispose();
     parts.dispose();
   });
 
+  // Warm-up and allocation sweeps cover all three presets, including the rider's articulated sleeves.
   it('update allocates nothing', () => {
     const gc = (globalThis as { gc?: () => void }).gc;
     if (!gc) return;
@@ -248,7 +253,7 @@ describe('05-02 cafe racer + moto-planar visuals', () => {
       bike.dispose();
       parts.dispose();
     }
-  });
+  }, 60_000);
   it('follows the real 05-01 simulation for all three presets (amplification 1 and 3)', () => {
     const presets = [motoClassic, motoModern, motoTelelever];
     const catalog: SimCatalog = {

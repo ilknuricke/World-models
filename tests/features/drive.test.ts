@@ -298,18 +298,18 @@ describe('handling HUD (09-05; ARCH-M2 §10.2, §10.5, §13)', () => {
     expect([...AID_KEYS]).toEqual(['abs', 'traction', 'stability', 'steering']);
     const copy = [...Object.values(AID_COPY).flatMap((c) => [c.name, c.hint]), ...Object.values(LAMP_TEXT), ...Object.values(LAMP_TITLE)];
     for (const s of copy) expect(s).not.toMatch(/\d|ESP|ASR|DSC|VSC|StabiliTrak/);
-    expect(aidsSummary(DEFAULT_AIDS)).toEqual({ tag: '', label: 'Assists: all on. Assist: simplified model' });
-    for (const key of AID_KEYS) expect(LAMP_TITLE.abs + aidsSummary(withAid(DEFAULT_AIDS, key, false)).label).toMatch(/simplified model/);
+    expect(aidsSummary(DEFAULT_AIDS)).toEqual({ tag: '', label: 'Sürüş destekleri: tümü açık. Destek: basitleştirilmiş model' });
+    for (const key of AID_KEYS) expect(LAMP_TITLE.abs + aidsSummary(withAid(DEFAULT_AIDS, key, false)).label).toMatch(/basitleştirilmiş model/);
   });
 
   it('withAid flips one aid and leaves the rest; the summary names what is off', () => {
     const noAbs = withAid(DEFAULT_AIDS, 'abs', false);
     expect(noAbs).toEqual({ abs: false, traction: true, stability: true, steering: true });
     expect(DEFAULT_AIDS.abs).toBe(true); // not mutated
-    expect(aidsSummary(noAbs)).toEqual({ tag: 'Some off', label: 'Assists: Anti-lock brakes off. Assist: simplified model' });
+    expect(aidsSummary(noAbs)).toEqual({ tag: 'Bazıları kapalı', label: 'Sürüş destekleri: Kilitlenme önleyici frenler kapalı. Destek: basitleştirilmiş model' });
     const none = AID_KEYS.reduce((a, k) => withAid(a, k, false), DEFAULT_AIDS);
-    expect(aidsSummary(none).tag).toBe('Off');
-    expect(aidsSummary(withAid(none, 'steering', true)).label).toBe('Assists: Anti-lock brakes, Traction control, Stability control off. Assist: simplified model');
+    expect(aidsSummary(none).tag).toBe('Kapalı');
+    expect(aidsSummary(withAid(none, 'steering', true)).label).toBe('Sürüş destekleri: Kilitlenme önleyici frenler, Çekiş kontrolü, Denge kontrolü kapalı. Destek: basitleştirilmiş model');
   });
 
   it('lamps follow the frame.drive flags, hold briefly after an intervention, and are dark outside Manual', () => {

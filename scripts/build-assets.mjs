@@ -58,12 +58,12 @@ async function createIO() {
 
 const nodeNames = (doc) => doc.getRoot().listNodes().map((n) => n.getName()).filter(Boolean);
 
-/** dedup + prune(keepLeaves) + meshopt. Never flatten/join/palette/simplify/instance/weld: they merge or drop the
- *  named wheel/pivot nodes (research 20 §A1). */
+/** Keep named pivots/bones and skinned attributes intact. Never flatten/join/palette/simplify/instance/weld:
+ *  they merge or drop nodes needed for wheel articulation and skeletal posing. */
 async function optimiseGlb(io, bytes, label) {
   const doc = await io.readBinary(bytes);
   const before = nodeNames(doc);
-  await doc.transform(dedup(), prune({ keepLeaves: true }));
+  await doc.transform(dedup(), prune({ keepLeaves: true, keepAttributes: doc.getRoot().listSkins().length > 0 }));
   doc
     .createExtension(EXTMeshoptCompression)
     .setRequired(true)
@@ -74,9 +74,11 @@ async function optimiseGlb(io, bytes, label) {
   const after = new Set(nodeNames(await io.readBinary(out)));
   const lost = before.filter((n) => !after.has(n));
   if (lost.length) throw new Error(`${label}: optimisation dropped named nodes: ${lost.slice(0, 10).join(', ')}`);
-  for (const re of REQUIRED_CORNER_NODES) {
-    const n = [...after].filter((name) => re.test(name)).length;
-    if (n < 4) throw new Error(`${label}: expected >= 4 nodes matching ${re}, found ${n}`);
+  if (label.startsWith('car/')) {
+    for (const re of REQUIRED_CORNER_NODES) {
+      const n = [...after].filter((name) => re.test(name)).length;
+      if (n < 4) throw new Error(`${label}: expected >= 4 nodes matching ${re}, found ${n}`);
+    }
   }
   return out;
 }

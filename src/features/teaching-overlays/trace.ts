@@ -150,7 +150,7 @@ export interface TracePanel {
 
 export function createTracePanel(): TracePanel {
   const canvas = h('canvas', { class: 'sl-teaching-overlays-canvas', 'aria-hidden': 'true' });
-  const root = h('section', { class: 'sl-teaching-overlays-trace', 'aria-label': 'Camber versus wheel travel', hidden: true }, canvas);
+  const root = h('section', { class: 'sl-teaching-overlays-trace', 'aria-label': 'Tekerlek hareketine göre kamber', hidden: true }, canvas);
   const stat = document.createElement('canvas');
   const g = canvas.getContext('2d');
   const sg = stat.getContext('2d');
@@ -212,18 +212,18 @@ export function createTracePanel(): TracePanel {
       sg.textBaseline = 'alphabetic';
       sg.font = `600 10px ${pal.sans}`;
       sg.fillStyle = pal.text1;
-      sg.fillText(m === 'camber' ? 'CAMBER VS TRAVEL' : 'MOTION RATIO VS TRAVEL', PAD, 15);
+      sg.fillText(m === 'camber' ? 'KAMBER / HAREKET' : 'HAREKET ORANI / MESAFE', PAD, 15);
       sg.font = `500 10px ${pal.sans}`;
       sg.fillStyle = pal.text3;
       sg.textAlign = 'right';
-      if (previous && previousLabel) sg.fillText(`faint: ${previousLabel}`, W - PAD, 15);
+      if (previous && previousLabel) sg.fillText(`soluk: ${previousLabel}`, W - PAD, 15);
       for (let ai = 0; ai < 2; ai++) {
         const y0 = top(ai);
         const r = ranges[ai]!;
         sg.textAlign = 'left';
         sg.fillStyle = pal.text2;
         sg.font = `600 10px ${pal.sans}`;
-        sg.fillText(ai === 0 ? 'FRONT' : 'REAR', PAD, y0 - 4);
+        sg.fillText(ai === 0 ? 'ÖN' : 'ARKA', PAD, y0 - 4);
         // frame: zero travel + zero value guides, plot box hairlines
         sg.strokeStyle = pal.hair;
         sg.lineWidth = 1;
@@ -245,7 +245,7 @@ export function createTracePanel(): TracePanel {
         sg.fillStyle = pal.text3;
         sg.textAlign = 'right';
         // camber falls with bump, motion ratio usually rises: put the word where the curve is not
-        sg.fillText('bump →', W - PAD - 3, m === 'camber' ? y0 + 10 : y0 + PLOT_H - 3);
+        sg.fillText('sıkışma →', W - PAD - 3, m === 'camber' ? y0 + 10 : y0 + PLOT_H - 3);
         sg.font = `500 9px ${pal.mono}`;
         const unit = m === 'camber' ? '°' : '';
         const label = (v: number) => `${fmt(v, 1)}${unit}`;
@@ -294,7 +294,7 @@ export function createTracePanel(): TracePanel {
           g.font = `500 9px ${pal.sans}`;
           g.fillStyle = pal.text3;
           g.textAlign = 'right';
-          g.fillText('roll centre', left - 5, y0 - 4);
+          g.fillText('yalpa merkezi', left - 5, y0 - 4);
           g.textAlign = 'left';
         }
       }
@@ -323,7 +323,7 @@ export function createTracePanel(): TracePanel {
       g.font = `500 9px ${pal.sans}`;
       g.fillStyle = pal.text3;
       g.textAlign = 'right';
-      g.fillText(t.corners.length === 4 ? '● left  ○ right' : '● wheel', W - PAD, height - 3);
+      g.fillText(t.corners.length === 4 ? '● sol  ○ sağ' : '● tekerlek', W - PAD, height - 3);
       g.textAlign = 'left';
     },
     setVisible(on) {

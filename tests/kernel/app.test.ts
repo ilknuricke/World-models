@@ -56,7 +56,7 @@ describe('createApp boot (§6.2)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     const fatal = boot([{ id: 'renderer', init: () => Promise.reject(new Error('no webgl2')) }]);
-    await expect(fatal.start()).rejects.toThrow('This experience needs WebGL 2');
+    await expect(fatal.start()).rejects.toThrow('Bu uygulama için WebGL 2 gereklidir');
     const ok = boot([{ id: 'insights', init: () => { throw new Error('bug'); } }, { id: 'controls' }]);
     await expect(ok.start()).resolves.toBeUndefined();
     ok.stop();

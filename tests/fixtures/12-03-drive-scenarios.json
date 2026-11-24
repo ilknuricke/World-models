@@ -4,7 +4,7 @@
     "vehicle": "gt-coupe",
     "suspension": "macpherson",
     "section": "steering-pad",
-    "section_name": "Steering circle",
+    "section_name": "Dairesel sürüş",
     "event": "mid-corner, left-hander, outside (right) wheels loaded, assists off (anti-lock, traction, stability, steering help)",
     "speed_kmh": 72,
     "lat_g": 1.01,
@@ -64,7 +64,7 @@
       "sideslip_deg": -7.4,
       "yaw_rate_dps": 31,
       "gear": 5,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": []
     }
   },
@@ -73,7 +73,7 @@
     "vehicle": "gt-coupe",
     "suspension": "multilink",
     "section": "lane-change",
-    "section_name": "Lane change",
+    "section_name": "Şerit değiştirme",
     "event": "mid-corner, left-hander, outside (right) wheels loaded, assists off (anti-lock, traction, stability, steering help)",
     "speed_kmh": 90,
     "lat_g": 0.97,
@@ -133,7 +133,7 @@
       "sideslip_deg": -2.5,
       "yaw_rate_dps": 32,
       "gear": 5,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": []
     }
   },
@@ -142,7 +142,7 @@
     "vehicle": "gt-coupe",
     "suspension": "double-wishbone",
     "section": "braking-platform",
-    "section_name": "Braking platform",
+    "section_name": "Fren test alanı",
     "event": "hard braking, nose loaded, on a straight",
     "speed_kmh": 90,
     "lat_g": 0,
@@ -199,7 +199,7 @@
       "sideslip_deg": 0,
       "yaw_rate_dps": 0,
       "gear": 5,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": [
         "abs"
       ]
@@ -267,7 +267,7 @@
       "sideslip_deg": 0,
       "yaw_rate_dps": 0,
       "gear": 1,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": [
         "traction"
       ]
@@ -278,7 +278,7 @@
     "vehicle": "gt-coupe",
     "suspension": "macpherson",
     "section": "braking-platform",
-    "section_name": "Braking platform",
+    "section_name": "Fren test alanı",
     "event": "hard braking, nose loaded, on a straight, assists off (anti-lock, traction, stability, steering help)",
     "speed_kmh": 73,
     "lat_g": 0,
@@ -338,7 +338,7 @@
       "sideslip_deg": 0,
       "yaw_rate_dps": 0,
       "gear": 5,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": []
     }
   },
@@ -347,7 +347,7 @@
     "vehicle": "gt-coupe",
     "suspension": "multilink",
     "section": "steering-pad",
-    "section_name": "Steering circle",
+    "section_name": "Dairesel sürüş",
     "event": "mid-corner, left-hander, outside (right) wheels loaded",
     "speed_kmh": 59,
     "lat_g": 0.66,
@@ -403,7 +403,7 @@
       "sideslip_deg": 0.6,
       "yaw_rate_dps": 23,
       "gear": 3,
-      "surface": "Dry asphalt",
+      "surface": "Kuru asfalt",
       "aids_active": []
     }
   }

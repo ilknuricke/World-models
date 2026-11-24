@@ -41,7 +41,7 @@ export interface App {
 }
 
 /** Features whose init failure ends the app, with the message shown to the user. */
-const FATAL: Readonly<Record<string, string>> = { renderer: 'This experience needs WebGL 2' };
+const FATAL: Readonly<Record<string, string>> = { renderer: 'Bu uygulama için WebGL 2 gereklidir' };
 
 export function createApp(options: CreateAppOptions): App {
   const warn = (msg: string) => console.warn(`[kernel] ${msg}`);

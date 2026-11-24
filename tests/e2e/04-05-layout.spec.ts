@@ -25,6 +25,7 @@ const HUD = [
   '.sl-controls-amp',
   '.sl-controls-bc',
   '.sl-controls-br',
+  '.sl-narration',
   '.sl-live-lab',
   '.sl-presenter',
   '.sl-poll',
@@ -151,14 +152,14 @@ test('desktop: follow, close-up and engineer-open layouts never overlap; the can
     const tag = `${size.width}x${size.height}`;
     await set(page, 'view', 'follow');
     await set(page, 'engineerOpen', false);
-    // The longest caption the insight rules can write (swap delta chip included) stays between the two columns.
+    // Long explanations and their chip remain in the right column, below the controls and narration toggle.
     await page.evaluate(() => {
       const caption = document.querySelector<HTMLElement>('.sl-insights-caption')!;
       caption.hidden = false;
-      caption.querySelector('.sl-insights-text')!.textContent = 'MacPherson strut → Double wishbone: the outside wheel keeps more negative camber through the long carousel';
+      caption.querySelector('.sl-insights-text')!.textContent = 'MacPherson dikme → Çift salıncak: uzun dairesel viraj boyunca dış tekerlek daha fazla negatif kamber korur';
       const chip = caption.querySelector<HTMLElement>('.sl-insights-chip')!;
       chip.hidden = false;
-      chip.textContent = 'CAMBER RL −0.2° → −0.9°';
+      chip.textContent = 'KAMBER SA −0.2° → −0.9°';
     });
     await shot(page, `follow-${tag}`);
     let list = await expectClean(page, `follow ${tag}`, ['.sl-controls-tag', '.sl-telemetry-panel', '.sl-engineer', '.sl-teaching-overlays-trace', '.sl-controls-amp', '.sl-insights-caption']);
@@ -241,7 +242,7 @@ test('big screen with a live room: tag, presence line, join card, telemetry, pol
   const host = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })).newPage();
   await host.goto(`/remote.html?room=${code}#k=${hostKey}`);
   await expect(host.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 30_000 });
-  await host.getByRole('button', { name: 'Open poll', exact: true }).click();
+  await host.getByRole('button', { name: 'Anketi aç', exact: true }).click();
   await expect(screen.locator('.sl-poll')).toBeVisible({ timeout: 20_000 });
   await set(screen, 'overlay', 'engineer');
 

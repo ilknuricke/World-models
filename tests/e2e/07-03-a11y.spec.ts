@@ -229,7 +229,7 @@ test.describe('07-03 accessibility', () => {
     await advance(page);
     await page.locator('.sl-controls-tr').screenshot({ path: join(SHOTS, '07-03-mute-toggle.png') });
     await page.keyboard.press('?');
-    await expect(page.locator('.sl-controls-help')).toContainText('Sound on / off');
+    await expect(page.locator('.sl-controls-help')).toContainText('Sesi aç / kapat');
     await page.keyboard.press('Escape');
 
     // Reload: remembered as on, but still no AudioContext until the visitor's first gesture.

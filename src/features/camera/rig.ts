@@ -72,8 +72,8 @@ export const CHASE = {
   clearance: 1.0,
 } as const;
 
-/** Motorcycle: a smaller, taller-than-wide subject; closer and lower so the bike fills about as much frame as the car. */
-export const BIKE_CHASE: ChaseFraming = { dist: [3.5, 4.5], height: [1.3, 1.55], fov: [44, 52], aimY: 0.62 };
+/** Frame both the motorcycle and its seated rider, keeping the helmet clear of the top edge. */
+export const BIKE_CHASE: ChaseFraming = { dist: [3.7, 4.6], height: [1.55, 1.8], fov: [44, 52], aimY: 0.84 };
 /** Size of a bike's director shots (orbit, front view) relative to the car's. */
 export const BIKE_SHOT_SCALE = 0.62;
 

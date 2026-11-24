@@ -105,7 +105,7 @@ describe('poll maths and catalogue', () => {
 
   it('the ready-made poll maps its options back to suspensions', () => {
     const poll = suspensionPoll('gt-coupe');
-    expect(poll.options).toEqual(['Strut', 'Wishbone', 'Multi-link']);
+    expect(poll.options).toEqual(['Dikme', 'Çift salıncak', 'Çok bağlantılı']);
     expect(poll.options.map((o) => suspensionForOption('gt-coupe', o))).toEqual(['macpherson', 'double-wishbone', 'multilink']);
     expect(suspensionForOption('gt-coupe', 'Pizza')).toBeNull();
     for (const v of VEHICLES) expect(v.suspensions.every((s) => s.label.length <= 40)).toBe(true);

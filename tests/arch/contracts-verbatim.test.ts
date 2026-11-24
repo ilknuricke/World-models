@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const root = new URL('../../', import.meta.url);
-const read = (path: string): string => readFileSync(new URL(path, root), 'utf8');
+const read = (path: string): string => readFileSync(new URL(path, root), 'utf8').replace(/\r\n/g, '\n');
 const m1 = read('.planning/ARCHITECTURE.md');
 const m2 = read('.planning/ARCHITECTURE-M2.md');
 

@@ -59,7 +59,7 @@ test.describe('10-04 drive UX v2', () => {
     const pill = page.locator('.sl-drive-pill');
     await expect(pill).toHaveClass(/is-returning/);
     await expect(page.locator('.sl-drive-rejoin')).toBeVisible();
-    await expect(page.locator('.sl-drive-toggle')).toHaveAccessibleName(/^Driving mode: Returning/);
+    await expect(page.locator('.sl-drive-toggle')).toHaveAccessibleName(/^Sürüş modu: Dönülüyor/);
     await page.waitForTimeout(500);
     await page.screenshot({ path: join(SHOTS, '10-04-returning.png') });
 
@@ -73,7 +73,7 @@ test.describe('10-04 drive UX v2', () => {
     // still on the detached clock after the latch (MD-07, 13-01): the pill says so and offers Rejoin now
     expect((await drive(page)).detached).toBe(true);
     await expect(pill).toHaveClass(/is-off-lap/);
-    await expect(page.locator('.sl-drive-return-text')).toHaveText('Off the live lap');
+    await expect(page.locator('.sl-drive-return-text')).toHaveText('Canlı turun dışında');
     await expect(page.locator('.sl-drive-rejoin')).toBeVisible();
 
     // take the wheel, hand back, and take it again while returning (any driving key, no cut)
@@ -106,13 +106,13 @@ test.describe('10-04 drive UX v2', () => {
     test.skip(!(await drive(page)).available, 'no Manual Drive plant in this build');
     const btn = page.locator('.sl-drive-stations-btn');
     await expect(btn).toBeVisible();
-    await expect(btn).toHaveAccessibleName(/Drive the proving ground/);
+    await expect(btn).toHaveAccessibleName(/Test alanında sür/);
     await btn.click();
     const panel = page.locator('#sl-drive-stations-panel');
     await expect(panel).toBeVisible();
-    await expect(panel).toContainText('Drive the proving ground');
+    await expect(panel).toContainText('Test alanında sür');
     await expect(panel.locator('.sl-drive-station')).toHaveCount(5);
-    await expect(panel.locator('[data-station="braking-platform"]')).toContainText('Tyre grip, not suspension');
+    await expect(panel.locator('[data-station="braking-platform"]')).toContainText('Lastik tutunması deneyi');
     expect(await panel.innerText()).not.toMatch(/\d/); // experiments, not challenges: no numbers
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, '10-04-stations.png') });
@@ -143,7 +143,7 @@ test.describe('10-04 drive UX v2', () => {
     const stop = await watchFade(page);
     await page.keyboard.press('Enter');
     await expect(page.locator('.sl-drive-hint')).toHaveAttribute('data-kind', 'note');
-    await expect(page.locator('.sl-drive-hint')).toContainText('Returning to the lap');
+    await expect(page.locator('.sl-drive-hint')).toContainText('Tura dönülüyor');
     await expect.poll(() => mode(page)).toBe('auto');
     await page.waitForTimeout(600);
     expect(await stop()).toBeGreaterThan(0.5);
@@ -208,7 +208,7 @@ test.describe('10-04 drive UX v2', () => {
 
     // rumble switch offered (dual-rumble in effects) inside the Assists popover
     await page.locator('.sl-drive-aids-btn').click();
-    await expect(page.getByRole('switch', { name: 'Controller rumble' })).toBeVisible();
+    await expect(page.getByRole('switch', { name: 'Oyun kumandası titreşimi' })).toBeVisible();
     await page.keyboard.press('Escape');
 
     // A hands back (on the loop: Returning); a trigger takes the wheel back

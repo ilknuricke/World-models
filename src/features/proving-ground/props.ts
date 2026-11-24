@@ -102,8 +102,8 @@ function drawAtlas(names: readonly string[], fontFamily: string): HTMLCanvasElem
     let size = 104;
     g.font = `600 ${size}px ${fontFamily}`;
     g.textBaseline = 'middle';
-    while (g.measureText(name.toUpperCase()).width > CELL_W - 160 && size > 56) g.font = `600 ${(size -= 4)}px ${fontFamily}`;
-    g.fillText(name.toUpperCase(), 112, y + CELL_H / 2 + 4);
+    while (g.measureText(name.toLocaleUpperCase('tr-TR')).width > CELL_W - 160 && size > 56) g.font = `600 ${(size -= 4)}px ${fontFamily}`;
+    g.fillText(name.toLocaleUpperCase('tr-TR'), 112, y + CELL_H / 2 + 4);
   });
   return canvas;
 }

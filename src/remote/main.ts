@@ -27,14 +27,14 @@ const local = (() => {
 })();
 
 const STATUS_TEXT: Record<LinkStatus, string> = {
-  connecting: 'Connecting',
-  live: 'Live',
-  offline: 'Reconnecting',
-  denied: 'Key rejected',
-  gone: 'Room closed',
-  full: 'Room full',
-  outdated: 'Update needed',
-  replaced: 'Wheel taken',
+  connecting: 'Bağlanıyor',
+  live: 'Canlı',
+  offline: 'Yeniden bağlanıyor',
+  denied: 'Anahtar reddedildi',
+  gone: 'Oda kapandı',
+  full: 'Oda dolu',
+  outdated: 'Güncelleme gerekli',
+  replaced: 'Kontrol devralındı',
 };
 
 function header(code: string | null, role: string | null): { el: HTMLElement; status(s: LinkStatus): void } {
@@ -43,7 +43,7 @@ function header(code: string | null, role: string | null): { el: HTMLElement; st
   const el = h(
     'header',
     { class: 'rm-header' },
-    h('div', { class: 'rm-brand' }, h('span', { class: 'rm-wordmark' }, 'Suspension Lab'), role ? h('span', { class: 'rm-role' }, role) : null),
+    h('div', { class: 'rm-brand' }, h('span', { class: 'rm-wordmark' }, 'Süspansiyon Laboratuvarı'), role ? h('span', { class: 'rm-role' }, role) : null),
     code ? h('div', { class: 'rm-room', 'aria-live': 'polite' }, dot, h('span', { class: 'rm-code' }, code), state) : null,
   );
   return {
@@ -64,16 +64,16 @@ function joinForm(message: string): HTMLElement {
     autocapitalize: 'characters',
     spellcheck: 'false',
     maxlength: 5,
-    placeholder: 'CODE',
-    'aria-label': 'Room code',
+    placeholder: 'KOD',
+    'aria-label': 'Oda kodu',
   });
   const form = h(
     'form',
     { class: 'rm-card rm-join' },
-    h('h1', { class: 'rm-join-title' }, 'Join the lab'),
+    h('h1', { class: 'rm-join-title' }, 'Laboratuvara katıl'),
     h('p', { class: 'rm-note' }, message),
     input,
-    h('button', { type: 'submit', class: 'rm-button rm-primary' }, 'Join'),
+    h('button', { type: 'submit', class: 'rm-button rm-primary' }, 'Katıl'),
   );
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -102,12 +102,12 @@ function start(root: HTMLElement): void {
   if (!code) {
     const head = header(null, null);
     mount(root, head.el);
-    mount(root, joinForm('Type the five-letter code shown on the big screen.'));
+    mount(root, joinForm('Büyük ekrandaki beş harfli kodu yazın.'));
     return;
   }
 
   const role = driverKey ? 'driver' : hostKey ? 'host' : 'audience';
-  const head = header(code, role === 'driver' ? 'Driver' : role === 'host' ? 'Presenter' : 'Audience');
+  const head = header(code, role === 'driver' ? 'Sürücü' : role === 'host' ? 'Sunucu' : 'İzleyici');
   const notice = h('div', { class: 'rm-notice' });
   let link: RemoteLink | null = null;
   const send = (m: ClientMessage) => link?.send(m);
@@ -148,22 +148,22 @@ function start(root: HTMLElement): void {
       document.body.dataset['status'] = s;
       if (driver) {
         driver.status(s); // its own calm sheets for replaced / denied / gone
-        notice.replaceChildren(...(s === 'full' ? [banner('This room is full right now. Try again in a moment.')] : s === 'outdated' ? [banner('A newer version is live.', { label: 'Reload', run: () => location.reload() })] : []));
+        notice.replaceChildren(...(s === 'full' ? [banner('Oda şu anda dolu. Biraz sonra yeniden deneyin.')] : s === 'outdated' ? [banner('Yeni bir sürüm kullanıma sunuldu.', { label: 'Yenile', run: () => location.reload() })] : []));
         return;
       }
       if (s === 'denied')
         notice.replaceChildren(
-          banner('This presenter link is no longer valid for this room.', {
-            label: 'Join as audience',
+          banner('Bu sunucu bağlantısı artık bu oda için geçerli değil.', {
+            label: 'İzleyici olarak katıl',
             run: () => {
               forgetHostKey(code, session);
               location.replace(`${REMOTE_PAGE}?room=${code}`);
             },
           }),
         );
-      else if (s === 'gone') notice.replaceChildren(joinForm(`Room ${code} has ended. Check the code on the big screen.`));
-      else if (s === 'full') notice.replaceChildren(banner('This room is full right now. Try again in a moment.'));
-      else if (s === 'outdated') notice.replaceChildren(banner('A newer version is live.', { label: 'Reload', run: () => location.reload() }));
+      else if (s === 'gone') notice.replaceChildren(joinForm(`${code} odası kapandı. Büyük ekrandaki kodu kontrol edin.`));
+      else if (s === 'full') notice.replaceChildren(banner('Oda şu anda dolu. Biraz sonra yeniden deneyin.'));
+      else if (s === 'outdated') notice.replaceChildren(banner('Yeni bir sürüm kullanıma sunuldu.', { label: 'Yenile', run: () => location.reload() }));
       else notice.replaceChildren();
     },
   });

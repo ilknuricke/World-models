@@ -49,7 +49,7 @@ test.describe('11-02 coach', () => {
     await page.waitForFunction(() => globalThis.__app!.drive().u > 18, undefined, { timeout: 300_000, polling: 100 });
     await page.evaluate(() => globalThis.__app!.set('driveAids', { abs: false, traction: false, stability: false, steering: false }));
     await intent(page, { steer: 1, throttle: 0 });
-    await expectCoach(page, /grip/);
+    await expectCoach(page, /tutuş/);
     const line = await page.locator('.sl-coach-text').textContent();
     console.log(`[11-02] slide line: "${line}" · chip "${await page.locator('.sl-coach-chip').textContent()}"`);
     await page.screenshot({ path: join(SHOTS, '11-02-slide.png') });
@@ -67,7 +67,7 @@ test.describe('11-02 coach', () => {
     await page.keyboard.press('ArrowUp'); // take the wheel (unpauses)
     await intent(page, { throttle: 0.35 });
     await expect.poll(() => mode(page), { timeout: 60_000 }).toBe('manual');
-    await expectCoach(page, /kerb/);
+    await expectCoach(page, /bordür/);
     console.log(`[11-02] kerb line: "${await page.locator('.sl-coach-text').textContent()}" · chip "${await page.locator('.sl-coach-chip').textContent()}"`);
     await page.screenshot({ path: join(SHOTS, '11-02-kerb.png') });
     await intent(page, null);

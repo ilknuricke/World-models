@@ -1,8 +1,8 @@
 # Suspension Lab — event run-sheet
 
 For showing Suspension Lab at a live technology event: a booth screen visitors drive, a presenter remote, a phone
-driver and an audience poll. Production: **https://suspension-lab.zh-a16.workers.dev** (check `/api/health`: it
-returns the deployed git version).
+driver and an audience poll. Set your deployment URL in the ignored `.env.local` file as `SMOKE_BASE_URL`;
+check that URL's `/api/health` endpoint for the deployed version. No account-specific deployment URL is stored here.
 
 **Read the last section first.** Several things have never been tried on real hardware.
 
@@ -10,16 +10,25 @@ returns the deployed git version).
 
 ## 1. Before the day
 
+Keep existing deployment files intact. On a fresh clone, copy `wrangler.jsonc` to the ignored
+`wrangler.local.jsonc` and `.env.example` to the ignored `.env.local`. In the local Wrangler config, set your
+`account_id` and the `REPLAYS` binding's existing `database_id`; preserve the Worker name and binding names.
+In `.env.local`, set `VITE_TURNSTILE_SITE_KEY` to your widget's public site key and `SMOKE_BASE_URL` to your
+deployment URL. Keep `TURNSTILE_SECRET` in the Worker's secrets, never in a `VITE_` variable. Vite selects the
+local Wrangler config automatically. `npm run deploy` builds and validates that config before deploying;
+`npm run deploy -- --dry-run` validates without publishing. Apply D1 migrations with
+`npx wrangler d1 migrations apply suspension-lab-replays --remote --config wrangler.local.jsonc`.
+
 | When | What | Why |
 |---|---|---|
-| 2 weeks | **Decide on Workers Paid** ($5/month per account). | The Free plan has hard daily caps (§5). Phone driving and a busy room use Durable Object requests: about 6.7k billed requests per hour of phone driving at 30 Hz. The engineer AI also stops at 280 answers a day. On Free, a busy day can run out of either one, and the rooms and phone driver then stop until 00:00 UTC. Paid removes the daily request caps. Workers AI is billed past its free 10k neurons, and the 280-call cap in `worker/routes/engineer.ts` still applies unless you raise it. |
-| 2 weeks | **Custom domain?** Only if you need it. | On a custom domain you must (1) add `wss://<your-host>` to `connect-src` in `public/_headers`, because the CSP names the workers.dev host for WebSockets; (2) add the host to the Turnstile widget "suspension-lab replays" (dashboard → Turnstile), or every server save fails with "The check did not pass"; (3) redeploy. QR codes follow `location.origin`, so they need no change. workers.dev cannot use Cloudflare Access; a custom zone could protect the presenter remote. That is not set up. |
+| 2 weeks | **Confirm Workers Free** and review the daily limits (§5). | Phone driving and a busy room use Durable Object requests: about 6.7k metered requests per hour of phone driving at 30 Hz. If a Free quota is exhausted, affected features stop until the quota resets at 00:00 UTC. The engineer has a 280-request daily model budget and then provides rule-based answers; that counter does not measure neurons or guarantee a billing cap. Keep the account on Free for this deployment. |
+| 2 weeks | **Custom domain?** Only if you need it. | On a custom domain you must (1) add that exact host's `wss://` origin to `connect-src` in `public/_headers`; the existing dynamic header rule covers workers.dev hosts; (2) add the host to your Turnstile widget (dashboard → Turnstile), or server saves fail; (3) redeploy. QR codes follow `location.origin`, so they need no change. |
 | 1 week | **Run it on the actual booth machine and GPU**, at the venue resolution. | Every look and frame-rate judgement so far was made under SwiftShader (software rendering in a headless browser). Pick `?quality=` by eye: the adaptive governor starts from a guess. Check the premium look in Auto, close-up and driving, and the annex (ride street, pad, braking platform). |
 | 1 week | **Listen to the audio** (press M; it is muted by default). | Engine, tyre and road sounds were tuned on paper and unit-tested only. Nobody has listened to them. |
 | 1 week | **Try the input devices for real:** keyboard, a standard gamepad (triggers, stick, A/X/Y, rumble), a touch screen. | Gamepad and touch were only tested with mocked or synthetic input. |
 | Day before, at the venue | **Phone driver on the venue Wi-Fi.** Pair a phone from the booth screen's QR and drive for 2 minutes. Note the link badge colours and the phone's round trip (badge on both). Amber means > 150 ms, red > 250 ms. Write the measured values here: ______ ms | Measured so far only on one machine here: phone input → screen p50 19 ms on a local server; the production relay added about 17 ms (p50) from a cloud container. Venue Wi-Fi and real phones are untested, and so is tilt (try it on iOS Safari and Android Chrome). |
 | Day before | **One real replay save on production.** Drive > 60 s, Share → "Save the whole run", solve the check, open the `#rid=` link on another device. | A production save needs a human to solve Turnstile; it has never been done. Saving was proven only with Cloudflare's test keys against a local worker. |
-| Day before | `npm run smoke:live` and `node scripts/smoke-room.mjs https://suspension-lab.zh-a16.workers.dev` | Health, CSP, rooms, driver role, relay latency. |
+| Day before | `npm run smoke:live` and `node --env-file-if-exists=.env.local scripts/smoke-room.mjs` | Read the target from `SMOKE_BASE_URL`; an explicit URL argument overrides it. Checks health, assets, rooms, driver role and relay latency. |
 | Morning | Open the booth page, check `/api/health`, set the browser to fullscreen (F11 / kiosk), mute OS notifications, disable sleep. | — |
 
 ---
@@ -78,8 +87,9 @@ the strut and the double wishbone drive almost the same in this model; no suspen
 | Save says "The check did not pass" | Turnstile failed (or a custom domain is missing from the widget) | The `#r=` link above it still shares the last minute. See §1, custom domain. |
 | Network gone entirely | — | Auto, Manual, stations, replays (moment replay, `#r=` links already open) work offline; rooms, phone driver, engineer AI, server saves do not. |
 
-**Rollback:** `npx wrangler deployments list`, then `npx wrangler rollback <version-id>`. **Stop saving runs:**
-`npx wrangler secret delete TURNSTILE_SECRET` (saves answer a labelled 503; links still work).
+**Rollback:** `npx wrangler deployments list --config wrangler.local.jsonc`, then
+`npx wrangler rollback <version-id> --config wrangler.local.jsonc`. **Stop saving runs:**
+`npx wrangler secret delete TURNSTILE_SECRET --config wrangler.local.jsonc` (saves answer a labelled 503; links still work).
 
 ---
 
@@ -90,7 +100,7 @@ the strut and the double wishbone drive almost the same in this model; no suspen
 | Worker requests | 100k / day | API calls, room joins, asset requests that reach the Worker | A booth alone uses little; a large audience joining rooms adds up. |
 | Durable Object requests | 100k / day (WebSocket messages billed 20:1) | Rooms, phone driver, engineer limiter | 1 h of phone driving ≈ 6.7k billed requests; 1 h of audience room traffic is small (coalesced ≤ 1 Hz). |
 | DO duration | 13,000 GB-s / day | Awake rooms | A streaming room ≈ 450 GB-s per hour. |
-| Workers AI | 10,000 neurons / day | Engineer answers | ≈ 27–30 neurons per driving answer; the 280-call cap keeps a full day under it. |
+| Workers AI | 10,000 neurons / day | Engineer answers | Token length and fallback attempts vary. The 280-request budget does not guarantee staying below the neuron quota. On Workers Free the provider rejects usage above its free quota. |
 | D1 rows written | 100k / day | Saved replays (≈ 4 rows per save) | Saves capped at 2,000/day and 5/min per address. |
 | D1 storage | 500 MB | Saved replays (30-day expiry) | Typical run 0.4–11 KB. |
 

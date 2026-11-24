@@ -10,10 +10,10 @@ export type AidKey = (typeof AID_KEYS)[number];
 
 /** Switch label and one plain line on what it does (copy: no digits, no brand names). */
 export const AID_COPY: Readonly<Record<AidKey, { readonly name: string; readonly hint: string }>> = {
-  abs: { name: 'Anti-lock brakes', hint: 'Eases brake pressure before a wheel locks' },
-  traction: { name: 'Traction control', hint: 'Trims throttle when the driven wheels spin' },
-  stability: { name: 'Stability control', hint: 'Brakes one wheel to hold the line' },
-  steering: { name: 'Steering help', hint: 'Limits lock with speed and helps you catch a slide' },
+  abs: { name: 'Kilitlenme önleyici frenler', hint: 'Tekerlek kilitlenmeden önce fren basıncını azaltır' },
+  traction: { name: 'Çekiş kontrolü', hint: 'Tahrik tekerlekleri patinaj yaptığında gazı azaltır' },
+  stability: { name: 'Denge kontrolü', hint: 'Çizgiyi korumak için bir tekerleğe fren uygular' },
+  steering: { name: 'Direksiyon desteği', hint: 'Hıza göre direksiyon açısını sınırlar ve kaymayı düzeltmeye yardım eder' },
 };
 
 export function withAid(aids: DriveAids, key: AidKey, on: boolean): DriveAids {
@@ -23,20 +23,20 @@ export function withAid(aids: DriveAids, key: AidKey, on: boolean): DriveAids {
 /** Visible tag next to "Assists" ('' = all on) and the button's accessible name. */
 export function aidsSummary(aids: DriveAids): { readonly tag: string; readonly label: string } {
   const off = AID_KEYS.filter((k) => !aids[k]);
-  if (off.length === 0) return { tag: '', label: 'Assists: all on. Assist: simplified model' };
-  const tag = off.length === AID_KEYS.length ? 'Off' : 'Some off';
-  return { tag, label: `Assists: ${off.map((k) => AID_COPY[k].name).join(', ')} off. Assist: simplified model` };
+  if (off.length === 0) return { tag: '', label: 'Sürüş destekleri: tümü açık. Destek: basitleştirilmiş model' };
+  const tag = off.length === AID_KEYS.length ? 'Kapalı' : 'Bazıları kapalı';
+  return { tag, label: `Sürüş destekleri: ${off.map((k) => AID_COPY[k].name).join(', ')} kapalı. Destek: basitleştirilmiş model` };
 }
 
 /** Lamps in pill order: three aid interventions, then the honesty badge. */
 export const LAMPS = ['abs', 'traction', 'stability', 'approximate'] as const;
 export type LampId = (typeof LAMPS)[number];
-export const LAMP_TEXT: Readonly<Record<LampId, string>> = { abs: 'ABS', traction: 'Traction', stability: 'Stability', approximate: 'Approximate' };
+export const LAMP_TEXT: Readonly<Record<LampId, string>> = { abs: 'ABS', traction: 'Çekiş', stability: 'Denge', approximate: 'Yaklaşık' };
 export const LAMP_TITLE: Readonly<Record<LampId, string>> = {
-  abs: 'Anti-lock brakes intervening (Assist: simplified model)',
-  traction: 'Traction control intervening (Assist: simplified model)',
-  stability: 'Stability control intervening (Assist: simplified model)',
-  approximate: 'Past the range this model is validated for: what you see is approximate',
+  abs: 'Kilitlenme önleyici frenler devrede (Destek: basitleştirilmiş model)',
+  traction: 'Çekiş kontrolü devrede (Destek: basitleştirilmiş model)',
+  stability: 'Denge kontrolü devrede (Destek: basitleştirilmiş model)',
+  approximate: 'Modelin doğrulandığı aralığın dışında: gösterilen sonuçlar yaklaşıktır',
 };
 
 const svg = (body: string) =>

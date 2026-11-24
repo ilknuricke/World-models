@@ -78,7 +78,7 @@ function init(ctx: FeatureContext): void {
   const fold = h('button', { class: 'sl-presenter-fold', type: 'button', 'aria-expanded': 'true' });
   const root = h(
     'section',
-    { class: 'sl-presenter', 'aria-label': 'Room code', hidden: true },
+    { class: 'sl-presenter', 'aria-label': 'Oda kodu', hidden: true },
     h('header', { class: 'sl-presenter-head' }, title, fold),
     h('div', { class: 'sl-presenter-body' }, qr, h('div', { class: 'sl-presenter-meta' }, code, url), note, flip),
   );
@@ -97,18 +97,18 @@ function init(ctx: FeatureContext): void {
     root.dataset['mode'] = m;
     root.toggleAttribute('data-folded', folded);
     fold.setAttribute('aria-expanded', String(!folded));
-    fold.setAttribute('aria-label', folded ? 'Show room code' : 'Hide room code');
-    fold.textContent = folded ? `Join · ${c}` : 'Hide';
-    title.textContent = m === 'host' ? 'Presenter remote' : 'Join the lab';
+    fold.setAttribute('aria-label', folded ? 'Oda kodunu göster' : 'Oda kodunu gizle');
+    fold.textContent = folded ? `Katıl · ${c}` : 'Gizle';
+    title.textContent = m === 'host' ? 'Sunucu kumandası' : 'Laboratuvara katıl';
     code.textContent = c;
-    url.textContent = m === 'host' ? 'Presenter only' : links.audience.replace(/^https?:\/\//, '');
-    note.textContent = m === 'host' ? 'Scan to take control. The audience code appears once you do.' : 'Scan to vote on what runs next.';
-    flip.textContent = m === 'host' ? 'Audience code' : 'Presenter remote';
+    url.textContent = m === 'host' ? 'Yalnızca sunucu için' : links.audience.replace(/^https?:\/\//, '');
+    note.textContent = m === 'host' ? 'Kontrolü devralmak için tarayın. Ardından izleyici kodu görünür.' : 'Sıradaki deneme için oy vermek üzere tarayın.';
+    flip.textContent = m === 'host' ? 'İzleyici kodu' : 'Sunucu kumandası';
     flip.hidden = !links.host;
     const target = m === 'host' ? links.host! : links.audience;
     if (target !== rendered) {
       rendered = target;
-      const label = m === 'host' ? 'QR code: presenter remote' : `QR code: join room ${c}`;
+      const label = m === 'host' ? 'QR kodu: sunucu kumandası' : `QR kodu: ${c} odasına katıl`;
       // The QR encoder is only needed on a big screen: its own chunk, fetched on first render.
       void import('./qr').then(({ qrSvg }) => rendered === target && qr.replaceChildren(qrSvg(target, label)));
     }

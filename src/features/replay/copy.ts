@@ -16,91 +16,91 @@ export const MIN_RECORDED_S = 1;
 export const NOTE_S = 6;
 
 export const COPY = {
-  moment: 'Moment replay',
-  momentTitle: 'Replay the last moments in slow motion, then drive on from here',
-  share: 'Share',
-  shareTitle: 'Share this run as a link',
-  copy: 'Copy',
-  copied: 'Link copied',
-  copyManually: 'Select the link and copy it',
-  shareLastMinute: 'Sharing the last minute: a link holds up to a minute of driving.',
-  tooBig: 'This run is too detailed to fit in a link.',
-  linkNote: 'The link replays your run in the visitor’s browser by re-simulating it.',
-  replay: 'Replay',
-  shared: 'Shared run',
-  slow: 'Slow motion',
-  driveIt: 'Drive it yourself',
-  driveItTitle: 'Stop the replay and take the wheel from here',
-  yourTurn: 'Your turn: you are driving on from where the replay ended.',
-  back: 'Back in your run: you are driving again.',
-  recording: 'Recording',
+  moment: 'Son anları izle',
+  momentTitle: 'Son anları ağır çekimde izleyin, ardından buradan sürmeye devam edin',
+  share: 'Paylaş',
+  shareTitle: 'Bu sürüşü bağlantıyla paylaşın',
+  copy: 'Kopyala',
+  copied: 'Bağlantı kopyalandı',
+  copyManually: 'Bağlantıyı seçip kopyalayın',
+  shareLastMinute: 'Son dakika paylaşılıyor: bir bağlantı en fazla bir dakikalık sürüş içerir.',
+  tooBig: 'Bu sürüş bir bağlantıya sığmayacak kadar ayrıntılı.',
+  linkNote: 'Bağlantı, sürüşünüzü ziyaretçinin tarayıcısında yeniden simüle ederek oynatır.',
+  replay: 'Tekrar oynat',
+  shared: 'Paylaşılan sürüş',
+  slow: 'Ağır çekim',
+  driveIt: 'Kendiniz sürün',
+  driveItTitle: 'Tekrarı durdurup kontrolü buradan devralın',
+  yourTurn: 'Sıra sizde: tekrarın bittiği yerden sürmeye devam ediyorsunuz.',
+  back: 'Sürüşünüze döndünüz: kontrol yeniden sizde.',
+  recording: 'Kaydediliyor',
   // saved runs (12-05)
-  saveShort: 'Save a short link',
-  saveWhole: 'Save the whole run',
-  saveTitle: 'Save this run on the lab’s server and get a short link',
-  saveRetry: 'Try again',
-  savePrivacy: 'A quick check first, then only your inputs and the start state are kept, for thirty days: no account, nothing about you.',
-  checking: 'Checking you are not a robot…',
-  saving: 'Saving…',
-  saved: 'Saved: this short link plays the whole run for thirty days.',
-  longRun: 'A link holds up to a minute of driving: save the whole run for a short link.',
-  tooBigSave: 'This run is too detailed to fit in a link: save it for a short link.',
-  fetching: 'Fetching the shared run…',
+  saveShort: 'Kısa bağlantı kaydet',
+  saveWhole: 'Tüm sürüşü kaydet',
+  saveTitle: 'Sürüşü laboratuvar sunucusuna kaydedip kısa bir bağlantı alın',
+  saveRetry: 'Yeniden dene',
+  savePrivacy: 'Kısa bir doğrulamanın ardından yalnızca kontrol girdileriniz ve başlangıç durumu otuz gün saklanır. Hesap veya kişisel bilgi gerekmez.',
+  checking: 'Robot olmadığınız doğrulanıyor…',
+  saving: 'Kaydediliyor…',
+  saved: 'Kaydedildi: bu kısa bağlantı tüm sürüşü otuz gün boyunca oynatır.',
+  longRun: 'Bir bağlantı en fazla bir dakikalık sürüş içerir. Kısa bağlantı almak için tüm sürüşü kaydedin.',
+  tooBigSave: 'Bu sürüş bir bağlantıya sığmayacak kadar ayrıntılı. Kısa bağlantı almak için kaydedin.',
+  fetching: 'Paylaşılan sürüş alınıyor…',
 } as const;
 
-const MINUTES = ['', 'minute', 'two minutes', 'three minutes', 'four minutes', 'five minutes', 'six minutes', 'seven minutes', 'eight minutes', 'nine minutes', 'ten minutes'];
+const MINUTES = ['', 'bir dakika', 'iki dakika', 'üç dakika', 'dört dakika', 'beş dakika', 'altı dakika', 'yedi dakika', 'sekiz dakika', 'dokuz dakika', 'on dakika'];
 /** "the last five minutes" (copy carries no digits). */
-export const lastMinutes = (m: number): string => `the last ${MINUTES[m] ?? 'few minutes'}`;
+export const lastMinutes = (m: number): string => `son ${MINUTES[m] ?? 'birkaç dakika'}`;
 /** The saved state's line when only the newest part of the run was saved. */
-export const savedPart = (m: number): string => `Saved: this short link plays ${lastMinutes(m)} of the run for thirty days.`;
+export const savedPart = (m: number): string => `Kaydedildi: bu kısa bağlantı sürüşün ${lastMinutes(m)}lık bölümünü otuz gün boyunca oynatır.`;
 /** Before saving a part: why. */
-export const savingPart = (m: number): string => `Saving ${lastMinutes(m)}: a saved run holds up to ten minutes and must stay compact.`;
+export const savingPart = (m: number): string => `Sürüşün ${lastMinutes(m)}lık bölümü kaydediliyor: bir kayıt en fazla on dakika içerebilir ve boyutu sınırlıdır.`;
 
 /** Save failures; `retry` = the same action may work in a moment. */
 export const SAVE_ERROR: Readonly<Record<SaveError | 'unavailable' | 'expired' | 'unsupported', { readonly text: string; readonly retry: boolean }>> = {
-  offline: { text: 'You are offline: saving needs a connection to the lab.', retry: true },
-  challenge: { text: 'The check did not pass, so nothing was saved.', retry: true },
-  unavailable: { text: 'The check could not load here (blocked or offline), so nothing was saved.', retry: true },
-  expired: { text: 'The check timed out before saving.', retry: true },
-  busy: { text: 'Several saves from this connection just now: wait a minute and try again.', retry: true },
-  daily_cap: { text: 'Today’s allowance of saved runs is used up. Saving opens again tomorrow.', retry: false },
-  storage: { text: 'Storage for saved runs is full or unavailable right now.', retry: true },
-  disabled: { text: 'Saving runs is switched off on this server.', retry: false },
-  too_large: { text: 'This run is too long or too detailed to save.', retry: false },
-  unsupported: { text: 'This browser cannot pack a run for saving.', retry: false },
-  failed: { text: 'Saving did not work this time.', retry: true },
+  offline: { text: 'Çevrimdışısınız: kayıt için laboratuvara bağlantı gerekir.', retry: true },
+  challenge: { text: 'Doğrulama başarısız oldu; hiçbir şey kaydedilmedi.', retry: true },
+  unavailable: { text: 'Doğrulama yüklenemedi; engellenmiş veya çevrimdışı olabilir. Hiçbir şey kaydedilmedi.', retry: true },
+  expired: { text: 'Kayıt başlamadan doğrulamanın süresi doldu.', retry: true },
+  busy: { text: 'Bu bağlantıdan kısa sürede birkaç kayıt yapıldı. Bir dakika bekleyip yeniden deneyin.', retry: true },
+  daily_cap: { text: 'Bugünkü kayıt kotası doldu. Yarın yeniden kayıt yapılabilir.', retry: false },
+  storage: { text: 'Kayıt alanı şu anda dolu veya kullanılamıyor.', retry: true },
+  disabled: { text: 'Bu sunucuda sürüş kaydı kapalı.', retry: false },
+  too_large: { text: 'Bu sürüş kaydedilemeyecek kadar uzun veya ayrıntılı.', retry: false },
+  unsupported: { text: 'Bu tarayıcı sürüşü kaydetmek için sıkıştıramıyor.', retry: false },
+  failed: { text: 'Bu sefer kayıt yapılamadı.', retry: true },
 };
 /** After a save failure: what still works. */
-export const FALLBACK = { whole: 'The link above still shares the whole run.', minute: 'The link above still shares the last minute.', none: '' } as const;
+export const FALLBACK = { whole: 'Yukarıdaki bağlantıyla tüm sürüşü paylaşabilirsiniz.', minute: 'Yukarıdaki bağlantıyla son dakikayı paylaşabilirsiniz.', none: '' } as const;
 
 const LOAD_ERROR: Readonly<Record<Exclude<LoadError, LinkError>, string>> = {
-  invalid: 'This saved-run link is incomplete, so there is nothing to fetch.',
-  missing: 'This saved run has expired or was never saved: saved runs are kept for thirty days.',
-  offline: 'Could not reach the lab to fetch this saved run. Check the connection and reload.',
-  failed: 'The saved run could not be fetched right now. Reload in a moment to try again.',
+  invalid: 'Kayıt bağlantısı eksik olduğundan sürüş alınamıyor.',
+  missing: 'Bu sürüşün süresi dolmuş veya hiç kaydedilmemiş. Sürüşler otuz gün saklanır.',
+  offline: 'Kaydı almak için laboratuvara ulaşılamadı. Bağlantınızı kontrol edip sayfayı yenileyin.',
+  failed: 'Kayıt şu anda alınamadı. Biraz sonra sayfayı yenileyip yeniden deneyin.',
 };
 
 export const LINK_ERROR: Readonly<Record<LinkError, string>> = {
-  damaged: 'This replay link is damaged or incomplete, so there is nothing to play.',
-  'newer-format': 'This replay link was made by a newer version of the lab. Reload the page to update it.',
-  unsupported: 'This browser cannot unpack replay links.',
+  damaged: 'Tekrar bağlantısı bozuk veya eksik olduğundan sürüş oynatılamıyor.',
+  'newer-format': 'Bu tekrar bağlantısı laboratuvarın daha yeni bir sürümüyle oluşturulmuş. Güncellemek için sayfayı yenileyin.',
+  unsupported: 'Bu tarayıcı tekrar bağlantılarını açamıyor.',
 };
 
 export const REFUSAL: Readonly<Record<ReplayRefusal | 'unavailable', string>> = {
-  track: 'This replay was recorded on another track.',
-  world: 'This replay was recorded on another proving ground layout.',
-  vehicle: 'This replay was recorded with another vehicle.',
-  suspension: 'This replay uses a suspension this car does not offer.',
-  state: 'This replay was recorded with an incompatible version of the lab.',
-  unavailable: 'Replays need a car you can drive.',
+  track: 'Bu tekrar başka bir pistte kaydedilmiş.',
+  world: 'Bu tekrar farklı bir test alanı düzeninde kaydedilmiş.',
+  vehicle: 'Bu tekrar başka bir araçla kaydedilmiş.',
+  suspension: 'Bu tekrardaki süspansiyon bu otomobilde bulunmuyor.',
+  state: 'Bu tekrar laboratuvarın uyumsuz bir sürümüyle kaydedilmiş.',
+  unavailable: 'Tekrarlar için sürülebilir bir otomobil gerekir.',
 };
 
 /** The honesty line under the replay chip, or null when the replay matches the recording. */
 export function statusNote(s: Readonly<ReplayStatus>): string | null {
-  if (!s.sameVersion) return 'Recorded with an older model: the replay may differ from the original run.';
-  if (!s.sameModel) return 'Recorded with other model settings: the replay may differ from the original run.';
-  if (s.resyncs > 0) return 'Drifted from the recording and put back on it: approximate from here.';
-  if (s.mismatches > 0) return 'Drifted from the recording: the replay may differ from here on.';
+  if (!s.sameVersion) return 'Eski bir modelle kaydedilmiş: tekrar, özgün sürüşten farklı olabilir.';
+  if (!s.sameModel) return 'Farklı model ayarlarıyla kaydedilmiş: tekrar, özgün sürüşten farklı olabilir.';
+  if (s.resyncs > 0) return 'Simülasyon kayıttan saptığı için yeniden hizalandı. Bundan sonrası yaklaşık sonuçtur.';
+  if (s.mismatches > 0) return 'Simülasyon kayıttan saptı: tekrar bundan sonra farklı olabilir.';
   return null;
 }
 

@@ -1,6 +1,8 @@
 // Live smoke (ARCHITECTURE §13): node scripts/smoke-live.mjs [baseUrl]
 // Exits 1 if any check fails. Works against production or a local `vite preview`.
-const base = (process.argv[2] ?? 'https://suspension-lab.zh-a16.workers.dev').replace(/\/$/, '');
+const target = process.argv[2] ?? process.env.SMOKE_BASE_URL;
+if (!target) throw new Error('Pass a base URL or set SMOKE_BASE_URL (for example, http://localhost:4173).');
+const base = target.replace(/\/$/, '');
 let failed = 0;
 
 async function check(name, fn) {

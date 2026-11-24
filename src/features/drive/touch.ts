@@ -41,12 +41,12 @@ export function createTouchSource(onInput: () => void): TouchSource {
   const knob = h('span', { class: 'sl-drive-steer-knob', 'aria-hidden': 'true' });
   const steerEl = h(
     'div',
-    { class: 'sl-drive-steer', role: 'slider', 'aria-label': 'Steering', 'aria-valuemin': '-1', 'aria-valuemax': '1', 'aria-valuenow': '0' },
+    { class: 'sl-drive-steer', role: 'slider', 'aria-label': 'Direksiyon', 'aria-valuemin': '-1', 'aria-valuemax': '1', 'aria-valuenow': '0' },
     h('span', { class: 'sl-drive-steer-track', 'aria-hidden': 'true' }, h('span', { class: 'sl-drive-steer-mark' })),
     knob,
   );
-  const gas = h('div', { class: 'sl-drive-pad', 'data-pad': 'gas', role: 'button', 'aria-label': 'Accelerate' }, 'Gas');
-  const brake = h('div', { class: 'sl-drive-pad', 'data-pad': 'brake', role: 'button', 'aria-label': 'Brake, hold at a stop to reverse' }, 'Brake');
+  const gas = h('div', { class: 'sl-drive-pad', 'data-pad': 'gas', role: 'button', 'aria-label': 'Gaz ver' }, 'Gaz');
+  const brake = h('div', { class: 'sl-drive-pad', 'data-pad': 'brake', role: 'button', 'aria-label': 'Fren; geri gitmek için durduktan sonra basılı tut' }, 'Fren');
   const el = h('div', { class: 'sl-drive-touch', hidden: true }, steerEl, h('div', { class: 'sl-drive-pedals' }, gas, brake));
 
   let steerId = -1;

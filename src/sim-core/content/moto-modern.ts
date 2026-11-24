@@ -12,16 +12,16 @@ export const motoModern: MotorcycleSuspensionDefinition = {
   copy: {
     label: 'Modern',
     short: 'Modern',
-    descriptor: 'Upside-down fork and rising-rate monoshock',
+    descriptor: 'Ters çatal ve artan sertlik oranlı tek amortisör',
     strengths: [
-      'The large tubes in the clamps typically flex less under hard braking',
-      'The linkage makes the rear soft early in its travel and firm near the end',
-      'Shock and linkage sit low and central in the chassis',
+      'Bağlantılardaki büyük çaplı borular, sert frenlemede genellikle daha az esner',
+      'Bağlantı mekanizması, arka süspansiyonu hareketin başında yumuşak, sonunda sert yapar',
+      'Amortisör ve bağlantı mekanizması şaside alçakta ve merkeze yakın konumlanır',
     ],
     costs: [
-      'Same pro-dive geometry as any telescopic fork: it still dives under braking',
-      'More pivots and bearings to look after, typically',
-      'The linkage takes room under the swingarm and engine',
+      'Diğer teleskopik çatallarla aynı dalma geometrisine sahiptir; frenlemede yine dalar',
+      'Genellikle bakım gerektiren daha fazla mafsal ve yatak vardır',
+      'Bağlantı mekanizması, salıncağın ve motorun altında yer kaplar',
     ],
     qualitative: { cost: 'medium', packaging: 'medium', complexity: 'medium' },
   },

@@ -158,7 +158,7 @@ test('attract: storyboard drives captions, shots and the store; any input restor
 
   await page.evaluate(() => globalThis.__app!.set('attract', true));
   const caption = page.locator('.sl-attract-caption');
-  await expect(caption).toHaveText('Every bump is a geometry problem.', { timeout: 60_000 });
+  await expect(caption).toHaveText('Her tümsek bir geometri problemidir.', { timeout: 60_000 });
   await expect(page.locator('.sl-attract-title')).toBeVisible();
   const during = await page.evaluate(() => globalThis.__app!.state());
   expect(during.paused).toBe(false);
@@ -167,7 +167,7 @@ test('attract: storyboard drives captions, shots and the store; any input restor
   await shot(page, 'attract-hero');
 
   // Beat 2 starts after 8 s of wall-clock frames: seek to the bump strip, close-up with x-ray.
-  await expect(caption).toHaveText('Watch the links work over a bump.', { timeout: 600_000 });
+  await expect(caption).toHaveText('Tümsekte bağlantıların nasıl çalıştığını izleyin.', { timeout: 600_000 });
   const beat2 = await page.evaluate(() => ({ state: globalThis.__app!.state(), frame: globalThis.__app!.frame() }));
   console.info('[04-01] beat 2', beat2.frame.sectionId, beat2.frame.lapTime.toFixed(2));
   expect(beat2.state.xray).toBe(true);

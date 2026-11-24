@@ -23,22 +23,22 @@ export function createHostPanel(send: (message: ClientMessage) => void): HostPan
     send({ t: 'ctl', set: patch });
   };
 
-  const vehicle = segmented('Vehicle', VEHICLES, (id) => {
+  const vehicle = segmented('Araç', VEHICLES, (id) => {
     const v = vehicleOf(id);
     set({ vehicleId: v.id, suspensionId: v.suspensions[0]!.id });
   });
   const suspensionSlot = h('div');
-  let suspension = segmented('Suspension', vehicleOf(undefined).suspensions, (id) => set({ suspensionId: id }));
+  let suspension = segmented('Süspansiyon', vehicleOf(undefined).suspensions, (id) => set({ suspensionId: id }));
   let suspensionFor = '';
-  const view = segmented('View', VIEWS, (id) => set({ view: id }));
-  const speed = segmented('Speed', SPEEDS, (id) => set({ timeScale: id }));
-  const xray = toggle('X-ray', 'See the linkage', (on) => set({ xray: on }));
-  const amplify = toggle('Amplify', `Motion ×${AMPLIFY}, labelled`, (on) => set({ amplification: on ? AMPLIFY : 1 }));
-  const attract = toggle('Attract', 'Self-running show', (on) => set({ attract: on }));
-  const lines = toggle('Overlays', 'Roll centres, loads', (on) => set({ overlay: on ? 'engineer' : 'clean' }));
+  const view = segmented('Görünüm', VIEWS, (id) => set({ view: id }));
+  const speed = segmented('Hız', SPEEDS, (id) => set({ timeScale: id }));
+  const xray = toggle('Röntgen', 'Bağlantıları görün', (on) => set({ xray: on }));
+  const amplify = toggle('Büyüt', `Hareket ×${AMPLIFY}, ekranda belirtilir`, (on) => set({ amplification: on ? AMPLIFY : 1 }));
+  const attract = toggle('Tanıtım', 'Otomatik gösterim', (on) => set({ attract: on }));
+  const lines = toggle('Katmanlar', 'Yalpa merkezleri, yükler', (on) => set({ overlay: on ? 'engineer' : 'clean' }));
 
   const sectionButtons = SECTIONS.map((s) => {
-    const b = h('button', { type: 'button', class: 'rm-chip', 'aria-pressed': 'false' }, h('span', {}, s.label), h('span', { class: 'rm-chip-sub' }, 'Replay'));
+    const b = h('button', { type: 'button', class: 'rm-chip', 'aria-pressed': 'false' }, h('span', {}, s.label), h('span', { class: 'rm-chip-sub' }, 'Tekrar oynat'));
     b.addEventListener('click', () => (ctl.section === s.id ? send({ t: 'cue', cue: 'replay-section' }) : set({ section: s.id })));
     return [s.id, b] as const;
   });
@@ -53,13 +53,13 @@ export function createHostPanel(send: (message: ClientMessage) => void): HostPan
   const el = h(
     'div',
     { class: 'rm-panel' },
-    card('Vehicle', vehicle.el),
-    card('Suspension', suspensionSlot),
-    card('View', view.el, h('div', { class: 'rm-grid' }, xray.el, lines.el)),
-    card('Motion', speed.el, h('div', { class: 'rm-grid' }, amplify.el, attract.el)),
-    card('Camera', h('div', { class: 'rm-grid' }, ...cueButtons)),
-    card('Track section', h('p', { class: 'rm-note' }, 'Jump the car to a section. Tap it again to replay.'), h('div', { class: 'rm-chips' }, ...sectionButtons.map(([, b]) => b))),
-    card('Audience poll', pollBody),
+    card('Araç', vehicle.el),
+    card('Süspansiyon', suspensionSlot),
+    card('Görünüm', view.el, h('div', { class: 'rm-grid' }, xray.el, lines.el)),
+    card('Hareket', speed.el, h('div', { class: 'rm-grid' }, amplify.el, attract.el)),
+    card('Kamera', h('div', { class: 'rm-grid' }, ...cueButtons)),
+    card('Pist bölümü', h('p', { class: 'rm-note' }, 'Otomobili bir bölüme taşıyın. Yeniden oynatmak için tekrar dokunun.'), h('div', { class: 'rm-chips' }, ...sectionButtons.map(([, b]) => b))),
+    card('İzleyici anketi', pollBody),
   );
 
   function renderPoll(): void {
@@ -73,17 +73,17 @@ export function createHostPanel(send: (message: ClientMessage) => void): HostPan
       const preview = suspensionPoll(ctl.vehicleId);
       pollBody.replaceChildren(
         h('p', { class: 'rm-poll-q' }, preview.question),
-        h('p', { class: 'rm-note' }, `${preview.options.join(' · ')}. Bars appear live on the big screen.`),
-        button('Open poll', ask, true),
+        h('p', { class: 'rm-note' }, `${preview.options.join(' · ')}. Sonuç çubukları büyük ekranda canlı görünür.`),
+        button('Anketi aç', ask, true),
       );
       return;
     }
     const s = shares(poll.counts);
     const head = h('p', { class: 'rm-poll-q' }, poll.question);
-    const meta = h('p', { class: 'rm-note' }, `${poll.open ? 'Live' : 'Closed'} · ${votesText(s.total)}`);
+    const meta = h('p', { class: 'rm-note' }, `${poll.open ? 'Canlı' : 'Kapandı'} · ${votesText(s.total)}`);
     const rows = pollRows(poll.options, poll.counts, null, null);
     if (poll.open) {
-      pollBody.replaceChildren(head, meta, rows, button('Close poll', () => send({ t: 'poll', poll: null }), true));
+      pollBody.replaceChildren(head, meta, rows, button('Anketi kapat', () => send({ t: 'poll', poll: null }), true));
       return;
     }
     const winner = s.leader === null ? null : poll.options[s.leader]!;
@@ -95,9 +95,9 @@ export function createHostPanel(send: (message: ClientMessage) => void): HostPan
       h(
         'div',
         { class: 'rm-grid' },
-        winnerId ? button(`Run ${winner}`, () => set({ suspensionId: winnerId }), true) : null,
-        button('New poll', ask, !winnerId),
-        button('Clear from screen', () => send({ t: 'poll', poll: null }), false),
+        winnerId ? button(`${winner} ile dene`, () => set({ suspensionId: winnerId }), true) : null,
+        button('Yeni anket', ask, !winnerId),
+        button('Ekrandan kaldır', () => send({ t: 'poll', poll: null }), false),
       ),
     );
   }
@@ -108,7 +108,7 @@ export function createHostPanel(send: (message: ClientMessage) => void): HostPan
     vehicle.set(v.id);
     if (suspensionFor !== v.id) {
       suspensionFor = v.id;
-      suspension = segmented('Suspension', v.suspensions, (id) => set({ suspensionId: id }));
+      suspension = segmented('Süspansiyon', v.suspensions, (id) => set({ suspensionId: id }));
       suspensionSlot.replaceChildren(suspension.el);
     }
     suspension.set(ctl.suspensionId ?? (v.id === START.vehicleId ? START.suspensionId : v.suspensions[0]!.id));

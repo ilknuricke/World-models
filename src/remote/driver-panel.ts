@@ -25,7 +25,7 @@ export const DRIVER = {
 } as const;
 
 const FLAG = { wanted: 1, touch: 4 } as const;
-const MODE_TEXT = ['Auto · press Gas to drive', 'You are driving', 'Returning to the lap', 'Replay on the screen'] as const;
+const MODE_TEXT = ['Otomatik · sürmek için Gaza basın', 'Kontrol sizde', 'Tura dönülüyor', 'Ekranda tekrar oynatılıyor'] as const;
 const VIBRATE = { kerb: [12], grip: [30] } as const;
 
 type Steering = 'touch' | 'tilt';
@@ -51,20 +51,20 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
   const knob = h('span', { class: 'rm-drive-knob', 'aria-hidden': 'true' });
   const steerEl = h(
     'div',
-    { class: 'rm-drive-steer', role: 'slider', 'aria-label': 'Steering: drag left or right', 'aria-valuemin': '-1', 'aria-valuemax': '1', 'aria-valuenow': '0' },
+    { class: 'rm-drive-steer', role: 'slider', 'aria-label': 'Direksiyon: sola veya sağa sürükleyin', 'aria-valuemin': '-1', 'aria-valuemax': '1', 'aria-valuenow': '0' },
     h('span', { class: 'rm-drive-track', 'aria-hidden': 'true' }, h('span', { class: 'rm-drive-mark' }), knob),
-    h('span', { class: 'rm-drive-cap' }, 'Drag to steer'),
+    h('span', { class: 'rm-drive-cap' }, 'Yön vermek için sürükleyin'),
   );
-  const gas = h('div', { class: 'rm-drive-pedal', 'data-pedal': 'gas', role: 'button', 'aria-label': 'Gas' }, 'Gas');
-  const brake = h('div', { class: 'rm-drive-pedal', 'data-pedal': 'brake', role: 'button', 'aria-label': 'Brake, hold at a stop to reverse' }, 'Brake');
+  const gas = h('div', { class: 'rm-drive-pedal', 'data-pedal': 'gas', role: 'button', 'aria-label': 'Gaz' }, 'Gaz');
+  const brake = h('div', { class: 'rm-drive-pedal', 'data-pedal': 'brake', role: 'button', 'aria-label': 'Fren; geri gitmek için dururken basılı tutun' }, 'Fren');
 
   const wheel = h('span', { class: 'rm-drive-wheel', 'aria-hidden': 'true' }, h('span', { class: 'rm-drive-wheel-spoke' }));
   const speed = h('span', { class: 'rm-drive-speed' }, '–');
   const gear = h('span', { class: 'rm-drive-gear' }, 'N');
-  const modeText = h('p', { class: 'rm-drive-mode', 'aria-live': 'polite' }, 'Connecting to the big screen');
-  const tiltBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', 'aria-pressed': 'false' }, 'Tilt to steer');
-  const centreBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', hidden: true }, 'Re-centre');
-  const handBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', hidden: true }, 'Hand back');
+  const modeText = h('p', { class: 'rm-drive-mode', 'aria-live': 'polite' }, 'Büyük ekrana bağlanılıyor');
+  const tiltBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', 'aria-pressed': 'false' }, 'Eğerek yön ver');
+  const centreBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', hidden: true }, 'Yeniden ortala');
+  const handBtn = h('button', { type: 'button', class: 'rm-button rm-drive-btn', hidden: true }, 'Kontrolü bırak');
   const tiltNote = h('p', { class: 'rm-drive-tiltnote', hidden: true });
   const centre = h(
     'div',
@@ -83,9 +83,9 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
   const sheet = h('div', { class: 'rm-drive-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'rm-drive-sheet-title', hidden: true }, h('div', { class: 'rm-card rm-drive-sheet-card' }, sheetTitle, sheetText, h('div', { class: 'rm-drive-sheet-btns' }, sheetBtn, sheetAlt)));
   sheetTitle.id = 'rm-drive-sheet-title';
 
-  const el = h('section', { class: 'rm-panel rm-drive', 'data-steering': 'touch', 'aria-label': `Drive room ${code}` }, steerEl, centre, gas, brake, sheet);
+  const el = h('section', { class: 'rm-panel rm-drive', 'data-steering': 'touch', 'aria-label': `${code} odasında sürüş` }, steerEl, centre, gas, brake, sheet);
   const badgeText = h('span', { class: 'rm-badge-text' }, '–');
-  const badge = h('span', { class: 'rm-badge', title: 'Round trip to the room', 'data-level': 'off' }, h('span', { class: 'rm-badge-dot', 'aria-hidden': 'true' }), badgeText);
+  const badge = h('span', { class: 'rm-badge', title: 'Odaya gidiş dönüş süresi', 'data-level': 'off' }, h('span', { class: 'rm-badge-dot', 'aria-hidden': 'true' }), badgeText);
 
   // ---------------------------------------------------------------- state
   let status: LinkStatus = 'connecting';
@@ -235,11 +235,11 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
     const raw = rawAngle(g.x, g.y);
     rawNow = raw;
     if (raw === null) {
-      tiltNote.textContent = 'Hold the phone upright, like a wheel';
+      tiltNote.textContent = 'Telefonu direksiyon gibi dik tutun';
       tiltNote.hidden = steering !== 'tilt';
       return; // too flat: hold the last angle
     }
-    if (steering === 'tilt' && calib === 'off' && tiltNote.textContent === 'Hold the phone upright, like a wheel') tiltNote.hidden = true;
+    if (steering === 'tilt' && calib === 'off' && tiltNote.textContent === 'Telefonu direksiyon gibi dik tutun') tiltNote.hidden = true;
     tiltDeg = filter.filter(dir * wrap180(raw - neutral), e.timeStamp);
   };
   const stopMotion = () => {
@@ -251,21 +251,21 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
     steering = 'touch';
     calib = 'off';
     el.dataset['steering'] = 'touch';
-    tiltBtn.textContent = 'Tilt to steer';
+    tiltBtn.textContent = 'Eğerek yön ver';
     tiltBtn.setAttribute('aria-pressed', 'false');
     centreBtn.hidden = true;
     tiltNote.textContent = note;
     tiltNote.hidden = !note;
     hideSheet();
   };
-  const noMotion = () => useTouch('No motion data here (some in-app browsers block it). Open the link in Safari or Chrome, or keep the slider.');
+  const noMotion = () => useTouch('Hareket verisi alınamıyor; bazı uygulama içi tarayıcılar bunu engeller. Bağlantıyı Safari veya Chrome’da açın ya da sürgüyü kullanın.');
   const startTilt = () => {
     if (!motionOn) addEventListener('devicemotion', onMotion);
     motionOn = true;
     motionAt = performance.now();
     steering = 'tilt';
     el.dataset['steering'] = 'tilt';
-    tiltBtn.textContent = 'Use slider';
+    tiltBtn.textContent = 'Sürgüyü kullan';
     tiltBtn.setAttribute('aria-pressed', 'true');
     centreBtn.hidden = false;
     tiltNote.hidden = true;
@@ -275,8 +275,8 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
   const calibrate = (step: Calib) => {
     calib = step;
     if (step === 'off') return hideSheet();
-    if (step === 'centre') showSheet('Hold it like a wheel', 'Hold the phone level in both hands, the way you would hold a steering wheel, then tap Centre.', 'Centre', 'Use slider');
-    else showSheet('Now turn right a little', 'Turn the phone gently to the right, like a wheel, then tap Done.', 'Done', 'Use slider');
+    if (step === 'centre') showSheet('Direksiyon gibi tutun', 'Telefonu iki elinizle, direksiyon tutar gibi düz tutun ve Ortala’ya dokunun.', 'Ortala', 'Sürgüyü kullan');
+    else showSheet('Şimdi biraz sağa çevirin', 'Telefonu direksiyon gibi hafifçe sağa çevirin ve Tamam’a dokunun.', 'Tamam', 'Sürgüyü kullan');
   };
   tiltBtn.addEventListener('click', () => {
     if (steering === 'tilt') return useTouch();
@@ -284,11 +284,11 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
     const DM = (globalThis as { DeviceMotionEvent?: MotionPermission }).DeviceMotionEvent;
     if (DM && typeof DM.requestPermission === 'function') {
       DM.requestPermission().then(
-        (r) => (r === 'granted' ? startTilt() : useTouch('Motion access was not allowed. The slider steers.')),
-        () => useTouch('Motion access was not allowed. The slider steers.'),
+        (r) => (r === 'granted' ? startTilt() : useTouch('Hareket erişimine izin verilmedi. Sürgüyle yön verebilirsiniz.')),
+        () => useTouch('Hareket erişimine izin verilmedi. Sürgüyle yön verebilirsiniz.'),
       );
     } else if (DM) startTilt();
-    else useTouch('This browser has no motion sensors. The slider steers.');
+    else useTouch('Bu tarayıcı hareket sensörlerini desteklemiyor. Sürgüyle yön verebilirsiniz.');
   });
   centreBtn.addEventListener('click', () => calibrate('centre'));
 
@@ -315,7 +315,7 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
   sheetBtn.addEventListener('click', () => {
     if (sheetKind === 'status') return onPrimary();
     if (calib === 'centre') {
-      if (rawNow === null) return void (sheetText.textContent = 'Hold the phone upright, like a wheel, then tap Centre.');
+      if (rawNow === null) return void (sheetText.textContent = 'Telefonu direksiyon gibi dik tutun ve Ortala’ya dokunun.');
       neutral = rawNow;
       filter.reset();
       tiltDeg = 0;
@@ -323,7 +323,7 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
     }
     if (calib === 'right') {
       const s = rawNow === null ? 0 : learnSign(neutral, rawNow);
-      if (s === 0) return void (sheetText.textContent = 'Turn a little further to the right, then tap Done.');
+      if (s === 0) return void (sheetText.textContent = 'Biraz daha sağa çevirin ve Tamam’a dokunun.');
       dir = s;
       centreBtn.dataset['learned'] = '1';
       filter.reset();
@@ -353,8 +353,8 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
     const rtt = sorted.length ? sorted[sorted.length >> 1]! : Number.NaN;
     const stale = now - telAt > DRIVER.telStaleMs;
     badge.dataset['level'] = stale || rtt > DRIVER.rttRed ? 'red' : rtt > DRIVER.rttAmber ? 'amber' : rtt === rtt ? 'ok' : 'off';
-    badgeText.textContent = stale ? 'No screen' : rtt === rtt ? `${Math.round(rtt)} ms` : '–';
-    badge.title = stale ? 'The big screen has not answered for a moment' : 'Round trip to the room';
+    badgeText.textContent = stale ? 'Ekran yok' : rtt === rtt ? `${Math.round(rtt)} ms` : '–';
+    badge.title = stale ? 'Büyük ekran bir süredir yanıt vermiyor' : 'Odaya gidiş dönüş süresi';
   }
 
   function message(m: ServerMessage): void {
@@ -376,7 +376,7 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
       if (m.k && m.m === 1 && typeof navigator.vibrate === 'function') navigator.vibrate(m.k & 1 ? [...VIBRATE.kerb] : [...VIBRATE.grip]);
     } else if (m.t === 'welcome') {
       telAt = performance.now(); // the screen gets a moment to start its telemetry
-      modeText.textContent = 'Press Gas to take the wheel';
+      modeText.textContent = 'Kontrolü devralmak için Gaza basın';
       send({ t: 'sync', c0: performance.now() });
     }
   }
@@ -405,26 +405,26 @@ export function createDriverPanel(code: string, link: () => RemoteLink | null): 
       if (steering === 'tilt' && calib !== 'off') calibrate(calib);
       return;
     }
-    if (s === 'connecting') modeText.textContent = 'Connecting to the big screen';
-    else if (s === 'offline') modeText.textContent = 'Reconnecting…';
+    if (s === 'connecting') modeText.textContent = 'Büyük ekrana bağlanılıyor';
+    else if (s === 'offline') modeText.textContent = 'Yeniden bağlanılıyor…';
     if (s === 'replaced') {
       onPrimary = () => link()?.reconnect();
       onAlt = null;
-      showSheet('Another phone took the wheel', 'One phone drives at a time and the newest one wins. You can take the wheel back.', 'Take the wheel back', null, 'status');
+      showSheet('Başka bir telefon kontrolü devraldı', 'Aynı anda tek telefon sürebilir; en son bağlanan kontrolü devralır. Kontrolü geri alabilirsiniz.', 'Kontrolü geri al', null, 'status');
     } else if (s === 'denied') {
       onPrimary = () => {
         forgetKey();
         location.replace(`${REMOTE_PAGE}?room=${code}`);
       };
       onAlt = null;
-      showSheet('This driving code has expired', 'Scan the "Drive from your phone" code on the big screen again, or follow along from here.', 'Join as audience', null, 'status');
+      showSheet('Bu sürüş kodunun süresi doldu', 'Büyük ekrandaki "Telefonunuzdan sürün" kodunu yeniden tarayın ya da buradan izleyici olarak devam edin.', 'İzleyici olarak katıl', null, 'status');
     } else if (s === 'gone') {
       onPrimary = () => {
         forgetKey();
         location.assign(REMOTE_PAGE);
       };
       onAlt = null;
-      showSheet(`Room ${code} has ended`, 'Scan the new code on the big screen to drive again.', 'Enter a code', null, 'status');
+      showSheet(`${code} odası kapandı`, 'Yeniden sürmek için büyük ekrandaki yeni kodu tarayın.', 'Kod gir', null, 'status');
     }
   }
 

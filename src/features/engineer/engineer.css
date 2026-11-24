@@ -1,6 +1,6 @@
 /*
  * Race Engineer overlay: tokens from src/ui/tokens.css only. Foot of the left column (04-05 layout, --sl-hud-* from
- * controls.css); the open panel grows upward within the column width, so it never reaches the suspension control.
+ * controls.css). Answers use the shared top-right caption layout in ui/messages.css.
  */
 .sl-engineer {
   position: absolute;
@@ -94,15 +94,9 @@
   display: none;
 }
 
-.sl-engineer-answer {
-  padding: var(--sp-1) var(--sp-1) var(--sp-2);
-  border-bottom: 1px solid var(--hair);
-  animation: sl-engineer-in var(--dur-caption-in) var(--ease);
-}
 .sl-engineer-text {
   margin: 0;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
+  font: inherit;
   color: var(--text-1);
 }
 .sl-engineer-answer.is-busy .sl-engineer-text {
@@ -110,7 +104,8 @@
 }
 .sl-engineer-badge {
   display: inline-block;
-  margin-top: var(--sp-2);
+  align-self: flex-start;
+  font-size: 10px;
   padding: 2px var(--sp-2);
   color: var(--warn);
   border: 1px solid var(--hair);

@@ -5,7 +5,9 @@
 // Exits 1 unless request client+1 (per client id) is the first 429. The per-address check is informational: it
 // only holds when every request leaves from one source address (a rotating egress proxy spreads them).
 const args = process.argv.slice(2);
-const base = (args.find((a) => !a.startsWith('--')) ?? 'https://suspension-lab.zh-a16.workers.dev').replace(/\/$/, '');
+const target = args.find((a) => !a.startsWith('--')) ?? process.env.SMOKE_BASE_URL;
+if (!target) throw new Error('Pass a base URL or set SMOKE_BASE_URL (for example, http://localhost:4173).');
+const base = target.replace(/\/$/, '');
 const withModel = args.includes('--model');
 const LIMITS = { client: 6, ip: 40 }; // worker/routes/engineer.ts ENGINEER_LIMITS
 const run = `${process.pid}-${Date.now().toString(36)}`;

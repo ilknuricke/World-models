@@ -71,7 +71,7 @@ export function shares(counts: readonly number[]): { total: number; percent: num
   return { total, percent, leader: leaders.length === 1 ? leaders[0]! : null };
 }
 
-export const votesText = (n: number): string => (n === 1 ? '1 vote' : `${n} votes`);
+export const votesText = (n: number): string => (n === 1 ? '1 oy' : `${n} oy`);
 
 /** Poll option rows: label, percentage, bar. `onVote` makes them buttons. */
 export function pollRows(options: readonly string[], counts: readonly number[], mine: number | null, onVote: ((i: number) => void) | null): HTMLElement {
@@ -84,7 +84,7 @@ export function pollRows(options: readonly string[], counts: readonly number[], 
       fill.style.transform = `scaleX(${s.percent[i]! / 100})`;
       const inner = [
         fill,
-        h('span', { class: 'rm-poll-label' }, label, mine === i ? h('span', { class: 'rm-poll-mine' }, 'Your vote') : null),
+        h('span', { class: 'rm-poll-label' }, label, mine === i ? h('span', { class: 'rm-poll-mine' }, 'Oyunuz') : null),
         h('span', { class: 'rm-poll-pct' }, `${s.percent[i]}%`),
       ];
       const attrs = { class: 'rm-poll-row', 'data-lead': s.leader === i, 'data-mine': mine === i };

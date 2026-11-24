@@ -42,28 +42,28 @@ test('presenter phone drives the big screen; audience votes show as live bars', 
   // Presenter phone: /remote.html -> /remote keeps ?room= and the #k= fragment; the key is then removed from the URL.
   const host = await phone(browser, `/remote.html?room=${code}#k=${hostKey}`);
   await expect(host.page.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 20_000 });
-  await expect(host.page.locator('.rm-role')).toHaveText('Presenter');
+  await expect(host.page.locator('.rm-role')).toHaveText('Sunucu');
   expect(host.page.url()).toMatch(new RegExp(`/remote(\\.html)?\\?room=${code}$`));
 
   const tap = (name: string) => host.page.getByRole('button', { name, exact: true }).or(host.page.getByRole('radio', { name, exact: true })).first().click();
-  await tap('Strut');
+  await tap('Dikme');
   await expect.poll(async () => (await state()).suspensionId).toBe('macpherson');
   await expect(card).toHaveAttribute('data-mode', 'audience'); // the host took control
-  await tap('Close-up');
-  await host.page.getByRole('button', { name: /^X-ray/ }).click();
-  await tap('Quarter');
-  await host.page.getByRole('button', { name: /^Amplify/ }).click();
+  await tap('Yakın plan');
+  await host.page.getByRole('button', { name: /^Röntgen/ }).click();
+  await tap('Çeyrek hız');
+  await host.page.getByRole('button', { name: /^Büyüt/ }).click();
   await expect.poll(async () => {
     const s = await state();
     return [s.view, s.xray, s.timeScale, s.amplification];
   }).toEqual(['closeup', true, 0.25, 2.5]);
-  await host.page.getByRole('button', { name: /^Hairpin/ }).click();
+  await host.page.getByRole('button', { name: /^Firkete viraj/ }).click();
   await expect.poll(() => screen.evaluate(() => globalThis.__app!.frame().sectionId), { timeout: 10_000 }).toBe('hairpin');
-  await tap('Front wheel');
+  await tap('Ön tekerlek');
   await expect.poll(async () => (await state()).focusCorner).toBe('fl');
-  await tap('Drive');
-  await host.page.getByRole('button', { name: /^X-ray/ }).click();
-  await tap('Real time');
+  await tap('Sürüş');
+  await host.page.getByRole('button', { name: /^Röntgen/ }).click();
+  await tap('Gerçek zaman');
   await expect.poll(async () => (await state()).view).toBe('follow');
   await shot(host.page, 'host', true);
   await host.page.setViewportSize({ width: 360, height: 640 });
@@ -75,13 +75,13 @@ test('presenter phone drives the big screen; audience votes show as live bars', 
   for (let i = 0; i < 3; i++) {
     const a = await phone(browser, `/r/${code}`);
     await expect(a.page.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 20_000 });
-    await expect(a.page.locator('.rm-role')).toHaveText('Audience');
+    await expect(a.page.locator('.rm-role')).toHaveText('İzleyici');
     audience.push(a);
   }
   await expect(audience[0]!.page.locator('.rm-wait-title')).toBeVisible();
 
-  await tap('Open poll');
-  const picks = ['Wishbone', 'Wishbone', 'Strut'];
+  await tap('Anketi aç');
+  const picks = ['Çift salıncak', 'Çift salıncak', 'Dikme'];
   for (const [i, a] of audience.entries()) {
     const option = a.page.getByRole('button', { name: new RegExp(`^${picks[i]}`) });
     await expect(option).toBeVisible({ timeout: 10_000 });
@@ -89,17 +89,17 @@ test('presenter phone drives the big screen; audience votes show as live bars', 
   }
   const bars = screen.locator('.sl-poll');
   await expect(bars).toBeVisible();
-  await expect(bars.locator('.sl-poll-total')).toHaveText('3 votes', { timeout: 10_000 });
-  await expect(bars.locator('.sl-poll-option[data-lead] .sl-poll-label')).toHaveText('Wishbone');
-  await expect(audience[0]!.page.locator('.rm-poll-row[data-mine]')).toContainText('Wishbone');
-  await expect(host.page.locator('.rm-poll-body')).toContainText('3 votes');
+  await expect(bars.locator('.sl-poll-total')).toHaveText('3 oy', { timeout: 10_000 });
+  await expect(bars.locator('.sl-poll-option[data-lead] .sl-poll-label')).toHaveText('Çift salıncak');
+  await expect(audience[0]!.page.locator('.rm-poll-row[data-mine]')).toContainText('Çift salıncak');
+  await expect(host.page.locator('.rm-poll-body')).toContainText('3 oy');
   await shot(audience[0]!.page, 'audience');
   await shot(screen, 'screen-poll');
 
   // Close and run the winner on the big screen.
-  await tap('Close poll');
+  await tap('Anketi kapat');
   await expect(bars).toHaveAttribute('data-open', 'false');
-  await host.page.getByRole('button', { name: 'Run Wishbone' }).click();
+  await host.page.getByRole('button', { name: 'Çift salıncak ile dene' }).click();
   await expect.poll(async () => (await state()).suspensionId).toBe('double-wishbone');
   await expect(audience[1]!.page.locator('.rm-ballot')).toHaveAttribute('data-open', 'false');
 
@@ -124,7 +124,7 @@ test('remote: redirect keeps the room, unknown rooms offer the code form at 360x
   expect(overflow).toBeLessThanOrEqual(0);
   // Typing a code navigates to it (upper-cased).
   await a.page.locator('.rm-input').fill('zzzzy');
-  await a.page.getByRole('button', { name: 'Join' }).click();
+  await a.page.getByRole('button', { name: 'Katıl' }).click();
   await expect(a.page).toHaveURL(/room=ZZZZY/);
   // A closed WS upgrade for an unknown room is the only expected network noise.
   expect(a.errors.filter((e) => !/WebSocket|ZZZZ/.test(e))).toEqual([]);

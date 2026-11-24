@@ -55,7 +55,7 @@ test('enforced CSP: zero violations in follow, close-up, explore, x-ray, motorcy
   await step(async () => app.page.evaluate(() => globalThis.__app!.set('vehicleId', 'gt-coupe')));
   await step(async () => app.page.keyboard.press('m')); // audio toggle (07-03), if present
   // Engineer: a real POST to the local worker (no AI binding locally -> labelled rule answer).
-  await app.page.getByRole('button', { name: 'Ask the engineer' }).click();
+  await app.page.getByRole('button', { name: 'Mühendise sor' }).click();
   await app.page.locator('.sl-engineer-input').fill('What is a roll centre?');
   await app.page.locator('.sl-engineer-input').press('Enter');
   await expect(app.page.locator('.sl-engineer-text')).not.toBeEmpty({ timeout: 20_000 });
@@ -82,12 +82,12 @@ test('remote pages: CSP clean; the host key never travels in a WebSocket URL; sc
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const host = await open(phone, `/remote.html?room=${code}#k=${hostKey}`);
   await expect(host.page.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 20_000 });
-  await expect(host.page.locator('.rm-role')).toHaveText('Presenter');
+  await expect(host.page.locator('.rm-role')).toHaveText('Sunucu');
   // "Host connected" (presence.hosts) flips the screen to the audience QR before any command is sent.
   await expect(card).toHaveAttribute('data-mode', 'audience', { timeout: 10_000 });
 
   const audience = await open(await browser.newContext({ viewport: { width: 360, height: 640 } }), `/r/${code}`);
-  await expect(audience.page.locator('.rm-role')).toHaveText('Audience', { timeout: 20_000 });
+  await expect(audience.page.locator('.rm-role')).toHaveText('İzleyici', { timeout: 20_000 });
 
   for (const w of [screen, host, audience]) {
     expect(w.sockets.length).toBeGreaterThan(0);

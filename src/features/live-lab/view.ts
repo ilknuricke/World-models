@@ -14,7 +14,7 @@ export function createPresenceView(): PresenceView {
   const legend = h('div', { class: 'sl-live-lab-legend' });
   const root = h(
     'section',
-    { class: 'sl-live-lab', 'aria-label': 'Live Lab', hidden: true },
+    { class: 'sl-live-lab', 'aria-label': 'Canlı Laboratuvar', hidden: true },
     h('div', { class: 'sl-live-lab-head' }, h('span', { class: 'sl-live-lab-dot', 'aria-hidden': 'true' }), count),
     bar,
     legend,

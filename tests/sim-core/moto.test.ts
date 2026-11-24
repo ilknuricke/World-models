@@ -74,7 +74,7 @@ describe('content', () => {
   it('copy has no digits and the vehicle is generic', () => {
     for (const s of PRESETS) expect(strings(s.copy).filter((t) => /\d/.test(t)), s.id).toEqual([]);
     expect([v.name, v.subtitle].filter((t) => /\d/.test(t))).toEqual([]);
-    expect(v.subtitle).toBe('Representative parameters');
+    expect(v.subtitle).toBe('Temsili parametreler');
     expect(`${v.name} ${v.subtitle}`).not.toMatch(/triumph|bmw|thruxton|bonneville|honda|kawasaki/i);
     expect(v.suspensions).toEqual(PRESETS.map((s) => s.id));
   });

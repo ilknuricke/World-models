@@ -29,7 +29,7 @@ test.describe('08-03 take the wheel', () => {
     await expect(pill).toBeVisible();
     await expect(pill).toHaveAttribute('data-mode', 'auto');
     const toggle = page.locator('.sl-drive-toggle');
-    await expect(toggle).toHaveAccessibleName(/^Driving mode: Auto/);
+    await expect(toggle).toHaveAccessibleName(/^Sürüş modu: Otomatik/);
     // the takeover prompt appears after 4 s of Auto (only when this vehicle can be driven)
     if (await page.evaluate(() => globalThis.__app!.drive().available)) {
       await expect(page.locator('.sl-drive-hint')).toHaveAttribute('data-kind', 'prompt', { timeout: 60_000 });
@@ -40,7 +40,7 @@ test.describe('08-03 take the wheel', () => {
     // the bike: Auto only, said plainly; W does not take over and logs nothing
     await page.goto(`${BOOT}&vehicle=cafe-racer`);
     await page.waitForFunction(() => globalThis.__app?.ready === true);
-    await expect(pill).toContainText('Auto only for this vehicle');
+    await expect(pill).toContainText('Bu araçta yalnızca otomatik sürüş var');
     await expect(toggle).toHaveAttribute('aria-disabled', 'true');
     await page.keyboard.press('KeyW');
     await page.keyboard.press('Enter');

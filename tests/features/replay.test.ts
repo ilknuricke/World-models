@@ -83,10 +83,10 @@ describe('share limits and honesty lines', () => {
   it('labels another model version, other parameters and drift; silent when exact', () => {
     const s = { sameModel: true, sameVersion: true, mismatches: 0, resyncs: 0 } as ReplayStatus;
     expect(statusNote(s)).toBeNull();
-    expect(statusNote({ ...s, sameVersion: false })).toMatch(/older model/);
-    expect(statusNote({ ...s, sameModel: false })).toMatch(/may differ/);
-    expect(statusNote({ ...s, mismatches: 1 })).toMatch(/may differ/);
-    expect(statusNote({ ...s, mismatches: 1, resyncs: 1 })).toMatch(/approximate from here/);
+    expect(statusNote({ ...s, sameVersion: false })).toMatch(/Eski bir modelle/);
+    expect(statusNote({ ...s, sameModel: false })).toMatch(/farklı olabilir/);
+    expect(statusNote({ ...s, mismatches: 1 })).toMatch(/farklı olabilir/);
+    expect(statusNote({ ...s, mismatches: 1, resyncs: 1 })).toMatch(/Bundan sonrası yaklaşık/);
   });
 
   it('copy carries no digits', () => {
@@ -102,12 +102,14 @@ const ID = 'ABCDEFGH2345';
 
 describe('saved runs (12-05)', () => {
   it('the production site key everywhere but a local host; the test keys only there', () => {
-    expect(siteKeyFor({ hostname: 'suspension-lab.zh-a16.workers.dev', search: '' })).toBe(SITE_KEY);
-    expect(siteKeyFor({ hostname: 'suspension-lab.zh-a16.workers.dev', search: '?turnstile=pass' })).toBe(SITE_KEY);
-    expect(siteKeyFor({ hostname: 'evil.example', search: '?turnstile=fail' })).toBe(SITE_KEY);
+    const configuredKey = 'public-widget-id-for-this-deployment';
+    expect(siteKeyFor({ hostname: 'lab.example.workers.dev', search: '' }, configuredKey)).toBe(configuredKey);
+    expect(siteKeyFor({ hostname: 'lab.example.workers.dev', search: '?turnstile=pass' }, configuredKey)).toBe(configuredKey);
+    expect(siteKeyFor({ hostname: 'evil.example', search: '?turnstile=fail' }, configuredKey)).toBe(configuredKey);
     expect(siteKeyFor({ hostname: 'localhost', search: '?e2e=1' })).toBe(TEST_SITE_KEYS.pass);
     expect(siteKeyFor({ hostname: '127.0.0.1', search: '?turnstile=fail' })).toBe(TEST_SITE_KEYS.fail);
-    expect(SITE_KEY).toBe('0x4AAAAAAGLbvJGTqk052mg6');
+    expect(siteKeyFor({ hostname: 'lab.example.workers.dev', search: '' }, '')).toBe('');
+    expect(siteKeyFor({ hostname: 'lab.example.workers.dev', search: '' })).toBe(SITE_KEY);
   });
 
   it('#rid= links: id format, parsing, the url carries only the id in the fragment', () => {
@@ -218,9 +220,9 @@ describe('saved runs (12-05)', () => {
   it('save copy carries no digits and says what is kept', () => {
     const all = [...Object.values(SAVE_ERROR).map((e) => e.text), ...Object.values(FALLBACK), lastMinutes(1), lastMinutes(10), savedPart(5), savingPart(2)];
     for (const text of all) expect(text, text).not.toMatch(/\d/);
-    expect(COPY.savePrivacy).toMatch(/only your inputs and the start state/);
-    expect(COPY.savePrivacy).toMatch(/no account/);
-    expect(lastMinutes(5)).toBe('the last five minutes');
-    expect(lastMinutes(1)).toBe('the last minute');
+    expect(COPY.savePrivacy).toMatch(/yalnızca kontrol girdileriniz ve başlangıç durumu/);
+    expect(COPY.savePrivacy).toMatch(/Hesap veya kişisel bilgi gerekmez/);
+    expect(lastMinutes(5)).toBe('son beş dakika');
+    expect(lastMinutes(1)).toBe('son bir dakika');
   });
 });

@@ -99,7 +99,7 @@ describe('POST /api/replays', () => {
     const { env, db, admit } = setup({ secret: null });
     const res = await post(env, { token: 'x', data: await dataOf() });
     expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ error: 'not_configured', message: 'Saving replays is not enabled on this server.' });
+    expect(await res.json()).toEqual({ error: 'not_configured', message: 'Bu sunucuda tekrar kaydı etkin değil.' });
     expect(res.headers.get('cache-control')).toBe('no-store');
     expect(admit).not.toHaveBeenCalled();
     expect(count(db)).toBe(0);

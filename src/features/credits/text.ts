@@ -11,7 +11,7 @@ export const licenseName = (spdx: string): string => LICENSE_NAMES[spdx] ?? spdx
 /** One sentence per entry; for CC BY this is the exact form of ARCHITECTURE §15. */
 export function attributionText(a: Attribution): string {
   const who = a.authorUrl ? `${a.author} (${a.authorUrl})` : a.author;
-  const verb = a.license.startsWith('CC0') ? 'is dedicated to the public domain under' : 'is licensed under';
-  const modified = a.modified ? ` Modified: ${a.modified.replace(/\.?$/, '.')}` : '';
-  return `"${a.title}" by ${who} ${verb} ${licenseName(a.license)} (${a.licenseUrl}). Source: ${a.sourceUrl}.${modified}`;
+  const verb = a.license.startsWith('CC0') ? 'koşullarıyla kamu malı olarak sunulmuştur' : 'koşullarıyla lisanslanmıştır';
+  const modified = a.modified ? ` Değişiklikler: ${a.modified.replace(/\.?$/, '.')}` : '';
+  return `"${a.title}" — ${who}. ${licenseName(a.license)} (${a.licenseUrl}) ${verb}. Kaynak: ${a.sourceUrl}.${modified}`;
 }

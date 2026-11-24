@@ -76,35 +76,35 @@ test.describe('04-02 HUD controls', () => {
     await page.waitForFunction(() => globalThis.__app?.ready === true, undefined, { timeout: 120_000 });
     await expect(page.locator('.sl-controls-loading')).toHaveCount(0, { timeout: 30_000 });
 
-    const susp = page.getByRole('radiogroup', { name: 'Suspension' });
-    await expect(susp.getByRole('radio')).toHaveText([/MacPherson strut/, /Double wishbone/, /Multi-link/]);
-    await expect(susp.getByRole('radio', { name: 'Double wishbone' })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.locator('.sl-controls-name')).toHaveText('GT coupe');
-    await expect(page.locator('.sl-controls-sub')).toContainText('Representative parameters');
+    const susp = page.getByRole('radiogroup', { name: 'Süspansiyon' });
+    await expect(susp.getByRole('radio')).toHaveText([/MacPherson dikme/, /Çift salıncak/, /Çok bağlantılı/]);
+    await expect(susp.getByRole('radio', { name: 'Çift salıncak' })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.sl-controls-name')).toHaveText('GT kupe');
+    await expect(page.locator('.sl-controls-sub')).toContainText('Temsili parametreler');
 
     // one click: store and the simulated frame change
     await advance(page);
     const before = await camber(page);
-    await susp.getByRole('radio', { name: 'MacPherson strut' }).click();
+    await susp.getByRole('radio', { name: 'MacPherson dikme' }).click();
     expect((await state(page)).suspensionId).toBe('macpherson');
     await advance(page);
     expect(await camber(page)).not.toEqual(before);
-    await expect(page.locator('.sl-controls-descriptor')).toHaveText('Compact and light. Camber follows body roll.');
+    await expect(page.locator('.sl-controls-descriptor')).toHaveText('Kompakt ve hafif. Kamber gövdenin yatmasını izler.');
 
     // keys
     await page.keyboard.press('3');
     expect((await state(page)).suspensionId).toBe('multilink');
-    await expect(susp.getByRole('radio', { name: 'Multi-link' })).toHaveAttribute('aria-checked', 'true');
+    await expect(susp.getByRole('radio', { name: 'Çok bağlantılı' })).toHaveAttribute('aria-checked', 'true');
     // arrow keys inside the radiogroup (roving tabindex)
-    await susp.getByRole('radio', { name: 'Multi-link' }).focus();
+    await susp.getByRole('radio', { name: 'Çok bağlantılı' }).focus();
     await page.keyboard.press('ArrowLeft');
     expect((await state(page)).suspensionId).toBe('double-wishbone');
-    await expect(susp.getByRole('radio', { name: 'Double wishbone' })).toBeFocused();
+    await expect(susp.getByRole('radio', { name: 'Çift salıncak' })).toBeFocused();
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
     await page.keyboard.press('c');
     expect((await state(page)).view).toBe('closeup');
-    await page.getByRole('radiogroup', { name: 'View' }).getByRole('radio', { name: 'Explore' }).click();
+    await page.getByRole('radiogroup', { name: 'Kamera' }).getByRole('radio', { name: 'Keşfet' }).click();
     expect((await state(page)).view).toBe('explore');
     await page.keyboard.press('f');
     expect((await state(page)).view).toBe('follow');
@@ -117,20 +117,20 @@ test.describe('04-02 HUD controls', () => {
     expect((await state(page)).amplification).toBe(2.5);
     const amp = page.locator('.sl-controls-amp');
     await expect(amp).toBeVisible();
-    await expect(amp).toContainText('Motion ×2.5 · values true scale');
+    await expect(amp).toContainText('Hareket ×2.5 · değerler gerçek ölçekte');
     await page.keyboard.press('h'); // the chip survives a hidden HUD
     await expect(amp).toBeVisible();
     await expect(page.locator('.sl-controls-tag')).toBeHidden();
-    await expect(page.getByRole('button', { name: 'Show controls' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Kontrolleri göster' })).toBeVisible();
     await page.keyboard.press('h');
     await expect(page.locator('.sl-controls-tag')).toBeVisible();
-    await amp.getByRole('button', { name: 'True scale' }).click();
+    await amp.getByRole('button', { name: 'Gerçek ölçek' }).click();
     expect((await state(page)).amplification).toBe(1);
     await expect(amp).toBeHidden();
 
     // time: paused boot is off the live clock; Space plays, S slows, Live rejoins
     const live = page.locator('.sl-controls-live');
-    await expect(live).toHaveText('Rejoin live');
+    await expect(live).toHaveText('Canlıya dön');
     await page.keyboard.press(' ');
     expect((await state(page)).paused).toBe(false);
     await page.keyboard.press('s');
@@ -140,18 +140,18 @@ test.describe('04-02 HUD controls', () => {
     await live.click();
     s = await state(page);
     expect([s.paused, s.timeScale, s.clock]).toEqual([false, 1, 'live']);
-    await expect(live).toHaveText('Live');
+    await expect(live).toHaveText('Canlı');
     const t0 = (await page.evaluate(() => globalThis.__app!.frame())).lapTime;
     await expect.poll(async () => (await page.evaluate(() => globalThis.__app!.frame())).lapTime, { timeout: 60_000 }).not.toBe(t0);
     await page.keyboard.press(' ');
     expect((await state(page)).paused).toBe(true);
-    await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Oynat' })).toBeVisible();
 
     // shortcut card
     await page.keyboard.press('?');
-    const help = page.getByRole('region', { name: 'Keyboard shortcuts' });
+    const help = page.getByRole('region', { name: 'Klavye kısayolları' });
     await expect(help).toBeVisible();
-    await help.getByRole('button', { name: /X-ray/ }).click();
+    await help.getByRole('button', { name: /İç görünüm/ }).click();
     expect((await state(page)).xray).toBe(true);
     await page.keyboard.press('Escape');
     await expect(help).toBeHidden();
@@ -195,16 +195,16 @@ test.describe('04-02 HUD controls', () => {
     await page.goto(BOOT);
     await page.waitForFunction(() => globalThis.__app?.ready === true, undefined, { timeout: 120_000 });
     await expect(page.locator('.sl-controls-loading')).toHaveCount(0, { timeout: 30_000 });
-    await page.locator('.sl-controls-tag').getByRole('button', { name: 'Credits' }).click();
-    const panel = page.getByRole('dialog', { name: 'Credits' });
+    await page.locator('.sl-controls-tag').getByRole('button', { name: 'Katkıda bulunanlar' }).click();
+    const panel = page.getByRole('dialog', { name: 'Katkıda bulunanlar' });
     await expect(panel).toBeVisible();
     expect((await state(page)).creditsOpen).toBe(true);
     await expect(panel).toContainText(
-      '"Aston Martin db11" by Black Snow (https://sketchfab.com/BlackSnow02) is licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Source: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Modified: optimised/compressed (meshopt), decimated, re-materialed, badges hidden.',
+      '"Aston Martin db11" — Black Snow (https://sketchfab.com/BlackSnow02). CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/) koşullarıyla lisanslanmıştır. Kaynak: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Değişiklikler: optimize edildi ve sıkıştırıldı (meshopt), çokgen sayısı azaltıldı, malzemeler yenilendi, logolar gizlendi.',
     );
     await expect(panel).toContainText('Copyright (c) 2016, Project Chrono Development Team');
     await expect(panel).toContainText('Neither the name of the nor the names of its contributors');
-    await expect(panel.getByRole('button', { name: 'Close credits' })).toBeFocused();
+    await expect(panel.getByRole('button', { name: 'Katkıda bulunanları kapat' })).toBeFocused();
     await advance(page);
     await page.screenshot({ path: join(SHOTS, '04-02-credits.png') });
     await page.keyboard.press('Escape');

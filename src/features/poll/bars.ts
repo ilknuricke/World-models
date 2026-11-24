@@ -25,4 +25,4 @@ export function pollBars(counts: readonly number[]): PollBars {
   return { total, percent, leader: leaders.length === 1 ? leaders[0]! : null };
 }
 
-export const votesText = (n: number): string => (n === 1 ? '1 vote' : `${n} votes`);
+export const votesText = (n: number): string => (n === 1 ? '1 oy' : `${n} oy`);

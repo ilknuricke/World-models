@@ -91,8 +91,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.35,
     sustain: 0.6,
     applies: twoTrack,
-    text: 'The body rolls toward the outside; the outer tyres carry more load.',
-    chip: 'Roll {roll}',
+    text: 'Gövde virajın dışına yatar; dış lastikler daha fazla yük taşır.',
+    chip: 'Yatma {roll}',
   },
   {
     id: 'outer-camber',
@@ -102,8 +102,8 @@ export const RULES: readonly Rule[] = [
     sustain: 1,
     applies: twoTrack,
     focus: mostLoaded,
-    text: 'As the body rolls, the loaded wheel’s camber to the road changes.',
-    chip: 'Camber {corner} {camber}',
+    text: 'Gövde yattıkça yük taşıyan tekerleğin yola göre kamber açısı değişir.',
+    chip: 'Kamber {corner} {camber}',
   },
   {
     id: 'roll-centre',
@@ -112,8 +112,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.3,
     sustain: 2,
     applies: hasRollCentres,
-    text: 'The linkage sets a roll centre: the point the body leans about.',
-    chip: 'Roll centre front {rcFront} · rear {rcRear}',
+    text: 'Bağlantılar, gövdenin etrafında yattığı yalpa merkezini belirler.',
+    chip: 'Yalpa merkezi ön {rcFront} · arka {rcRear}',
   },
   {
     id: 'roll-reversal',
@@ -122,8 +122,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.3,
     flip: true,
     applies: twoTrack,
-    text: 'Direction flips: the load swings across to the other side.',
-    chip: 'Roll {roll}',
+    text: 'Yön değişir: yük diğer tarafa geçer.',
+    chip: 'Yatma {roll}',
   },
   {
     id: 'brake-dive',
@@ -132,8 +132,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.5,
     sustain: 0.3,
     applies: twoTrack,
-    text: 'Braking moves load forward and the nose dives.',
-    chip: 'Pitch {pitch}',
+    text: 'Frenleme yükü öne aktarır ve burun öne dalar.',
+    chip: 'Öne yatma {pitch}',
   },
   // ---- single track (motorcycle): no roll centre or body roll; the whole bike leans and the fork carries the dive
   {
@@ -143,8 +143,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.35,
     sustain: 0.6,
     applies: singleTrack,
-    text: 'The bike leans into the turn until gravity balances the cornering force.',
-    chip: 'Lean {roll} · lateral {ay}',
+    text: 'Motosiklet, yerçekimi viraj kuvvetini dengeleyene kadar virajın içine yatar.',
+    chip: 'Yatma {roll} · yanal {ay}',
   },
   {
     id: 'fork-dive',
@@ -154,8 +154,8 @@ export const RULES: readonly Rule[] = [
     sustain: 0.3,
     applies: singleTrack,
     focus: cornerOf('front'),
-    text: 'Braking loads the front: the fork compresses and the steering geometry changes.',
-    chip: 'Travel front {travel} · trail {trail} · pitch {pitch}',
+    text: 'Frenlemede ön taraf yüklenir: çatal sıkışır ve direksiyon geometrisi değişir.',
+    chip: 'Ön hareket {travel} · iz mesafesi {trail} · öne yatma {pitch}',
   },
   {
     id: 'squat',
@@ -165,8 +165,8 @@ export const RULES: readonly Rule[] = [
     sustain: 0.5,
     applies: singleTrack,
     focus: cornerOf('rear'),
-    text: 'Under power the chain pulls the swingarm; geometry decides squat or rise.',
-    chip: 'Travel rear {travel} · anti-squat {antiPitch}',
+    text: 'Gaz verildiğinde zincir salıncağı çeker; çökmeyi veya yükselmeyi geometri belirler.',
+    chip: 'Arka hareket {travel} · çökmeye direnç {antiPitch}',
   },
   {
     id: 'steer',
@@ -175,8 +175,8 @@ export const RULES: readonly Rule[] = [
     threshold: 5,
     sustain: 0.3,
     applies: twoTrack,
-    text: 'Tight turn: the steered wheels turn about their steering axes.',
-    chip: 'Steer {steer}',
+    text: 'Dar virajda ön tekerlekler direksiyon eksenleri etrafında döner.',
+    chip: 'Direksiyon {steer}',
   },
   {
     id: 'heave',
@@ -185,8 +185,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.015,
     sustain: 0.1,
     focus: mostTravel,
-    text: 'Light over the crest, heavy in the dip: the wheels move together.',
-    chip: 'Travel {corner} {travel}',
+    text: 'Tepede hafifler, çukurda ağırlaşır: tekerlekler birlikte hareket eder.',
+    chip: 'Hareket {corner} {travel}',
   },
   {
     id: 'single-bump',
@@ -195,8 +195,8 @@ export const RULES: readonly Rule[] = [
     threshold: 0.025,
     sustain: 0,
     focus: mostTravel,
-    text: 'One wheel takes the bump: watch its travel, not the body’s.',
-    chip: 'Travel {corner} {travel}',
+    text: 'Tümseği tek tekerlek karşılar: gövde yerine tekerleğin hareketini izleyin.',
+    chip: 'Hareket {corner} {travel}',
   },
   {
     id: 'rough',
@@ -205,17 +205,17 @@ export const RULES: readonly Rule[] = [
     threshold: 0.3,
     sustain: 0.5,
     focus: mostTravel,
-    text: 'On rough road the wheels work fast; springs and dampers filter it.',
-    chip: 'Travel {corner} {travel}',
+    text: 'Bozuk yolda tekerlekler hızlı hareket eder; yaylar ve amortisörler darbeleri süzer.',
+    chip: 'Hareket {corner} {travel}',
   },
   // ---- simulation events
-  { id: 'liftoff', event: 'liftoff', warn: true, text: 'The {wheel} wheel goes light: almost no load on it.', chip: 'Load {corner} {load}' },
-  { id: 'grip-limit', event: 'grip-limit', warn: true, text: 'The {wheel} tyre is close to its grip limit.', chip: 'Grip use {corner} {grip} · model' },
-  { id: 'bump-stop', event: 'bump-stop', warn: true, text: 'The {wheel} wheel reached its bump stop.', chip: 'Travel {corner} {travel}' },
+  { id: 'liftoff', event: 'liftoff', warn: true, text: '{wheel} tekerlek hafifler: üzerinde neredeyse hiç yük yoktur.', chip: 'Yük {corner} {load}' },
+  { id: 'grip-limit', event: 'grip-limit', warn: true, text: '{wheel} lastik tutuş sınırına yaklaşıyor.', chip: 'Tutuş kullanımı {corner} {grip} · model' },
+  { id: 'bump-stop', event: 'bump-stop', warn: true, text: '{wheel} tekerlek darbe takozuna dayandı.', chip: 'Hareket {corner} {travel}' },
 ];
 
-const CORNER_NAME: Readonly<Record<string, string>> = { fl: 'front-left', fr: 'front-right', rl: 'rear-left', rr: 'rear-right', f: 'front', r: 'rear' };
-const CORNER_SHORT: Readonly<Record<string, string>> = { fl: 'FL', fr: 'FR', rl: 'RL', rr: 'RR', f: 'front', r: 'rear' };
+const CORNER_NAME: Readonly<Record<string, string>> = { fl: 'sol ön', fr: 'sağ ön', rl: 'sol arka', rr: 'sağ arka', f: 'ön', r: 'arka' };
+const CORNER_SHORT: Readonly<Record<string, string>> = { fl: 'SÖ', fr: 'SĞÖ', rl: 'SA', rr: 'SĞA', f: 'ön', r: 'arka' };
 const signed = (v: number, d: number, unit: string) => (v > 0 && fmt(v, d) !== fmt(0, d) ? '+' : '') + fmt(v, d) + unit;
 
 /** Fills `{placeholders}` from the frame (TRUE values) for `corner`. Unknown placeholders are left visible (test catches them). */

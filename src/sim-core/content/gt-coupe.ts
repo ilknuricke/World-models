@@ -23,8 +23,8 @@ const damping = { bump: 0.32, rebound: 0.58 };
 export const gtCoupe: CarDefinition = {
   id: 'gt-coupe',
   class: 'car',
-  name: 'GT coupe',
-  subtitle: 'Representative parameters',
+  name: 'GT kupe',
+  subtitle: 'Temsili parametreler',
   visualKey: 'db11',
   mass: 1700,
   sprungMass: 1540,

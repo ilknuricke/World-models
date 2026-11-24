@@ -53,7 +53,7 @@ describe('templates', () => {
       expect(`${i.text} ${i.chip}`).not.toMatch(/[{}]/);
     }
     expect(fill('Roll {roll}', t, 0)).toBe(`Roll ${fmt(Math.abs(deg(-0.03)), 1)}°`);
-    expect(fill('The {wheel} wheel, {corner} {camber}', t, 2)).toBe(`The rear-left wheel, RL ${fmt(deg(-0.032), 1)}°`);
+    expect(fill('The {wheel} wheel, {corner} {camber}', t, 2)).toBe(`The sol arka wheel, SA ${fmt(deg(-0.032), 1)}°`);
     expect(fill('Roll centre front {rcFront} · rear {rcRear}', t, 0)).toBe('Roll centre front 80 mm · rear 60 mm');
   });
 });
@@ -66,7 +66,7 @@ describe('InsightEngine', () => {
     expect(e.tick(t, 'steady-state-roll', 0.5)).toBeNull();
     const first = e.tick(t, 'steady-state-roll', 0.7);
     expect(first?.id).toBe('roll');
-    expect(first?.chip).toBe(`Roll ${fmt(deg(0.02), 1)}°`);
+    expect(first?.chip).toBe(`Yatma ${fmt(deg(0.02), 1)}°`);
     expect(e.tick(t, 'steady-state-roll', 0.7 + MIN_GAP_S - 0.1)).toBeNull();
     expect(e.tick(t, 'steady-state-roll', 0.71 + MIN_GAP_S)?.id).toBe('outer-camber');
   });
@@ -96,7 +96,7 @@ describe('InsightEngine', () => {
   it('describes the corner an event names, in amber', () => {
     const e = new InsightEngine();
     const i = e.event({ kind: 'liftoff', corner: 3 }, frame(CAR), 0);
-    expect(i).toMatchObject({ id: 'liftoff', warn: true, text: 'The rear-right wheel goes light: almost no load on it.', chip: 'Load RR 4.5 kN' });
+    expect(i).toMatchObject({ id: 'liftoff', warn: true, text: 'sağ arka tekerlek hafifler: üzerinde neredeyse hiç yük yoktur.', chip: 'Yük SĞA 4.5 kN' });
     expect(e.event({ kind: 'grip-limit', corner: 0 }, frame(CAR), 1)).toBeNull(); // global gap
     expect(e.event({ kind: 'section', index: 1, id: 'x' }, frame(CAR), 20)).toBeNull();
   });
@@ -110,22 +110,22 @@ describe('InsightEngine', () => {
       if (i) said.push(i.id);
     }
     expect(said).toEqual(['lean']);
-    expect(e.event({ kind: 'bump-stop', corner: 1 }, t, 10)?.text).toBe('The rear wheel reached its bump stop.');
+    expect(e.event({ kind: 'bump-stop', corner: 1 }, t, 10)?.text).toBe('arka tekerlek darbe takozuna dayandı.');
     const brake = frame(MOTO, { ax: -0.8 * G });
     brake.corners[0]!.travel = 0.05;
     brake.trail = 0.0735;
     const de = new InsightEngine();
     expect(de.tick(brake, 'brake-dive', 0)).toBeNull(); // sustain
-    expect(de.tick(brake, 'brake-dive', 0.5)).toMatchObject({ id: 'fork-dive', chip: 'Travel front +50 mm · trail 74 mm · pitch ' + fmt(Math.abs(deg(brake.pitch)), 1) + '°' });
+    expect(de.tick(brake, 'brake-dive', 0.5)).toMatchObject({ id: 'fork-dive', chip: 'Ön hareket +50 mm · iz mesafesi 74 mm · öne yatma ' + fmt(Math.abs(deg(brake.pitch)), 1) + '°' });
     const power = frame(MOTO, { ax: 0.3 * G });
     power.corners[1]!.travel = -0.004;
     power.axles[1]!.antiPitch = 1.27;
     const se = new InsightEngine();
     se.tick(power, 'ride-resonance', 0);
-    expect(se.tick(power, 'ride-resonance', 0.6)).toMatchObject({ id: 'squat', chip: 'Travel rear −4 mm · anti-squat 127%' });
+    expect(se.tick(power, 'ride-resonance', 0.6)).toMatchObject({ id: 'squat', chip: 'Arka hareket −4 mm · çökmeye direnç 127%' });
     const bump = frame(MOTO);
     bump.corners[0]!.travel = 0.04;
-    expect(e.tick(bump, 'single-wheel-bump', 30)?.chip).toBe('Travel front +40 mm');
+    expect(e.tick(bump, 'single-wheel-bump', 30)?.chip).toBe('Hareket ön +40 mm');
   });
 });
 
@@ -174,7 +174,7 @@ describe('delta chip', () => {
     const d = computeDelta(rec, 'a', b, 'steady-state-roll', null);
     expect(d).toMatchObject({ metric: 'camber', corner: 2 });
     expect(d!.after - d!.before).toBeCloseTo(-0.01);
-    expect(formatDelta(d!, 'RL')).toEqual({ label: 'Camber RL', before: fmt(deg(-0.032), 1) + '°', after: fmt(deg(-0.042), 1) + '°' });
+    expect(formatDelta(d!, 'RL')).toEqual({ label: 'Kamber RL', before: fmt(deg(-0.032), 1) + '°', after: fmt(deg(-0.042), 1) + '°' });
   });
 
   it('falls back to the value just before the swap only in a steady section', () => {

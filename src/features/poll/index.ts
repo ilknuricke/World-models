@@ -23,7 +23,7 @@ function init(ctx: FeatureContext): void {
   const total = h('span', { class: 'sl-poll-total' });
   const root = h(
     'section',
-    { class: 'sl-poll', 'aria-label': 'Audience poll', hidden: true, 'data-screen': screen },
+    { class: 'sl-poll', 'aria-label': 'İzleyici anketi', hidden: true, 'data-screen': screen },
     h('header', { class: 'sl-poll-head' }, h('span', { class: 'sl-poll-dot', 'aria-hidden': 'true' }), state, total),
     question,
     list,
@@ -45,7 +45,7 @@ function init(ctx: FeatureContext): void {
     const bars = pollBars(poll.counts);
     const chosen = mine.get(poll.id);
     root.dataset['open'] = String(poll.open);
-    state.textContent = poll.open ? 'Live poll' : 'Final result';
+    state.textContent = poll.open ? 'Canlı anket' : 'Sonuç';
     question.textContent = poll.question;
     total.textContent = votesText(bars.total);
     list.replaceChildren(

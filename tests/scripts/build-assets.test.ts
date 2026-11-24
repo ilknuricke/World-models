@@ -2,6 +2,8 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Document, NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder } from 'meshoptimizer';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AssetManifest, Attribution } from '../../src/contracts/app';
 import { buildAssets } from '../../scripts/build-assets.mjs';
@@ -79,6 +81,50 @@ describe('build-assets', () => {
     await expect(buildAssets(opts)).rejects.toThrow(/expected >= 4 nodes matching \/wheel\/i, found 2/);
   });
 
+  it('preserves a non-car skeleton, named leaves and skinning weights through meshopt', async () => {
+    const doc = new Document();
+    const buffer = doc.createBuffer();
+    const hips = doc.createNode('Hips');
+    const spine = doc.createNode('Spine').setTranslation([0, 1, 0]);
+    const head = doc.createNode('Head').setTranslation([0, 1, 0]);
+    hips.addChild(spine);
+    spine.addChild(head);
+    const joints = new Uint16Array([0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]);
+    const weights = new Float32Array([0.75, 0.25, 0, 0, 0.25, 0.75, 0, 0, 0.5, 0.5, 0, 0]);
+    const bindMatrices = new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -1, 0, 1,
+    ]);
+    const skin = doc.createSkin('HumanRig').setSkeleton(hips).addJoint(hips).addJoint(spine)
+      .setInverseBindMatrices(doc.createAccessor().setType('MAT4').setArray(bindMatrices).setBuffer(buffer));
+    const primitive = doc.createPrimitive()
+      .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0])).setBuffer(buffer))
+      .setAttribute('JOINTS_0', doc.createAccessor().setType('VEC4').setArray(joints).setBuffer(buffer))
+      .setAttribute('WEIGHTS_0', doc.createAccessor().setType('VEC4').setArray(weights).setBuffer(buffer));
+    const body = doc.createNode('Body').setMesh(doc.createMesh('HumanMesh').addPrimitive(primitive)).setSkin(skin);
+    doc.createScene().addChild(doc.createNode('AvatarRoot').addChild(hips).addChild(body));
+    const opts = await fixture({ 'rider/human.glb': await new NodeIO().writeBinary(doc) }, [cc0(['rider/human.glb'])]);
+
+    const manifest = await buildAssets(opts);
+    const entry = manifest.assets['rider/human']!;
+    expect(entry.url).toMatch(/^\/assets\/rider\/human\.[0-9a-f]{8}\.glb$/);
+    await MeshoptDecoder.ready;
+    const output = await new NodeIO().registerExtensions(ALL_EXTENSIONS)
+      .registerDependencies({ 'meshopt.decoder': MeshoptDecoder })
+      .readBinary(new Uint8Array(await readFile(join(opts.outDir, entry.url))));
+    const nodes = output.getRoot().listNodes();
+    expect(nodes.map((node) => node.getName()).sort()).toEqual(['AvatarRoot', 'Body', 'Head', 'Hips', 'Spine']);
+    const resultBody = nodes.find((node) => node.getName() === 'Body')!;
+    const resultSkin = resultBody.getSkin()!;
+    expect(resultSkin.getSkeleton()?.getName()).toBe('Hips');
+    expect(resultSkin.listJoints().map((joint) => joint.getName())).toEqual(['Hips', 'Spine']);
+    expect(Array.from(resultSkin.getInverseBindMatrices()!.getArray()!)).toEqual(Array.from(bindMatrices));
+    expect(nodes.find((node) => node.getName() === 'Spine')!.listChildren().map((node) => node.getName())).toEqual(['Head']);
+    const resultPrimitive = resultBody.getMesh()!.listPrimitives()[0]!;
+    expect(Array.from(resultPrimitive.getAttribute('JOINTS_0')!.getArray()!)).toEqual(Array.from(joints));
+    expect(Array.from(resultPrimitive.getAttribute('WEIGHTS_0')!.getArray()!)).toEqual(Array.from(weights));
+  });
+
   it('keeps every named node of the real DB11 and stays under the size limit', async () => {
     const car = await readFile(join(REPO, 'assets-src/car/aston-martin-db11.glb'));
     const opts = await fixture({ 'car/db11.glb': car }, [cc0(['car/db11.glb'])]);
@@ -93,6 +139,11 @@ describe('build-assets', () => {
     dirs.push(out);
     const manifest = await buildAssets({ outDir: out, log: quiet });
     expect(Object.keys(manifest.assets)).toContain('car/aston-martin-db11');
+    expect(Object.keys(manifest.assets)).toContain('rider/rocketbox-male');
+    expect(Object.keys(manifest.assets)).toContain('rider/ROCKETBOX-LICENSE');
+    expect(Object.keys(manifest.assets)).toContain('rider/CONVERSION-LICENSE');
+    expect(Object.keys(manifest.assets)).toContain('rider/CONVERSION-NOTICE');
+    expect(manifest.attributions.find((a) => a.files.includes('rider/rocketbox-male.glb'))?.license).toBe('MIT');
     expect(manifest.attributions.find((a) => a.license === 'CC-BY-4.0')?.modified).toBeTruthy();
   }, 30_000);
 });

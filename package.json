@@ -8,17 +8,19 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:ai": "vite --mode ai",
     "assets": "node scripts/build-assets.mjs",
     "build": "node scripts/build-assets.mjs && vite build",
     "preview": "vite preview",
+    "preview:ai": "vite preview --mode ai",
     "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.node.json",
     "lint:deps": "depcruise src worker --config .dependency-cruiser.cjs",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint:deps && npm test",
     "e2e": "npm run build && playwright test --trace off",
     "typegen": "wrangler types --strict-vars=false",
-    "deploy": "npm run build && wrangler deploy --var APP_VERSION:$(git rev-parse --short HEAD)",
-    "smoke:live": "node scripts/smoke-live.mjs https://suspension-lab.zh-a16.workers.dev"
+    "deploy": "npm run build && node scripts/deploy.mjs",
+    "smoke:live": "node --env-file-if-exists=.env.local scripts/smoke-live.mjs"
   },
   "dependencies": {
     "@fontsource/geist-mono": "5.3.0",

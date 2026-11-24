@@ -25,6 +25,13 @@ function idsFor(vehicleClass: 'car' | 'motorcycle'): ActionIds {
 
 const DRIVE_TOOLS: ReadonlySet<string> = new Set(['set_view', 'highlight_component']);
 
+/** The suggestion chips are commands: their effect must not depend on an optional model tool call. */
+function requestsSlowMotion(question: string): boolean {
+  const q = question.toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/\p{M}/gu, '').replace(/ı/g, 'i').trim().replace(/[.!?]+$/, '').trim().replace(/\s+/g, ' ');
+  return /^(?:lutfen,? )?(?:tumsegi )?agir cekimde goster(?:ir misin)?(?:,? lutfen)?$/.test(q)
+    || /^(?:(?:can|could) you )?(?:please,? )?(?:show (?:(?:it|this|the bump) )?in slow motion|slow (?:it|this) down)(?:,? please)?$/.test(q);
+}
+
 export type EngineerOutcome = 'model' | 'no-model' | 'model-error' | 'empty' | 'ungrounded';
 
 /** Pure post-processing of one request: model call (if any) -> clean text, validated actions, number check. */
@@ -34,9 +41,12 @@ export async function answer(req: EngineerRequest, ai: Ai | undefined): Promise<
   const driving = t.drive !== undefined;
   // While driving, `section` may name a proving-ground station (12-03) instead of a loop section.
   const station = driving ? provingGround.stations.find((s) => s.id === t.section) : undefined;
-  const fallback = (actions: EngineerAction[] = []): EngineerResponse => ({ text: ruleAnswer(req.question, section?.phenomenon, t), actions, source: 'fallback' });
-  if (!ai) return { body: fallback(), outcome: 'no-model' };
   const ids = idsFor(t.vehicle_class);
+  const requestedSlowMotion = !driving && requestsSlowMotion(req.question) ? parseAction('set_slow_motion', { scale: 0.25 }, ids) : null;
+  // Reserve the first action for this explicit request, even if the model omits tools or AI is unavailable.
+  const actions: EngineerAction[] = requestedSlowMotion ? [requestedSlowMotion] : [];
+  const fallback = (): EngineerResponse => ({ text: ruleAnswer(req.question, section?.phenomenon, t), actions, source: 'fallback' });
+  if (!ai) return { body: fallback(), outcome: 'no-model' };
   // While driving only the camera and the glow are offered: a seek, a suspension swap or slow motion would take the
   // car out of the visitor's hands (live evaluation: unasked swaps and slow motion mid-drive). The client re-checks.
   const tools = buildEngineerTools(ids).filter((tool) => !driving || DRIVE_TOOLS.has(tool.function.name));
@@ -46,25 +56,26 @@ export async function answer(req: EngineerRequest, ai: Ai | undefined): Promise<
   } catch (e) {
     return { body: fallback(), outcome: 'model-error', detail: e instanceof Error ? e.message : String(e) };
   }
-  const actions: EngineerAction[] = [];
   for (const call of run.reply.toolCalls) {
+    // A model-selected scale (including normal speed) must not override the visitor's slow-motion command.
+    if (requestedSlowMotion && call.name === 'set_slow_motion') continue;
     const a = driving && !DRIVE_TOOLS.has(call.name) ? null : parseAction(call.name, call.args, ids);
     if (a && actions.length < ENGINEER_MAX_ACTIONS && !actions.some((b) => JSON.stringify(b) === JSON.stringify(a))) actions.push(a);
   }
   const text = cleanText(run.reply.text);
-  if (!text) return { body: fallback(actions), outcome: 'empty', detail: run.model };
+  if (!text) return { body: fallback(), outcome: 'empty', detail: run.model };
   const bad = ungroundedNumbers(text, t);
-  if (bad.length > 0) return { body: fallback(actions), outcome: 'ungrounded', detail: `${run.model}: ${bad.join(',')}` };
+  if (bad.length > 0) return { body: fallback(), outcome: 'ungrounded', detail: `${run.model}: ${bad.join(',')}` };
   return { body: { text, actions, source: 'model' }, outcome: 'model', detail: run.model };
 }
 
 /**
  * Global limits, counted in the `engineer` Limiter Durable Object for every request (valid or not): per anonymous
  * client id (a venue behind one NAT is not throttled as one visitor) and per address (bounds id rotation), plus a
- * UTC-day model-call budget kept below the free Workers AI allocation (10k neurons/day). A driving answer costs ~27-30
- * neurons (12-03: the driving prompt is ~2.8-3.05k tokens; Auto answers ~22), so 280 calls x 30 = 8.4k neurons leaves
- * ~16 % margin even on a day of driving questions (13-01; was 300). Past the budget every answer is the labelled
- * rule-based one.
+ * UTC-day admission budget for model-backed requests. This counts requests, not tokens or neurons: prompt lengths,
+ * fallback model attempts and other users of this account can consume the free allocation sooner. It is not a
+ * billing cap. Workers Free's provider-enforced quota is the no-overage protection; keep the account on Free.
+ * Past this application's admission budget every answer is the labelled rule-based one.
  */
 export const ENGINEER_LIMITS = { client: 6, ip: 40, windowMs: 60_000, dailyModelCalls: 280 } as const;
 

@@ -131,7 +131,7 @@ export function computeDelta(rec: LapRecord, previous: string, t: TelemetryFrame
   return pick(t.s, 0) ?? (fallbackS !== null && isSteady(phenomenon) ? pick(fallbackS, MAX_FILL_BINS) : null);
 }
 
-const LABEL: Readonly<Record<DeltaMetric, string>> = { camber: 'Camber', travel: 'Travel', pitch: 'Pitch' };
+const LABEL: Readonly<Record<DeltaMetric, string>> = { camber: 'Kamber', travel: 'Hareket', pitch: 'Öne yatma' };
 
 /** Display parts of a delta (format.ts only): label, before, after. */
 export function formatDelta(d: Delta, cornerLabel: string): { label: string; before: string; after: string } {

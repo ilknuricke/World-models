@@ -49,7 +49,7 @@ const KERB_CLIP = -4;
 
 export const provingLoop: TrackDefinition = {
   id: 'proving-loop',
-  name: 'Proving loop',
+  name: 'Test pisti',
   width: 9,
   kerbWidth: 1.5,
   runoff: 12,
@@ -60,8 +60,8 @@ export const provingLoop: TrackDefinition = {
   segments: [
     {
       id: 'launch',
-      name: 'Launch straight',
-      caption: 'A washboard that sweeps from long to short waves finds the body and wheel-hop resonances.',
+      name: 'Başlangıç düzlüğü',
+      caption: 'Uzun dalgadan kısa dalgaya geçen engebeli zemin, gövde ve tekerlek sıçraması rezonanslarını ortaya çıkarır.',
       primitives: [{ kind: 'line', length: 100 }],
       phenomenon: 'ride-resonance',
       roughness: 'C',
@@ -70,16 +70,16 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'brake-zone',
-      name: 'Brake zone',
-      caption: 'Hard braking on smooth asphalt shows how much the nose dives.',
+      name: 'Fren bölgesi',
+      caption: 'Düzgün asfaltta sert frenleme, ön tarafın ne kadar daldığını gösterir.',
       primitives: [{ kind: 'line', length: 80 }],
       phenomenon: 'brake-dive',
       roughness: 'A',
     },
     {
       id: 'hairpin',
-      name: 'Hairpin',
-      caption: 'Full steering lock exposes the steering geometry.',
+      name: 'Firkete viraj',
+      caption: 'Tam direksiyon açısı, direksiyon geometrisini ortaya çıkarır.',
       primitives: corner(20, -180, 15),
       phenomenon: 'steering-lock',
       roughness: 'B',
@@ -89,8 +89,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'bump-strip',
-      name: 'Bump strip',
-      caption: 'One wheel at a time: a bump, a pothole and a kerb strike.',
+      name: 'Engebeli şerit',
+      caption: 'Her seferinde tek tekerlek: bir tümsek, bir çukur ve bir bordür darbesi.',
       primitives: [{ kind: 'line', length: 150 }],
       phenomenon: 'single-wheel-bump',
       roughness: 'B',
@@ -109,8 +109,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'sweeper',
-      name: 'Sweeper',
-      caption: 'Long, fast and steady: sustained roll and camber gain on the outside wheel.',
+      name: 'Uzun viraj',
+      caption: 'Uzun, hızlı ve sabit: sürekli gövde yatması ve dış tekerlekte kamber kazanımı.',
       primitives: corner(120, 90, 30),
       phenomenon: 'sustained-roll',
       bank: -3 * DEG_TO_RAD,
@@ -119,8 +119,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'pave',
-      name: 'Pave and humps',
-      caption: 'Cobbles for harshness, then humps that pitch the car front then rear.',
+      name: 'Parke ve kasisler',
+      caption: 'Sertlik hissi için parke taşları; ardından aracı önce öne, sonra arkaya yatıran kasisler.',
       primitives: [{ kind: 'line', length: 100 }],
       phenomenon: 'harshness',
       roughness: 'D',
@@ -132,8 +132,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'chicane',
-      name: 'Chicane',
-      caption: 'Right, left, right: the body rolls one way and then the other.',
+      name: 'Şikan',
+      caption: 'Sağ, sol, sağ: gövde önce bir yana, sonra diğer yana yatar.',
       primitives: [...corner(38, -30, 8), ...corner(38, 60, 8), ...corner(38, -30, 8)],
       phenomenon: 'roll-reversal',
       roughness: 'B',
@@ -141,8 +141,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'crest',
-      name: 'Crest and dip',
-      caption: 'Light over the crest, heavy through the dip.',
+      name: 'Tepe ve çukur',
+      caption: 'Tepede yük hafifler, çukurda artar.',
       primitives: [{ kind: 'line', length: 60 }],
       phenomenon: 'heave',
       roughness: 'B',
@@ -155,8 +155,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'carousel',
-      name: 'Carousel',
-      caption: 'A long banked half circle at constant radius: steady-state roll.',
+      name: 'Eğimli yarım daire',
+      caption: 'Sabit yarıçaplı uzun ve eğimli bir yarım daire: kararlı gövde yatması.',
       primitives: corner(45, -180, 20),
       phenomenon: 'steady-state-roll',
       bank: 8 * DEG_TO_RAD,
@@ -164,8 +164,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'dlc',
-      name: 'Lane change',
-      caption: 'An evasive double lane change between cones.',
+      name: 'Şerit değiştirme',
+      caption: 'Koniler arasında kaçınma amaçlı çift şerit değiştirme.',
       // Length solved by buildTrack so the loop closes.
       primitives: [{ kind: 'line', length: 0 }],
       phenomenon: 'lane-change',
@@ -183,8 +183,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'off-camber',
-      name: 'Off-camber bend',
-      caption: 'The road falls away from the corner, so the outside wheel works harder.',
+      name: 'Ters eğimli viraj',
+      caption: 'Yol virajın dışına eğimlidir; dış tekerlek bu yüzden daha fazla yük taşır.',
       primitives: corner(70, -90, 25),
       phenomenon: 'off-camber',
       bank: -5 * DEG_TO_RAD,
@@ -193,8 +193,8 @@ export const provingLoop: TrackDefinition = {
     },
     {
       id: 'run-in',
-      name: 'Run-in',
-      caption: 'The car settles before the line.',
+      name: 'Bitiş düzlüğü',
+      caption: 'Araç bitiş çizgisinden önce dengelenir.',
       // Length solved by buildTrack so the loop closes.
       primitives: [{ kind: 'line', length: 0 }],
       phenomenon: 'settle',

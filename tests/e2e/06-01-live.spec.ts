@@ -31,7 +31,7 @@ test('two viewers see each other and the suspension distribution (real Room DO i
   for (const { page } of [a, b]) {
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().room.viewers), { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
     await expect(page.locator('.sl-live-lab')).toBeVisible();
-    await expect(page.locator('.sl-live-lab-count')).toHaveText(/^\d+ in the lab$/);
+    await expect(page.locator('.sl-live-lab-count')).toHaveText(/^Laboratuvarda \d+ kişi$/);
   }
   expect(await a.page.evaluate(() => globalThis.__app!.state().room)).toMatchObject({ code: 'LIVE', role: 'viewer', connected: true });
 
@@ -40,9 +40,9 @@ test('two viewers see each other and the suspension distribution (real Room DO i
     .poll(() => a.page.evaluate(() => globalThis.__app!.state().room.dist['gt-coupe:macpherson'] ?? 0), { timeout: 10_000 })
     .toBeGreaterThanOrEqual(1);
   // Labels are the suspension's short copy label (MacPherson = "Strut").
-  await expect(a.page.locator('.sl-live-lab-legend')).toContainText(/Strut|MacPherson/);
+  await expect(a.page.locator('.sl-live-lab-legend')).toContainText(/Dikme|MacPherson/);
   // My own pick is highlighted in my readout.
-  await expect(b.page.locator('.sl-live-lab-item[data-mine]')).toContainText(/Strut|MacPherson/);
+  await expect(b.page.locator('.sl-live-lab-item[data-mine]')).toContainText(/Dikme|MacPherson/);
 
   // Leaving updates the count for the one who stays.
   const before = await a.page.evaluate(() => globalThis.__app!.state().room.viewers);

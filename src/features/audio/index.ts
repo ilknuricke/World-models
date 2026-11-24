@@ -177,18 +177,18 @@ function init(c: FeatureContext): void {
   };
 
   // --- HUD button: sits in the controls' Display group when there is one, else its own pill.
-  const btn = h('button', { type: 'button', class: 'sl-controls-btn sl-audio-btn', 'aria-label': 'Sound', 'aria-keyshortcuts': 'M' });
+  const btn = h('button', { type: 'button', class: 'sl-controls-btn sl-audio-btn', 'aria-label': 'Ses', 'aria-keyshortcuts': 'M' });
   let solo: HTMLElement | null = null;
   const sync = () => {
     btn.setAttribute('aria-pressed', String(on));
     // MD-45: the tyre sound is a model cue (it follows the model's grip use), not a recording of real tyres
-    btn.title = on ? 'Sound on (M). The tyre sound is a model cue: it rises as the tyres near their grip limit' : 'Sound off (M)';
+    btn.title = on ? 'Ses açık (M). Lastik sesi bir model göstergesidir: lastikler tutunma sınırına yaklaştıkça yükselir' : 'Ses kapalı (M)';
     btn.innerHTML = on ? ICON_ON : ICON_OFF;
   };
   sync();
   const place = () => {
     if (btn.isConnected) return;
-    const group = c.dom.overlay.querySelector('.sl-controls-tr [role="group"][aria-label="Display"]');
+    const group = c.dom.overlay.querySelector('.sl-controls-tr [role="group"][aria-label="Görünüm"]');
     if (group) group.insertBefore(btn, group.lastElementChild);
     else {
       solo = h('div', { class: 'sl-audio' }, btn);

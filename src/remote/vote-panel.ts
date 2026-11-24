@@ -41,9 +41,9 @@ export function createVotePanel(send: (message: ClientMessage) => void): VotePan
           'section',
           { class: 'rm-card rm-wait' },
           h('span', { class: 'rm-pulse', 'aria-hidden': 'true' }),
-          h('h2', { class: 'rm-wait-title' }, 'You’re in the lab'),
-          h('p', { class: 'rm-note' }, 'Watch the big screen. When the presenter asks the room a question, you vote here.'),
-          count > 0 ? h('p', { class: 'rm-wait-count' }, `${count} in the lab`) : null,
+          h('h2', { class: 'rm-wait-title' }, 'Laboratuvara katıldınız'),
+          h('p', { class: 'rm-note' }, 'Büyük ekranı izleyin. Sunucu bir soru sorduğunda buradan oy verebilirsiniz.'),
+          count > 0 ? h('p', { class: 'rm-wait-count' }, `Laboratuvarda ${count} kişi`) : null,
         ),
       );
       return;
@@ -60,13 +60,13 @@ export function createVotePanel(send: (message: ClientMessage) => void): VotePan
       h(
         'section',
         { class: 'rm-card rm-ballot', 'data-open': String(p.open) },
-        h('p', { class: 'rm-card-title' }, p.open ? 'Live poll' : 'Poll closed'),
+        h('p', { class: 'rm-card-title' }, p.open ? 'Canlı anket' : 'Anket kapandı'),
         h('h2', { class: 'rm-ballot-q' }, p.question),
         pollRows(p.options, p.counts, mine, p.open ? vote : null),
         h(
           'p',
           { class: 'rm-note' },
-          p.open ? (mine === null ? 'Tap an answer. You can change it until the poll closes.' : 'Vote counted. Tap another answer to change it.') : `Final result · ${votesText(s.total)}`,
+          p.open ? (mine === null ? 'Bir yanıta dokunun. Anket kapanana kadar oyunuzu değiştirebilirsiniz.' : 'Oyunuz sayıldı. Değiştirmek için başka bir yanıta dokunun.') : `Sonuç · ${votesText(s.total)}`,
         ),
       ),
     );

@@ -6,9 +6,24 @@
     "license": "CC-BY-4.0",
     "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
     "sourceUrl": "https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7",
-    "modified": "optimised/compressed (meshopt), decimated, re-materialed, badges hidden.",
+    "modified": "optimize edildi ve sıkıştırıldı (meshopt), çokgen sayısı azaltıldı, malzemeler yenilendi, logolar gizlendi.",
     "files": [
       "car/aston-martin-db11.glb"
+    ]
+  },
+  {
+    "title": "Microsoft Rocketbox — Male Adult 04",
+    "author": "Microsoft Research / Rocketbox Studios; GLB dönüşümü: Tanmay (927tanmay)",
+    "authorUrl": "https://github.com/microsoft/Microsoft-Rocketbox",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_04",
+    "modified": "FBX, Tanmay tarafından GLB biçimine dönüştürüldü; kemikler yeniden adlandırıldı, yüz ifadeleri ve dokular paketlendi. Uygulamada motosiklet üzerinde oturma pozu verildi ve meshopt ile sıkıştırıldı.",
+    "files": [
+      "rider/rocketbox-male.glb",
+      "rider/ROCKETBOX-LICENSE.txt",
+      "rider/CONVERSION-LICENSE.txt",
+      "rider/CONVERSION-NOTICE.md"
     ]
   },
   {

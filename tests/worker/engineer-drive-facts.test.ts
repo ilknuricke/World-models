@@ -304,22 +304,22 @@ describe('rule-based driving answers agree with the plant', () => {
 
   it('swap answers: strut and wishbone almost the same; to or from the multi-link more steering', () => {
     const same = ruleAnswer('What changed?', undefined, tel(DW, driveLabel({ kind: 'swap', previous: MP, next: DW })));
-    expect(same).toMatch(/drive almost the same in this model/);
+    expect(same).toMatch(/Bu modelde .* sürüş neredeyse aynıdır/);
     expect(Math.abs(v(MP, 'k03') - v(DW, 'k03'))).toBeLessThan(0.1);
     const ml = ruleAnswer('What changed when I switched to multi-link?', undefined, tel(ML, driveLabel({ kind: 'swap', previous: MP, next: ML })));
-    expect(ml).toMatch(/needs a little more steering for the same corner/);
+    expect(ml).toMatch(/aynı virajda biraz daha fazla direksiyon gerekir/);
     expect(v(ML, 'k03')).toBeGreaterThan(v(MP, 'k03'));
   });
 
   it('lift-off answer names the forward load transfer the plant shows', () => {
     const a = ruleAnswer('Why did I spin?', undefined, tel(MP, driveLabel({ kind: 'slide', axle: 'rear', lift: true })));
-    expect(a).toMatch(/moved load onto the front tyres/);
+    expect(a).toMatch(/yük ön lastiklere geçti/);
     expect(M.lift.after.rear).toBeLessThan(M.lift.before.rear);
   });
 
   it('the ABS answer says the wheels kept turning (no lock with ABS on)', () => {
     const a = ruleAnswer('What did ABS do there?', undefined, tel(MP, driveLabel({ kind: 'aid', aid: 'abs' })));
-    expect(a).toMatch(/kept the wheels turning/);
+    expect(a).toMatch(/tekerlekler dönmeye devam etti/);
     expect(v(MP, 'stopAbs')).toBeLessThan(M.stopLocked);
   });
 });

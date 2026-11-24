@@ -68,10 +68,10 @@ test('car <-> motorcycle: presets, lean sign, fork dive, bike framings and scree
   await toggle.click();
   await expect.poll(async () => (await state(page)).vehicleId, { timeout: 120_000 }).toBe('cafe-racer');
   expect((await state(page)).suspensionId).toBe('moto-classic');
-  await expect(toggle).toContainText('GT coupe');
-  for (const name of ['Classic', 'Modern', 'Telelever']) await expect(page.getByRole('radio', { name: new RegExp(name) })).toBeVisible();
+  await expect(toggle).toContainText('GT kupe');
+  for (const name of ['Klasik', 'Modern', 'Telelever']) await expect(page.getByRole('radio', { name: new RegExp(name) })).toBeVisible();
   await expect(page.locator('.sl-telemetry-panel-corner')).toHaveCount(2);
-  await expect(page.locator('.sl-telemetry-panel')).toContainText('Lean');
+  await expect(page.locator('.sl-telemetry-panel')).toContainText('Yatma');
   await frames(page, 4);
 
   // Carousel: a right turn, the bike leans right = roll > 0 (contract: + lifts the left side).
@@ -95,7 +95,7 @@ test('car <-> motorcycle: presets, lean sign, fork dive, bike framings and scree
   // Brake zone: fork travel per preset at the same lap time.
   const travel: Record<string, number> = {};
   for (const [label, id] of [
-    ['Classic', 'moto-classic'],
+    ['Klasik', 'moto-classic'],
     ['Modern', 'moto-modern'],
     ['Telelever', 'moto-telelever'],
   ] as const) {

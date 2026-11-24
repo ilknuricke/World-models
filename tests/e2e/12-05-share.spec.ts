@@ -89,9 +89,9 @@ test.describe('12-05 saved runs', () => {
     await page.locator('[data-action="share"]').click();
     const input = page.locator('.sl-replay-link');
     await expect(input).toHaveValue(/#r=/);
-    await expect(panel(page)).toContainText('Sharing the last minute');
+    await expect(panel(page)).toContainText('Son dakika paylaşılıyor');
     const saveBtn = page.locator('[data-action="save"]');
-    await expect(saveBtn).toHaveText('Save the whole run');
+    await expect(saveBtn).toHaveText('Tüm sürüşü kaydet');
     expect(thirdParty, 'no Turnstile request before the visitor chooses to save').toEqual([]);
     expect(await page.locator(`script[src*="${TURNSTILE}"]`).count()).toBe(0);
 
@@ -102,7 +102,7 @@ test.describe('12-05 saved runs', () => {
     });
     await saveBtn.click();
     await expect(page.locator('.sl-replay-privacy')).toBeVisible();
-    await expect(page.locator('.sl-replay-privacy')).toContainText('only your inputs and the start state');
+    await expect(page.locator('.sl-replay-privacy')).toContainText('yalnızca kontrol girdileriniz ve başlangıç durumu');
     await expect.poll(() => widgetFrames(page), { timeout: 30_000 }).toBeGreaterThan(0);
     await page.waitForTimeout(800);
     await page.screenshot({ path: join(SHOTS, '12-05-save-challenge.png') });
@@ -115,10 +115,10 @@ test.describe('12-05 saved runs', () => {
     expect(url.search).toBe('');
     expect(url.hash).toMatch(/^#rid=[A-HJKMNP-Z2-9]{12}$/);
     const id = url.hash.slice(5);
-    await expect(panel(page)).toContainText('Saved: this short link plays the whole run');
+    await expect(panel(page)).toContainText('Kaydedildi: bu kısa bağlantı tüm sürüşü');
     await expect(page.locator('.sl-replay-turnstile')).toBeHidden();
     await page.locator('[data-action="copy"]').click();
-    await expect(panel(page)).toContainText('Link copied');
+    await expect(panel(page)).toContainText('Bağlantı kopyalandı');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(link);
     await page.screenshot({ path: join(SHOTS, '12-05-saved.png') });
     const crc = await data(page, '.sl-replay-share', 'saveCrc');
@@ -135,8 +135,8 @@ test.describe('12-05 saved runs', () => {
     viewer.on('request', (r) => r.url().includes(TURNSTILE) && vThird.push(r.url()));
     await open(viewer, `${VIEWER}#rid=${id}`);
     await expect.poll(() => mode(viewer)).toBe('replay');
-    await expect(viewer.locator('.sl-replay-label')).toHaveText('Shared run');
-    await expect(viewer.locator('[data-action="drive"]')).toHaveText('Drive it yourself');
+    await expect(viewer.locator('.sl-replay-label')).toHaveText('Paylaşılan sürüş');
+    await expect(viewer.locator('[data-action="drive"]')).toHaveText('Kendiniz sürün');
     await pause(viewer);
     await advance(viewer, 4);
     await viewer.screenshot({ path: join(SHOTS, '12-05-open-rid.png') });
@@ -156,7 +156,7 @@ test.describe('12-05 saved runs', () => {
     await v2.route('**/api/replays/PREVMQDEKS22', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: older, createdAt: 0, expiresAt: 0 }) }));
     await open(v2, `${VIEWER}#rid=PREVMQDEKS22`);
     await expect.poll(() => mode(v2)).toBe('replay');
-    await expect(v2.locator('.sl-replay-note')).toContainText('older model');
+    await expect(v2.locator('.sl-replay-note')).toContainText('Eski bir modelle');
     await pause(v2);
     await v2.screenshot({ path: join(SHOTS, '12-05-open-rid-older.png') });
   });
@@ -176,42 +176,42 @@ test.describe('12-05 saved runs', () => {
       if (await panel(page).isVisible()) await page.locator('[data-action="share"]').click();
       await page.locator('[data-action="share"]').click();
       await expect(page.locator('.sl-replay-link')).toHaveValue(/#r=/);
-      await expect(page.locator('[data-action="save"]')).toHaveText('Save a short link');
+      await expect(page.locator('[data-action="save"]')).toHaveText('Kısa bağlantı kaydet');
     };
     const attempt = async (code: string, text: string, retry: boolean) => {
       await page.locator('[data-action="save"]').click();
       await expect.poll(() => data(page, '.sl-replay-share', 'saveError'), { timeout: 60_000 }).toBe(code);
       await expect(page.locator('.sl-replay-share-msg')).toContainText(text);
-      await expect(page.locator('.sl-replay-share-msg')).toContainText('The link above still shares the whole run.');
+      await expect(page.locator('.sl-replay-share-msg')).toContainText('Yukarıdaki bağlantıyla tüm sürüşü paylaşabilirsiniz.');
       await expect(page.locator('.sl-replay-link')).toHaveValue(/#r=/);
       await expect(page.locator('.sl-replay-turnstile')).toBeHidden();
       if (retry) {
-        await expect(page.locator('[data-action="save"]')).toHaveText('Try again');
+        await expect(page.locator('[data-action="save"]')).toHaveText('Yeniden dene');
         await expect(page.locator('[data-action="save"]')).toBeFocused();
       } else await expect(page.locator('[data-action="save"]')).toBeHidden();
     };
 
     await openPanel();
     answer = reply(403, 'turnstile');
-    await attempt('challenge', 'The check did not pass', true);
+    await attempt('challenge', 'Doğrulama başarısız oldu', true);
     answer = reply(429, 'busy');
-    await attempt('busy', 'wait a minute', true);
+    await attempt('busy', 'Bir dakika bekleyip', true);
     answer = reply(503, 'storage_unavailable');
-    await attempt('storage', 'Storage for saved runs is full', true);
+    await attempt('storage', 'Kayıt alanı şu anda dolu', true);
     answer = (route) => route.abort('internetdisconnected');
-    await attempt('offline', 'You are offline', true);
+    await attempt('offline', 'Çevrimdışısınız', true);
     answer = reply(503, 'daily_cap');
-    await attempt('daily_cap', 'allowance of saved runs is used up', false);
+    await attempt('daily_cap', 'kayıt kotası doldu', false);
     await page.screenshot({ path: join(SHOTS, '12-05-error-daily-cap.png') });
     await openPanel();
     answer = reply(503, 'not_configured');
-    await attempt('disabled', 'Saving runs is switched off', false);
+    await attempt('disabled', 'sürüş kaydı kapalı', false);
     expect(posts).toBe(6);
 
     // the always-fail test site key: the check fails in the widget, nothing is posted
     await page.evaluate(() => history.replaceState(null, '', `${location.pathname}${location.search}&turnstile=fail`));
     await openPanel();
-    await attempt('challenge', 'The check did not pass', true);
+    await attempt('challenge', 'Doğrulama başarısız oldu', true);
     expect(posts).toBe(6);
     await page.screenshot({ path: join(SHOTS, '12-05-error-challenge.png') });
     // Escape closes the popover and removes the widget
@@ -229,14 +229,14 @@ test.describe('12-05 saved runs', () => {
     await open(page, VIEWER);
     const note = page.locator('.sl-replay-note');
     await page.evaluate(() => (location.hash = '#rid=ZZZZZZZZZZZZ'));
-    await expect(note).toContainText('has expired or was never saved');
+    await expect(note).toContainText('süresi dolmuş veya hiç kaydedilmemiş');
     expect(await mode(page)).toBe('auto');
     await page.screenshot({ path: join(SHOTS, '12-05-open-missing.png') });
     await page.evaluate(() => (location.hash = '#rid=short'));
-    await expect(note).toContainText('incomplete');
+    await expect(note).toContainText('eksik');
     await page.route('**/api/replays/*', (route) => route.abort('internetdisconnected'));
     await page.evaluate(() => (location.hash = '#rid=ABCDEFGH2345'));
-    await expect(note).toContainText('Could not reach the lab');
+    await expect(note).toContainText('laboratuvara ulaşılamadı');
     expect(await mode(page)).toBe('auto');
     expect(unexpected(errors)).toEqual([]);
   });

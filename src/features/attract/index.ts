@@ -43,7 +43,7 @@ export default {
       ctx.addDisposer(() => globalThis.removeEventListener(type, onInput));
     }
 
-    const title = h('div', { class: 'sl-attract-title' }, 'Suspension Lab');
+    const title = h('div', { class: 'sl-attract-title' }, 'Süspansiyon Laboratuvarı');
     const caption = h('div', { class: 'sl-attract-caption' });
     const note = h('div', { class: 'sl-attract-note' });
     const panel = h('div', { class: 'sl-attract', role: 'status', 'aria-live': 'polite', hidden: true }, title, caption, note);
@@ -164,7 +164,7 @@ export default {
         if (index >= 0) startBeat(STORYBOARD[index]!);
         opacity = fadeAt(STORYBOARD, timeline.time);
         const amp = store.get().amplification;
-        const text = amp === 1 ? '' : `Motion ×${amp} · values true scale`;
+        const text = amp === 1 ? '' : `Hareket ×${amp} · değerler gerçek ölçekte`;
         if (note.textContent !== text) note.textContent = text;
       } else {
         idle = attractMayRun(store.get()) ? idle + dt : 0;

@@ -14,7 +14,9 @@ const opt = (name, fallback) => {
 const driveS = opt('--drive-s', 30);
 const driveHz = opt('--drive-hz', 60);
 const isValue = (i) => i > 0 && ['--load', '--drive-s', '--drive-hz'].includes(args[i - 1]);
-const base = (args.find((a, i) => !a.startsWith('--') && !isValue(i)) ?? 'https://suspension-lab.zh-a16.workers.dev').replace(/\/$/, '');
+const target = args.find((a, i) => !a.startsWith('--') && !isValue(i)) ?? process.env.SMOKE_BASE_URL;
+if (!target) throw new Error('Pass a base URL or set SMOKE_BASE_URL (for example, http://localhost:4173).');
+const base = target.replace(/\/$/, '');
 const wsBase = base.replace(/^http/, 'ws');
 const PV = 3; // PROTOCOL_VERSION (src/contracts/net.ts)
 const LAP_S = 83.72; // proving loop lap (02-04); only used to express clock error as lap time

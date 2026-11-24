@@ -1,0 +1,127 @@
+/* Explanation messages occupy the right HUD column, beneath its controls. */
+:root {
+  --sl-message-top: calc(var(--margin) + var(--sl-hud-top-h, 44px) + var(--sp-3));
+  --sl-caption-top: calc(var(--sl-message-top) + 38px);
+  --sl-message-trace-top: calc(var(--sl-caption-top) + 132px);
+}
+.sl-narration,
+.sl-insights,
+.sl-coach,
+.sl-engineer-answer {
+  position: absolute;
+  top: var(--sl-message-top);
+  right: var(--margin);
+  left: auto;
+  bottom: auto;
+  transform: none;
+  zoom: var(--sl-hud-zoom, 1);
+  width: min(var(--sl-hud-col, 316px), calc(100vw / var(--sl-hud-zoom, 1) - 2 * var(--margin)));
+  max-width: none;
+}
+.sl-narration {
+  display: flex;
+  justify-content: flex-end;
+}
+#overlay:has(> .sl-controls-tr.is-hidden) > .sl-narration {
+  display: none;
+}
+.sl-narration-toggle {
+  min-height: 30px;
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--hair-strong);
+  border-radius: var(--radius-pill);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: var(--text-2);
+  font: 500 11px / var(--lh-body) var(--font-sans);
+  cursor: pointer;
+}
+.sl-narration-toggle[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+.sl-narration-toggle:disabled {
+  cursor: default;
+}
+.sl-insights,
+.sl-coach,
+.sl-engineer-answer {
+  top: var(--sl-caption-top);
+  pointer-events: none;
+}
+#overlay > .sl-insights,
+#overlay > .sl-coach,
+#overlay > .sl-engineer-answer {
+  pointer-events: none;
+}
+/* A requested engineer answer takes precedence in the shared caption slot. */
+#overlay:has(> .sl-engineer-answer:not([hidden])) > :is(.sl-insights, .sl-coach) {
+  display: none;
+}
+.sl-insights[hidden],
+.sl-insights [hidden],
+.sl-coach[hidden],
+.sl-coach [hidden],
+.sl-narration[hidden],
+.sl-engineer-answer[hidden] {
+  display: none;
+}
+.sl-insights-caption,
+.sl-coach-caption,
+.sl-engineer-answer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin: 0;
+  padding: 9px var(--sp-3);
+  color: var(--text-1);
+  font: 400 12px / 1.45 var(--font-sans);
+  overflow-wrap: anywhere;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-chip);
+  box-shadow: var(--shadow-panel);
+  animation: sl-message-in var(--dur-caption-in) var(--ease);
+  transition: opacity var(--dur-caption-out) var(--ease);
+}
+.sl-insights-caption.is-leaving,
+.sl-coach-caption.is-leaving {
+  opacity: 0;
+}
+.sl-insights-chip,
+.sl-coach-chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hair);
+  color: var(--accent);
+  font-size: 11px;
+  white-space: normal;
+}
+.sl-insights-caption.is-warn .sl-insights-chip,
+.sl-coach-caption.is-warn .sl-coach-chip {
+  color: var(--warn);
+}
+@keyframes sl-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+/* ResizeObserver refines these fallbacks after controls are mounted. */
+@media (max-width: 1200px) {
+  :root {
+    --sl-message-top: calc(var(--margin) + 52px + var(--sl-hud-view-h, 48px) + var(--sp-3));
+  }
+}
+@media (max-width: 720px) {
+  :root {
+    --sl-message-top: calc(var(--margin) + 92px + var(--sl-hud-view-h, 48px) + var(--sp-3));
+  }
+}

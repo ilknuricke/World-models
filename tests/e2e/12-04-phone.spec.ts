@@ -98,7 +98,7 @@ test('a phone drives the big screen through the room, fails safe, and recovers c
   // Phone: /remote.html?room=CODE#d=KEY -> driver; the key moves to sessionStorage and leaves the address bar
   const p1 = await phone(browser, `/remote.html?room=${room.code}#d=${room.driverKey}`);
   await expect(p1.page.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 20_000 });
-  await expect(p1.page.locator('.rm-role')).toHaveText('Driver');
+  await expect(p1.page.locator('.rm-role')).toHaveText('Sürücü');
   expect(p1.page.url()).not.toContain('#');
   expect(await p1.page.evaluate((c) => sessionStorage.getItem(`sl-remote-driver:${c}`), room.code)).toBe(room.driverKey);
   await expect(card).toHaveAttribute('data-state', 'paired', { timeout: 10_000 });
@@ -130,9 +130,9 @@ test('a phone drives the big screen through the room, fails safe, and recovers c
     throw e;
   });
   await expect(card).toHaveAttribute('data-state', 'driving', { timeout: 10_000 });
-  await expect(card.locator('.sl-phone-drive-status-text')).toHaveText('Driven from a phone');
+  await expect(card.locator('.sl-phone-drive-status-text')).toHaveText('Telefondan kontrol ediliyor');
   await expect.poll(async () => (await drive()).speed, { timeout: 20_000 }).toBeGreaterThan(2);
-  await expect(p1.page.locator('.rm-drive-mode')).toHaveText('You are driving', { timeout: 10_000 });
+  await expect(p1.page.locator('.rm-drive-mode')).toHaveText('Kontrol sizde', { timeout: 10_000 });
   await expect.poll(async () => Number(await p1.page.locator('.rm-drive-speed').textContent()), { timeout: 10_000 }).toBeGreaterThan(3);
 
   // Drag right = steer right (+ = left in the sim)
@@ -160,13 +160,13 @@ test('a phone drives the big screen through the room, fails safe, and recovers c
   await motion(0);
   // this Chromium has DeviceMotionEvent.requestPermission (the iOS-style path): grant the sensors, then tap
   await p1.page.context().grantPermissions(['accelerometer', 'gyroscope']);
-  await p1.page.getByRole('button', { name: 'Tilt to steer' }).click();
-  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Hold it like a wheel');
-  await p1.page.getByRole('button', { name: 'Centre', exact: true }).click();
-  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Now turn right a little');
+  await p1.page.getByRole('button', { name: 'Eğerek yön ver' }).click();
+  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Direksiyon gibi tutun');
+  await p1.page.getByRole('button', { name: 'Ortala', exact: true }).click();
+  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Şimdi biraz sağa çevirin');
   await motion(20);
   await p1.page.waitForTimeout(150);
-  await p1.page.getByRole('button', { name: 'Done', exact: true }).click();
+  await p1.page.getByRole('button', { name: 'Tamam', exact: true }).click();
   await expect(p1.page.locator('.rm-drive-sheet')).toBeHidden();
   await expect(p1.page.locator('.rm-drive')).toHaveAttribute('data-steering', 'tilt');
   await motion(0);
@@ -182,13 +182,13 @@ test('a phone drives the big screen through the room, fails safe, and recovers c
   await motion(-25);
   await expect.poll(lastS, { timeout: 10_000 }).toBeGreaterThan(300);
   await touch(cdp, 'touchEnd', []);
-  await p1.page.getByRole('button', { name: 'Use slider' }).click();
+  await p1.page.getByRole('button', { name: 'Sürgüyü kullan' }).click();
   await expect(p1.page.locator('.rm-drive')).toHaveAttribute('data-steering', 'touch');
 
   // A second phone takes the wheel (newest wins); the first gets a calm "replaced" sheet and does not reconnect
   const p2 = await phone(browser, `/remote.html?room=${room.code}#d=${room.driverKey}`);
   await expect(p2.page.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 20_000 });
-  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Another phone took the wheel', { timeout: 10_000 });
+  await expect(p1.page.locator('.rm-drive-sheet-title')).toHaveText('Başka bir telefon kontrolü devraldı', { timeout: 10_000 });
   await expect(p1.page.locator('.rm-header')).toHaveAttribute('data-status', 'replaced');
   await shot(p1.page, 'phone-replaced');
   await p1.page.waitForTimeout(2000);
@@ -209,18 +209,18 @@ test('a phone drives the big screen through the room, fails safe, and recovers c
   await p2.page.close();
   await expect.poll(mode, { timeout: 10_000 }).not.toBe('manual');
   await expect(screen.locator('.sl-phone-drive-toast')).toBeVisible();
-  await expect(screen.locator('.sl-phone-drive-toast')).toContainText('Phone controller lost');
+  await expect(screen.locator('.sl-phone-drive-toast')).toContainText('Telefon kumandasıyla bağlantı kesildi');
   await shot(screen, 'screen-failsafe');
 
   // Wrong key and an unknown room: calm sheets, no reconnect loop
   const bad = await phone(browser, `/remote.html?room=${room.code}#d=${'x'.repeat(32)}`);
-  await expect(bad.page.locator('.rm-drive-sheet-title')).toHaveText('This driving code has expired', { timeout: 20_000 });
+  await expect(bad.page.locator('.rm-drive-sheet-title')).toHaveText('Bu sürüş kodunun süresi doldu', { timeout: 20_000 });
   await bad.page.waitForTimeout(400); // the dimmed panel fades back behind the sheet
   await shot(bad.page, 'phone-denied');
-  await bad.page.getByRole('button', { name: 'Join as audience' }).click();
-  await expect(bad.page.locator('.rm-role')).toHaveText('Audience', { timeout: 20_000 });
+  await bad.page.getByRole('button', { name: 'İzleyici olarak katıl' }).click();
+  await expect(bad.page.locator('.rm-role')).toHaveText('İzleyici', { timeout: 20_000 });
   const gone = await phone(browser, `/remote.html?room=ZZZZZ#d=${room.driverKey}`);
-  await expect(gone.page.locator('.rm-drive-sheet-title')).toHaveText('Room ZZZZZ has ended', { timeout: 20_000 });
+  await expect(gone.page.locator('.rm-drive-sheet-title')).toHaveText('ZZZZZ odası kapandı', { timeout: 20_000 });
 
   // The phone page stays small and three.js-free
   const total = p1.scripts.reduce((sum, s) => sum + s.body.length, 0);

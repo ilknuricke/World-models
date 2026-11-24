@@ -35,7 +35,7 @@ function comparison(o: Partial<Comparison> = {}, ch: Partial<Record<Channel, Par
     ...o,
   };
 }
-const RANKING = /\b(better|worse|best|worst|superior|inferior|wins?|loses?)\b/i;
+const RANKING = /\b(better|worse|best|worst|superior|inferior|wins?|loses?)\b|daha iyi|daha kötü|en iyi|en kötü|üstün|kazanır|kaybeder/iu;
 
 describe('ghost-lab copy', () => {
   it('templates carry no digits and no ranking words', () => {
@@ -47,11 +47,11 @@ describe('ghost-lab copy', () => {
 
   it('words every verdict with values from the comparison', () => {
     const refused = sentence(comparison({ verdict: 'refused', aaOffset: 0.31 }), 'MacPherson strut', 'Multi-link', false);
-    expect(refused).toContain('draws no conclusion');
+    expect(refused).toContain('sonuç çıkarılamaz');
     expect(refused).toContain('31 cm');
-    expect(sentence(comparison({ verdict: 'lost', bOffset: 1.24 }), 'A', 'Multi-link', false)).toContain('could not hold your line (up to 1.2 m');
+    expect(sentence(comparison({ verdict: 'lost', bOffset: 1.24 }), 'A', 'Multi-link', false)).toContain('çizginizi koruyamadı (1.2 m');
     expect(sentence(comparison({ verdict: 'same' }), 'MacPherson strut', 'Double wishbone', false)).toBe(
-      'On this stretch Double wishbone behaved like MacPherson strut: every difference stayed within the autopilot’s own repeat error.',
+      'Bu bölümde Double wishbone, MacPherson strut gibi davrandı: tüm farklar otomatik sürücünün kendi tekrarlama hata payı içinde kaldı.',
     );
     const diff = sentence(
       comparison(
@@ -83,7 +83,7 @@ describe('ghost-lab copy', () => {
       false,
     );
     // steering effort first, then the strongest other difference; peaks equal -> "differed by up to"
-    expect(diff).toBe('With Multi-link, the autopilot needed 6 % more steering for your line, and sideslip differed by up to 0.2° along the stretch.');
+    expect(diff).toBe('Multi-link ile otomatik sürücü çizginizi izlemek için 6 % daha fazla direksiyon açısına ihtiyaç duydu ve yanal kayma bölüm boyunca 0.2° kadar farklılık gösterdi.');
     const roll = sentence(
       comparison(
         { verdict: 'different', order: ['roll'] },
@@ -101,19 +101,19 @@ describe('ghost-lab copy', () => {
       'B',
       false,
     );
-    expect(roll).toBe('With B, body roll peaked higher (1.5° against 1.2°).');
+    expect(roll).toBe('B ile gövde yalpası için tepe değer daha yüksek oldu (1.2° yerine 1.5°).');
     const strayed = sentence(
       comparison({ verdict: 'different', order: ['offset'] }, { offset: { significant: true, threshold: 0.1, peakDiff: 0.15, aPeak: 0.01, bPeak: 0.15 } }),
       'A',
       'MacPherson strut',
       false,
     );
-    expect(strayed).toBe('With MacPherson strut, the autopilot strayed up to 15 cm from your line.');
+    expect(strayed).toBe('MacPherson strut ile otomatik sürücü çizginizden 15 cm kadar saptı.');
     expect(sentence(comparison(), 'MacPherson strut', 'MacPherson strut', true)).toBe(
-      'Control run: with MacPherson strut the autopilot repeats your drive to within 3 cm of your line.',
+      'Kontrol denemesi: otomatik sürücü MacPherson strut ile sürüşünüzü, çizginizden en fazla 3 cm saparak tekrarlar.',
     );
-    expect(disclosure(0.026)).toContain('same autopilot');
-    expect(disclosure(0.026)).toContain('within 3 cm');
+    expect(disclosure(0.026)).toContain('aynı otomatik sürücü');
+    expect(disclosure(0.026)).toContain('3 cm hata payıyla');
     for (const s of [refused, diff, roll]) expect(s).not.toMatch(RANKING);
   });
 

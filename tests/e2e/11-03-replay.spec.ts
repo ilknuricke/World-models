@@ -97,8 +97,8 @@ test.describe('11-03 replays', () => {
     await open(viewer, `${VIEWER}${url.hash}`);
     await expect.poll(() => mode(viewer)).toBe('replay');
     await expect(viewer.locator('.sl-replay [data-row="play"]')).toBeVisible();
-    await expect(viewer.locator('.sl-replay-label')).toHaveText('Shared run');
-    await expect(viewer.locator('[data-action="drive"]')).toHaveText('Drive it yourself');
+    await expect(viewer.locator('.sl-replay-label')).toHaveText('Paylaşılan sürüş');
+    await expect(viewer.locator('[data-action="drive"]')).toHaveText('Kendiniz sürün');
     await pause(viewer);
     await advance(viewer, 3);
     await viewer.screenshot({ path: join(SHOTS, '11-03-shared-playback.png') });
@@ -112,7 +112,7 @@ test.describe('11-03 replays', () => {
     expect(Math.abs(seen.y - ending.y)).toBeLessThanOrEqual(step);
     expect(Math.abs(seen.speed - ending.speed)).toBeLessThan(0.05);
     expect(seen.gear).toBe(ending.gear);
-    await expect(viewer.locator('.sl-replay-note')).toContainText('Your turn');
+    await expect(viewer.locator('.sl-replay-note')).toContainText('Sıra sizde');
     await expectHealthyBoot(viewer, vErrors);
 
     // the same run labelled as recorded with an older model; another vehicle; a damaged link
@@ -125,17 +125,17 @@ test.describe('11-03 replays', () => {
     await viewer.close();
     await open(v2, `${VIEWER}#r=${older}`);
     await expect.poll(() => mode(v2)).toBe('replay');
-    await expect(v2.locator('.sl-replay-note')).toContainText('older model');
+    await expect(v2.locator('.sl-replay-note')).toContainText('Eski bir modelle');
     await pause(v2);
     await v2.screenshot({ path: join(SHOTS, '11-03-older-model.png') });
     await v2.locator('[data-action="drive"]').click();
     await advance(v2, 0.1);
     expect(await mode(v2)).toBe('manual');
     await open(v2, `${VIEWER}#r=${other}`);
-    await expect(v2.locator('.sl-replay-note')).toContainText('another vehicle');
+    await expect(v2.locator('.sl-replay-note')).toContainText('başka bir araçla');
     expect(await mode(v2)).toBe('auto');
     await open(v2, `${VIEWER}#r=${older.slice(0, 60)}xx${older.slice(62, 200)}`);
-    await expect(v2.locator('.sl-replay-note')).toContainText('damaged');
+    await expect(v2.locator('.sl-replay-note')).toContainText('bozuk');
     expect(await mode(v2)).toBe('auto');
     await v2.screenshot({ path: join(SHOTS, '11-03-damaged.png') });
     await expectHealthyBoot(v2, v2Errors);
@@ -153,7 +153,7 @@ test.describe('11-03 replays', () => {
     await page.keyboard.press('KeyQ');
     await expect.poll(() => mode(page)).toBe('replay');
     expect(await page.evaluate(() => globalThis.__app!.state().timeScale)).toBe(0.25);
-    await expect(page.locator('.sl-replay-label')).toHaveText('Replay');
+    await expect(page.locator('.sl-replay-label')).toHaveText('Tekrar oynat');
     await expect(page.locator('.sl-replay-tag')).toBeVisible();
     await pause(page);
     await advance(page, 1.5);

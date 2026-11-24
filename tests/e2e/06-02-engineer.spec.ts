@@ -19,7 +19,7 @@ const APEX = sim.lapTimeAt((carousel.s0 + carousel.s1) / 2).toFixed(3);
 const BOOT = `/?e2e=1&paused=1&t=${APEX}&suspension=macpherson`;
 
 async function open(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Ask the engineer' }).click();
+  await page.getByRole('button', { name: 'Mühendise sor' }).click();
   await expect(page.locator('.sl-engineer-panel')).toBeVisible();
 }
 
@@ -48,7 +48,7 @@ test.describe('race engineer (mocked endpoint)', () => {
     await open(page);
     const chips = page.locator('.sl-engineer-chip');
     await expect(chips).toHaveCount(3);
-    await expect(chips.nth(1)).toHaveText('What is a roll centre?');
+    await expect(chips.nth(1)).toHaveText('Yalpa merkezi nedir?');
 
     await chips.first().click();
     const text = page.locator('.sl-engineer-text');
@@ -58,8 +58,8 @@ test.describe('race engineer (mocked endpoint)', () => {
 
     expect(sent!.clientId).toMatch(/^[\w-]{8,64}$/);
     const t = sent!.body.telemetry;
-    expect(sent!.body.question).toBe('Why does it lean more here?');
-    expect(t).toMatchObject({ vehicle_class: 'car', vehicle: 'gt-coupe', suspension: 'macpherson', section: 'carousel', section_name: 'Carousel' });
+    expect(sent!.body.question).toBe('Burada neden daha fazla yatıyor?');
+    expect(t).toMatchObject({ vehicle_class: 'car', vehicle: 'gt-coupe', suspension: 'macpherson', section: 'carousel', section_name: 'Eğimli yarım daire' });
     expect(t.event).toBe('mid-corner, right-hander, outside (left) wheels loaded');
     expect(t.lat_g).toBeLessThan(-0.5);
     expect(Object.keys(t.corners)).toEqual(['fl', 'fr', 'rl', 'rr']);
@@ -82,16 +82,16 @@ test.describe('race engineer (mocked endpoint)', () => {
     await page.route('**/api/engineer', (route) => (status ? route.fulfill({ status, json: { error: 'busy' } }) : route.abort('internetdisconnected')));
     await waitForReady(page, BOOT);
     await open(page);
-    await page.getByRole('button', { name: 'Why did it do that?' }).click();
-    await expect(page.locator('.sl-engineer-badge')).toHaveText('Engineer busy · rule-based answer');
-    await expect(page.locator('.sl-engineer-text')).toHaveText(/^Around the carousel at \d\.\d+ g the body rolls/);
+    await page.getByRole('button', { name: 'Bunu neden yaptı?' }).click();
+    await expect(page.locator('.sl-engineer-badge')).toHaveText('Mühendis meşgul · kural tabanlı yanıt');
+    await expect(page.locator('.sl-engineer-text')).toHaveText(/^Çember virajda \d\.\d+ g yanal ivmeyle gövde/);
     await page.screenshot({ path: join(SHOTS, '06-02-busy.png') });
 
     status = 0;
-    await page.locator('.sl-engineer-input').fill('Which suspension is best?');
+    await page.locator('.sl-engineer-input').fill('Hangi süspansiyon daha iyi?');
     await page.locator('.sl-engineer-input').press('Enter');
-    await expect(page.locator('.sl-engineer-badge')).toHaveText('Offline · rule-based answer');
-    await expect(page.locator('.sl-engineer-text')).toHaveText(/^None is best overall/);
+    await expect(page.locator('.sl-engineer-badge')).toHaveText('Çevrimdışı · kural tabanlı yanıt');
+    await expect(page.locator('.sl-engineer-text')).toHaveText(/^Her koşulda en iyi olan bir tür yoktur/);
     expect(await page.evaluate(() => globalThis.__app!.errors)).toEqual([]);
   });
 
@@ -101,7 +101,7 @@ test.describe('race engineer (mocked endpoint)', () => {
     await page.locator('.sl-engineer-input').focus();
     await page.keyboard.press('Escape');
     await expect(page.locator('.sl-engineer-panel')).toBeHidden();
-    await expect(page.getByRole('button', { name: 'Ask the engineer' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Mühendise sor' })).toBeFocused();
   });
 });
 
@@ -109,7 +109,7 @@ test('live endpoint answers with a grounded caption (phase gate: ENGINEER_E2E_LI
   test.skip(mocked, 'runs only against a deployed site');
   await waitForReady(page, BOOT);
   await open(page);
-  await page.getByRole('button', { name: 'Why did it do that?' }).click();
+  await page.getByRole('button', { name: 'Bunu neden yaptı?' }).click();
   await expect(page.locator('.sl-engineer-answer')).not.toHaveClass(/is-busy/, { timeout: 20_000 });
   const text = await page.locator('.sl-engineer-text').textContent();
   expect(text!.length).toBeGreaterThan(20);

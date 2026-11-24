@@ -67,11 +67,14 @@
 }
 .sl-telemetry-panel-stat {
   display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
   justify-content: space-between;
   align-items: baseline;
 }
 .sl-telemetry-panel-hero {
   color: var(--text-1);
+  white-space: nowrap;
   font: 400 var(--fs-num) / 1.2 var(--font-mono);
   font-variant-numeric: tabular-nums;
 }

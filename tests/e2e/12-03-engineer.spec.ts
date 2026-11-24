@@ -47,9 +47,9 @@ test.describe('12-03 engineer while driving', () => {
     await expect.poll(() => mode(page), { timeout: 60_000 }).toBe('manual');
 
     // before any event: general driving chips
-    await page.getByRole('button', { name: 'Ask the engineer' }).click();
-    await expect(page.locator('.sl-engineer-chip').first()).toHaveText('What changed when I switched?');
-    await page.getByRole('button', { name: 'Ask the engineer' }).click();
+    await page.getByRole('button', { name: 'Mühendise sor' }).click();
+    await expect(page.locator('.sl-engineer-chip').first()).toHaveText('Değiştirince ne değişti?');
+    await page.getByRole('button', { name: 'Mühendise sor' }).click();
 
     // provoke a slide (as the 11-02 coach spec): launch with the assists on, then assists off, full lock, throttle off
     await intent(page, { throttle: 0.5 });
@@ -59,10 +59,10 @@ test.describe('12-03 engineer while driving', () => {
     await expect(page.locator('.sl-engineer')).toHaveClass(/is-fresh/, { timeout: 120_000 }); // quiet ring, nothing pops up
     await expect(page.locator('.sl-engineer-panel')).toBeHidden();
 
-    await page.getByRole('button', { name: 'Ask the engineer' }).click();
+    await page.getByRole('button', { name: 'Mühendise sor' }).click();
     const chips = page.locator('.sl-engineer-chip');
     const first = (await chips.first().textContent()) ?? '';
-    expect(first).toMatch(/^Why did (I spin|the tail step out|it run wide)\?$/);
+    expect(first).toMatch(/^(Neden spin attım|Arka taraf neden kaydı|Neden virajın dışına açıldı)\?$/);
     const lapBefore = await page.evaluate(() => globalThis.__app!.frame().lapTime);
     await chips.first().click();
     await expect(page.locator('.sl-engineer-text')).toHaveText(/lighter rear lost grip/);
@@ -75,11 +75,11 @@ test.describe('12-03 engineer while driving', () => {
     expect(t.drive!.detected).toMatch(/slide/);
     expect(t.drive!.detected).not.toMatch(/\d/);
     expect(t.section).toBe('steering-pad');
-    expect(t.section_name).toBe('Steering circle');
+    expect(t.section_name).toBe('Dairesel sürüş');
     expect(t.event).toMatch(/assists off \(anti-lock, traction, stability, steering help\)/);
     expect(t.derived.event_age_s).toBeGreaterThanOrEqual(0);
     expect(t.derived.throttle_before_pct).toBeGreaterThanOrEqual(0);
-    expect(t.drive!.surface).toMatch(/asphalt/i);
+    expect(t.drive!.surface).toMatch(/asfalt/i);
     console.log(`[12-03] chip "${first}" -> detected "${t.drive!.detected}", ${t.speed_kmh} km/h, sideslip ${t.drive!.sideslip_deg} deg, throttle before ${t.derived.throttle_before_pct} %`);
 
     // actions: the close-up applies; the seek is skipped while driving
@@ -90,10 +90,10 @@ test.describe('12-03 engineer while driving', () => {
 
     // offline: the local rule answer for the same event, labelled
     offline = true;
-    await page.getByRole('button', { name: 'Why did it do that?' }).click();
-    await expect(page.locator('.sl-engineer-badge')).toHaveText('Offline · rule-based answer');
+    await page.getByRole('button', { name: 'Bunu neden yaptı?' }).click();
+    await expect(page.locator('.sl-engineer-badge')).toHaveText('Çevrimdışı · kural tabanlı yanıt');
     const rule = (await page.locator('.sl-engineer-text').textContent()) ?? '';
-    expect(rule).toMatch(/tyres|grip/);
+    expect(rule).toMatch(/lastik|tutuş/);
     expect(sent[1]!.telemetry.drive!.detected).toBe(t.drive!.detected);
     console.log(`[12-03] offline rule answer: "${rule}"`);
     await page.screenshot({ path: join(SHOTS, '12-03-offline-rule.png') });

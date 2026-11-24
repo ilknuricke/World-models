@@ -63,7 +63,7 @@ async function compareAndWatch(page: Page, name: string, shotAt: number) {
   const panel = page.locator('.sl-ghost-lab');
   await expect(panel).toBeVisible({ timeout: 60_000 });
   await expect(panel).toHaveAttribute('data-verdict', /refused|lost|same|different/);
-  await expect(panel.locator('.sl-ghost-lab-disclosure')).toContainText('same autopilot');
+  await expect(panel.locator('.sl-ghost-lab-disclosure')).toContainText('aynı otomatik sürücü');
   await advance(page, 0.05);
   await expect.poll(() => mode(page)).toBe('replay');
   // the ghost visual loads asynchronously (a second instance of the car visual)
@@ -116,7 +116,7 @@ test.describe('11-04 ghost', () => {
 
     await panel.locator('[data-target="same"]').click();
     await expect(panel).toHaveAttribute('data-target', 'same');
-    await expect(panel.locator('.sl-ghost-lab-sentence')).toContainText('Control run');
+    await expect(panel.locator('.sl-ghost-lab-sentence')).toContainText('Kontrol denemesi');
     await advance(page, 6);
     const aa = (await result(page))!;
     lines.push(report('steering pad control (A/A)', aa));

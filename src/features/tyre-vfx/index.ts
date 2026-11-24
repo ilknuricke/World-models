@@ -59,10 +59,10 @@ export default {
         type: 'button',
         'aria-pressed': 'true',
         hidden: true,
-        title: 'Grip rings under each tyre: ring = grip available, dot = grip used. Simplified tyre model.',
+        title: 'Her lastiğin altındaki tutunma halkaları: halka = mevcut tutunma, nokta = kullanılan tutunma. Basitleştirilmiş lastik modeli.',
       },
       h('span', { class: 'sl-tyre-vfx-glyph', 'aria-hidden': 'true' }),
-      h('span', { class: 'sl-drive-action-label' }, 'Grip rings ', h('span', { class: 'sl-tyre-vfx-tag' }, 'model')),
+      h('span', { class: 'sl-drive-action-label' }, 'Tutunma halkaları ', h('span', { class: 'sl-tyre-vfx-tag' }, 'model')),
     );
     ctx.addDisposer(mount(ctx.dom.overlay, chip));
 

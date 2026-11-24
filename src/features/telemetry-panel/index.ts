@@ -16,9 +16,10 @@ import './telemetry-panel.css';
 
 const SAMPLE_DT = 1 / 30;
 const TRAIL = 45; // 1.5 s at 30 Hz
-const METRIC_LABEL: Readonly<Record<Metric, string>> = { camber: 'Camber', travel: 'Travel', load: 'Load' };
+const CORNER_LABEL: Readonly<Record<string, string>> = { fl: 'SÖ', fr: 'SĞÖ', rl: 'SA', rr: 'SĞA', f: 'ÖN', r: 'ARKA' };
+const METRIC_LABEL: Readonly<Record<Metric, string>> = { camber: 'Kamber', travel: 'Hareket', load: 'Yük' };
 /** A motorcycle's wheel camber to the road is its lean: same field, honest name. */
-const BIKE_LABEL: Readonly<Record<Metric, string>> = { ...METRIC_LABEL, camber: 'Lean' };
+const BIKE_LABEL: Readonly<Record<Metric, string>> = { ...METRIC_LABEL, camber: 'Yatma' };
 /** Smallest sparkline span per metric (SI), so a quiet signal is not magnified into noise. */
 const MIN_SPAN: Readonly<Record<Metric, number>> = { camber: (1 * Math.PI) / 180, travel: 0.02, load: 1000 };
 
@@ -134,10 +135,10 @@ function buildCorners(s: State): void {
   s.corners = t.corners.map((c, i) => {
     const value = h('span', { class: 'sl-telemetry-panel-value sl-num' }, '—');
     const canvas = h('canvas', { class: 'sl-telemetry-panel-glyph', 'aria-hidden': 'true' });
-    const id = c.id.toUpperCase();
+    const id = CORNER_LABEL[c.id] ?? c.id.toLocaleUpperCase('tr-TR');
     const button = h(
       'button',
-      { class: 'sl-telemetry-panel-corner', type: 'button', 'aria-pressed': String(i === s.selected), 'aria-label': `Trace ${id}` },
+      { class: 'sl-telemetry-panel-corner', type: 'button', 'aria-pressed': String(i === s.selected), 'aria-label': `${id} eğrisi` },
       h('span', { class: 'sl-telemetry-panel-corner-head' }, h('span', { class: 'sl-telemetry-panel-corner-id sl-label' }, id), value),
       canvas,
     );
@@ -183,7 +184,7 @@ function resetVehicle(s: State): void {
   const bike = s.ctx.sim.current.vehicle.class === 'motorcycle';
   const labels = bike ? BIKE_LABEL : METRIC_LABEL;
   s.tabs.forEach((b, i) => (b.textContent = labels[METRICS[i]!]));
-  s.rollLabel.textContent = bike ? 'Lean' : 'Roll';
+  s.rollLabel.textContent = bike ? 'Yatma' : 'Yatma';
   setMetric(s, bike ? METRICS.indexOf('travel') : 0);
 }
 
@@ -236,8 +237,8 @@ const telemetryPanel: FeatureModule = {
     const spark = h('canvas', { class: 'sl-telemetry-panel-spark', 'aria-hidden': 'true' });
     const latG = h('b', { class: 'sl-telemetry-panel-hero' }, '—');
     const roll = h('b', { class: 'sl-telemetry-panel-hero' }, '—');
-    const rollLabel = h('span', { class: 'sl-label' }, 'Roll');
-    const scaleNote = h('span', { class: 'sl-telemetry-panel-note sl-label', hidden: true }, 'True scale');
+    const rollLabel = h('span', { class: 'sl-label' }, 'Yatma');
+    const scaleNote = h('span', { class: 'sl-telemetry-panel-note sl-label', hidden: true }, 'Gerçek ölçek');
     const cornerGrid = h('div', { class: 'sl-telemetry-panel-corners' });
     const tabs = METRICS.map((m, i) =>
       h('button', { class: 'sl-telemetry-panel-tab sl-label', type: 'button', 'aria-pressed': String(i === 0) }, METRIC_LABEL[m]),
@@ -248,8 +249,8 @@ const telemetryPanel: FeatureModule = {
     const ghostLegend = h('span', { class: 'sl-telemetry-panel-legend is-ghost', hidden: true }, ghostName, ghostNote);
     const root = h(
       'section',
-      { class: 'sl-telemetry-panel', 'aria-label': 'Telemetry' },
-      h('header', { class: 'sl-telemetry-panel-head' }, h('span', { class: 'sl-label' }, 'Telemetry'), scaleNote),
+      { class: 'sl-telemetry-panel', 'aria-label': 'Telemetri' },
+      h('header', { class: 'sl-telemetry-panel-head' }, h('span', { class: 'sl-label' }, 'Telemetri'), scaleNote),
       h(
         'div',
         { class: 'sl-telemetry-panel-top' },
@@ -260,7 +261,7 @@ const telemetryPanel: FeatureModule = {
           h(
             'div',
             { class: 'sl-telemetry-panel-heroes' },
-            h('span', { class: 'sl-telemetry-panel-stat' }, h('span', { class: 'sl-label', title: 'Lateral acceleration' }, 'Lat'), latG),
+            h('span', { class: 'sl-telemetry-panel-stat' }, h('span', { class: 'sl-label', title: 'Yanal ivme' }, 'Yanal'), latG),
             h('span', { class: 'sl-telemetry-panel-stat' }, rollLabel, roll),
           ),
         ),
@@ -269,7 +270,7 @@ const telemetryPanel: FeatureModule = {
       h(
         'div',
         { class: 'sl-telemetry-panel-sparkhead' },
-        h('div', { class: 'sl-telemetry-panel-tabs', role: 'group', 'aria-label': 'Trace metric' }, ...tabs),
+        h('div', { class: 'sl-telemetry-panel-tabs', role: 'group', 'aria-label': 'Grafik büyüklüğü' }, ...tabs),
         h('div', { class: 'sl-telemetry-panel-legends' }, liveLegend, ghostLegend),
       ),
       spark,
@@ -341,7 +342,7 @@ const telemetryPanel: FeatureModule = {
     const driving = t.drive.mode !== 'auto';
     if (driving !== s.driving) {
       s.driving = driving;
-      s.ghostNote.textContent = driving ? ' · Auto only' : '';
+      s.ghostNote.textContent = driving ? ' · Yalnızca otomatik' : '';
     }
     s.trail.push(gUnits(t.ay), gUnits(t.ax));
     if (s.root.hidden) return; // keep recording (the ghost needs the lap), skip the drawing

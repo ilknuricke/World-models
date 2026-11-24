@@ -14,14 +14,14 @@ export type Unit = 'kmh' | 'dps' | 'deg' | 'g' | 'mm' | 'n' | 'pct' | 's';
 
 /** Unit written right after a number (order matters: "degrees per second" before "degrees"). */
 const TEXT_UNITS: readonly (readonly [Unit, RegExp])[] = [
-  ['kmh', /^[\s-]*(km\/h|kph|kilomet(re|er)s? (per|an) hour)/i],
-  ['dps', /^[\s-]*(°\/s|deg\/s|degrees? (per|a) second)/i],
-  ['deg', /^[\s-]*(°|deg\b|degrees?\b)/i],
+  ['kmh', /^[\s-]*(km\/h|km\/sa|kph|kilomet(re|er)s? (per|an) hour)/i],
+  ['dps', /^[\s-]*(°\/s|deg\/s|degrees? (per|a) second|derece\/s|derece\/saniye)/i],
+  ['deg', /^[\s-]*(°|deg\b|degrees?\b|derece\b)/i],
   ['g', /^[\s-]*g\b/],
-  ['mm', /^[\s-]*(mm\b|millimet(re|er)s?\b)/i],
-  ['n', /^[\s-]*(N\b|newtons?\b)/],
-  ['pct', /^[\s-]*(%|percent\b|per cent\b)/i],
-  ['s', /^[\s-]*(s\b|seconds?\b)/],
+  ['mm', /^[\s-]*(mm\b|millimet(re|er)s?\b|milimetre\b)/i],
+  ['n', /^[\s-]*(N\b|newtons?\b|newton\b)/],
+  ['pct', /^[\s-]*(%|percent\b|per cent\b|yüzde\b)/i],
+  ['s', /^[\s-]*(s\b|seconds?\b|saniye\b)/],
 ];
 
 /** Unit of a payload key, from its suffix. */

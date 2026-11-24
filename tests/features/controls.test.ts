@@ -53,7 +53,7 @@ describe('keyAction (UI-01 keyboard map)', () => {
   });
 
   it('the amplification chip states the factor and that values stay true scale', () => {
-    expect(amplificationText(AMPLIFICATION_ON)).toBe('Motion ×2.5 · values true scale');
+    expect(amplificationText(AMPLIFICATION_ON)).toBe('Hareket ×2.5 · değerler gerçek ölçekte');
   });
 
   it('outside Auto, W A S D belong to the drive feature (08-03); other keys keep their meanings', () => {

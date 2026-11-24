@@ -98,4 +98,17 @@ describe('request payload', () => {
       for (const q of CHIPS[seg.phenomenon]) expect(q).not.toMatch(/\d/);
     }
   });
+
+  it.each([
+    ['KAMBER NEDİR?', /^Kamber, tekerleğin/],
+    ['YALPA MERKEZİ NEDİR?', /^Yalpa merkezi,/],
+    ['EXPLAIN CAMBER', /^Kamber, tekerleğin/],
+  ] as const)('the browser fallback recognizes "%s" with live telemetry', (question, answer) => {
+    const ring = new SnapshotRing(1, IDS);
+    ring.push(carFrame(() => {}), 0);
+    const telemetry = buildTelemetry(ring.latest()!, IDS, ctx);
+    const text = ruleAnswer(question, 'settle', telemetry);
+    expect(text).toMatch(answer);
+    expect(ungroundedNumbers(text, telemetry)).toEqual([]);
+  });
 });

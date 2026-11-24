@@ -38,7 +38,7 @@ test.describe('04-03 telemetry panel + insights', () => {
     await expect(panel.locator('.sl-telemetry-panel-corner')).toHaveCount(4);
 
     await page.evaluate(() => globalThis.__app!.set('amplification', 2.5));
-    await expect(panel.locator('.sl-telemetry-panel-note')).toHaveText(/true scale/i);
+    await expect(panel.locator('.sl-telemetry-panel-note')).toHaveText(/gerçek ölçek/i);
     await run(page, 90);
 
     // readouts are TRUE values (the pose is amplified x2.5, the numbers are not)
@@ -53,25 +53,25 @@ test.describe('04-03 telemetry panel + insights', () => {
     // one contextual caption in the carousel, numbers from the frame
     const caption = page.locator('.sl-insights-caption');
     await expect(caption).toBeVisible();
-    await expect(page.locator('.sl-insights-text')).toHaveText(/rolls toward the outside/);
+    await expect(page.locator('.sl-insights-text')).toHaveText(/virajın dışına yatar/);
     await expect(page.locator('.sl-insights-announce')).toHaveAttribute('aria-live', 'polite'); // 07-03: caption announced once, chip silent
-    await expect(page.locator('.sl-insights-announce')).toHaveText(/rolls toward the outside/);
+    await expect(page.locator('.sl-insights-announce')).toHaveText(/virajın dışına yatar/);
     // the section chip reads the live TRUE frame (15 Hz), like the card: nowhere near the x2.5 pose
     expect(Math.abs(num(await page.locator('.sl-insights-chip').textContent()) - Math.abs(f.roll * RAD))).toBeLessThan(0.11);
 
     // swap: after a 1 s settle, the delta chip compares the same place on the lap; the ghost legend names the old one
     await page.evaluate(() => globalThis.__app!.set('suspensionId', 'double-wishbone'));
     await run(page, 36);
-    await expect(page.locator('.sl-insights-text')).toHaveText('MacPherson strut → Double wishbone');
-    await expect(page.locator('.sl-insights-chip-label')).toHaveText(/^Camber (FL|FR|RL|RR)$/);
+    await expect(page.locator('.sl-insights-text')).toHaveText('MacPherson dikme → Çift salıncak');
+    await expect(page.locator('.sl-insights-chip-label')).toHaveText(/^Kamber (SÖ|SĞÖ|SA|SĞA)$/);
     await expect(page.locator('.sl-insights-after')).toHaveText(/^−?\d+\.\d°$/);
-    await expect(panel.locator('.sl-telemetry-panel-legend.is-ghost')).toHaveText('Strut');
-    await expect(panel.locator('.sl-telemetry-panel-legend.is-live')).toHaveText('Wishbone');
+    await expect(panel.locator('.sl-telemetry-panel-legend.is-ghost')).toHaveText('Dikme');
+    await expect(panel.locator('.sl-telemetry-panel-legend.is-live')).toHaveText('Çift salıncak');
 
     // trace controls
     await panel.locator('.sl-telemetry-panel-corner').nth(3).click();
     await expect(panel.locator('.sl-telemetry-panel-corner').nth(3)).toHaveAttribute('aria-pressed', 'true');
-    await panel.getByRole('button', { name: 'Load' }).click();
+    await panel.getByRole('button', { name: 'Yük' }).click();
     await run(page, 2);
     await expect(panel.locator('.sl-telemetry-panel-value').first()).toHaveText(/ kN$/);
 

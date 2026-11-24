@@ -24,13 +24,13 @@ export default {
   phase: 'overlay',
 
   init(c) {
-    const close = h('button', { type: 'button', class: 'sl-credits-close', 'aria-label': 'Close credits' });
+    const close = h('button', { type: 'button', class: 'sl-credits-close', 'aria-label': 'Katkıda bulunanları kapat' });
     close.innerHTML = CLOSE_ICON;
     const body = h('div', { class: 'sl-credits-body' });
     const panel = h(
       'aside',
       { class: 'sl-credits', role: 'dialog', 'aria-labelledby': 'sl-credits-title', hidden: true },
-      h('header', { class: 'sl-credits-head' }, h('h2', { class: 'sl-credits-title', id: 'sl-credits-title' }, 'Credits'), close),
+      h('header', { class: 'sl-credits-head' }, h('h2', { class: 'sl-credits-title', id: 'sl-credits-title' }, 'Katkıda bulunanlar'), close),
       body,
     );
     c.addDisposer(mount(c.dom.overlay, panel));
@@ -56,15 +56,15 @@ export default {
         h(
           'p',
           { class: 'sl-credits-lede' },
-          'Suspension Lab is built on the work of others. Vehicle meshes are used for their shape only; no manufacturer data is implied. Vehicle parameters are representative.',
+          'Süspansiyon Laboratuvarı, başkalarının çalışmalarından yararlanır. Araç modelleri yalnızca biçimleri için kullanılır; üretici verilerini temsil etmez. Araç parametreleri örnek niteliğindedir.',
         ),
-        h('h3', { class: 'sl-credits-h sl-label' }, 'Assets'),
-        assets.length ? h('ul', { class: 'sl-credits-list' }, ...assets) : h('p', { class: 'sl-credits-text' }, 'Asset list unavailable.'),
-        h('h3', { class: 'sl-credits-h sl-label' }, 'Code, data and fonts'),
+        h('h3', { class: 'sl-credits-h sl-label' }, 'Görsel ve ses kaynakları'),
+        assets.length ? h('ul', { class: 'sl-credits-list' }, ...assets) : h('p', { class: 'sl-credits-text' }, 'Kaynak listesi kullanılamıyor.'),
+        h('h3', { class: 'sl-credits-h sl-label' }, 'Kod, veri ve yazı tipleri'),
         h('ul', { class: 'sl-credits-list' }, ...code),
-        h('h3', { class: 'sl-credits-h sl-label' }, 'Licence notices'),
+        h('h3', { class: 'sl-credits-h sl-label' }, 'Lisans bildirimleri'),
         ...LICENSE_NOTICES.flatMap((n) => [h('p', { class: 'sl-credits-text' }, n.title), h('pre', { class: 'sl-credits-notice' }, n.text)]),
-        h('p', { class: 'sl-credits-text' }, ...linkify('Geist fonts: SIL Open Font License 1.1 (https://openfontlicense.org). postprocessing: zlib licence. n8ao: ISC licence.')),
+        h('p', { class: 'sl-credits-text' }, ...linkify('Geist yazı tipleri: SIL Open Font License 1.1 (https://openfontlicense.org). postprocessing: zlib lisansı. n8ao: ISC lisansı.')),
       );
     };
 

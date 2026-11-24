@@ -13,6 +13,7 @@ import type { EngineerAction, EngineerResponse, EngineerTurn } from '../../contr
 import { API, NET_LIMITS } from '../../contracts/net';
 import type { CornerId } from '../../contracts/units';
 import { h, mount } from '../../ui/dom';
+import { acquireNarration } from '../../ui/narration';
 import './engineer.css';
 import { driveKey, driveLabel, ruleAnswer, type DriveMoment } from './rules';
 import { buildTelemetry, CHIPS, createSnap, DRIVE_CHIPS, EVENT_CHIPS, fillSnap, placeOf, SnapshotRing, type DriveContext, type Snap } from './snapshot';
@@ -20,9 +21,10 @@ import { buildTelemetry, CHIPS, createSnap, DRIVE_CHIPS, EVENT_CHIPS, fillSnap, 
 const SAMPLE_S = 0.1;
 const RING = 20; // 2 s at 10 Hz
 const WHY_WINDOW_S = 1;
-const REQUEST_TIMEOUT_MS = 12_000;
+// Allow the worker's primary (9 s) and error-fallback (6 s) attempts to finish.
+const REQUEST_TIMEOUT_MS = 17_000;
 const HIGHLIGHT_MS = 4000;
-const WHY = 'Why did it do that?';
+const WHY = 'Bunu neden yaptı?';
 /** A detected drive event counts for questions this long after it (ARCH-M2 §12.4)... */
 const EVENT_WINDOW_S = 5;
 /** ...or this long once the visitor engaged with it (opened the panel, focused the input, its chips were shown). */
@@ -110,7 +112,7 @@ function payload(c: FeatureContext, snap: Snap, drive?: DriveContext) {
       vehicleId: sim.vehicle.id,
       suspensionId: sim.suspension.id,
       sectionId: place?.id ?? section?.id ?? 'unknown',
-      sectionName: place?.name ?? section?.def.name ?? 'Track',
+      sectionName: place?.name ?? section?.def.name ?? 'Pist',
       summaries: { front: k.front.summary, rear: k.rear.summary },
     },
     drive,
@@ -148,8 +150,9 @@ function execute(c: FeatureContext, a: EngineerAction): void {
       }
       break;
     case 'set_slow_motion':
-      if (c.store.get().driveMode === 'manual') break; // never slow the car under the driver's hands
+      if (c.store.get().driveMode !== 'auto') break; // a delayed answer must not alter driving or replay speed
       c.store.setKey('timeScale', Math.min(1, Math.max(0.1, a.args.scale)));
+      if (a.args.scale < 1) c.store.setKey('paused', false); // "show" should move even from a paused scene
       break;
     case 'highlight_component':
       if (a.args.corner === 'all' || okCorner(a.args.corner)) c.bus.emit('highlight', { role: a.args.component, corner: a.args.corner, durationMs: HIGHLIGHT_MS });
@@ -176,30 +179,74 @@ const engineer: FeatureModule = {
   init(c) {
     ctx = c;
     resetRing(c);
-    c.on('sim:vehicle', () => resetRing(c));
     const id = clientId();
 
     const text = h('p', { class: 'sl-engineer-text' });
     const badge = h('span', { class: 'sl-engineer-badge sl-label', hidden: true });
-    const answer = h('div', { class: 'sl-engineer-answer', 'aria-live': 'polite', hidden: true }, text, badge);
+    const answer = h('div', { class: 'sl-engineer-answer', role: 'status', 'aria-label': 'Mühendis yanıtı', 'aria-live': 'polite', hidden: true }, text, badge);
+    let hasAnswer = false;
+    let lastNarrated: string | null = null;
+    const syncAnswer = () => {
+      const state = c.store.get();
+      answer.hidden = !hasAnswer || !state.engineerOpen || !state.hudVisible || state.attract;
+      // The visible engineer card owns the voice, including while a reply is loading or has finished speaking.
+      // Background captions are hidden by the shared message layout and must stay silent too.
+      const audible = !answer.hidden && !document.hidden;
+      narration.setFocused(audible);
+      if (!audible || answer.classList.contains('is-busy')) {
+        lastNarrated = null;
+        narration.clear();
+        return;
+      }
+      const message = text.textContent ?? '';
+      if (message && message !== lastNarrated) {
+        lastNarrated = message;
+        narration.say(message);
+      }
+    };
     chipRow = h('div', { class: 'sl-engineer-chips' });
-    const input = h('input', { class: 'sl-engineer-input', type: 'text', maxlength: NET_LIMITS.engineerQuestionChars, placeholder: 'Ask about the suspension…', 'aria-label': 'Question for the race engineer' });
-    const send = h('button', { class: 'sl-engineer-send', type: 'submit', 'aria-label': 'Ask' }, '↵');
+    const input = h('input', { class: 'sl-engineer-input', type: 'text', maxlength: NET_LIMITS.engineerQuestionChars, placeholder: 'Süspansiyon hakkında sorun…', 'aria-label': 'Yarış mühendisine sorunuz' });
+    const send = h('button', { class: 'sl-engineer-send', type: 'submit', 'aria-label': 'Sor' }, '↵');
     const form = h('form', { class: 'sl-engineer-form' }, input, send);
     const why = h('button', { class: 'sl-engineer-why', type: 'button' }, WHY);
-    const panel = h('section', { class: 'sl-engineer-panel', id: 'sl-engineer-panel', 'aria-label': 'Race engineer', hidden: true }, answer, why, chipRow, form);
-    const toggle = h('button', { class: 'sl-engineer-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': 'sl-engineer-panel' }, 'Ask the engineer');
+    const panel = h('section', { class: 'sl-engineer-panel', id: 'sl-engineer-panel', 'aria-label': 'Yarış mühendisi', hidden: true }, why, chipRow, form);
+    const toggle = h('button', { class: 'sl-engineer-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': 'sl-engineer-panel' }, 'Mühendise sor');
     const root = h('div', { class: 'sl-engineer' }, panel, toggle);
     rootEl = root;
     c.addDisposer(mount(c.dom.overlay, root));
+    c.addDisposer(mount(c.dom.overlay, answer));
 
+    const narration = acquireNarration(c.dom.overlay, { priority: 10 });
+    c.addDisposer(() => narration.dispose());
+    document.addEventListener('visibilitychange', syncAnswer);
+    c.addDisposer(() => document.removeEventListener('visibilitychange', syncAnswer));
     const show = (msg: string, label: string | null, busy = false) => {
-      answer.hidden = false;
+      hasAnswer = true;
       answer.classList.toggle('is-busy', busy);
       text.textContent = msg;
       badge.hidden = label === null;
       badge.textContent = label ?? '';
+      syncAnswer();
     };
+
+    c.on('sim:vehicle', () => {
+      // A response and its conversation belong to the vehicle whose telemetry was sent.
+      pending?.abort();
+      pending = undefined;
+      history.length = 0;
+      recent = [];
+      engaged = undefined;
+      chipEvent = undefined;
+      chipsDriving = false;
+      shownSection = -1;
+      resetRing(c);
+      hasAnswer = false;
+      text.textContent = '';
+      badge.hidden = true;
+      input.value = '';
+      root.classList.remove('is-fresh');
+      syncAnswer();
+    });
 
     async function ask(question: string, latest: Snap | undefined): Promise<void> {
       const driving = driveRequest(c, latest);
@@ -212,7 +259,7 @@ const engineer: FeatureModule = {
       const ctl = new AbortController();
       pending = ctl;
       const timer = setTimeout(() => ctl.abort(), REQUEST_TIMEOUT_MS);
-      show('Thinking…', null, true);
+      show('Düşünüyor…', null, true);
       try {
         const res = await fetch(API.engineer, {
           method: 'POST',
@@ -222,14 +269,14 @@ const engineer: FeatureModule = {
         });
         const body: unknown = res.ok ? await res.json() : undefined;
         if (pending !== ctl) return;
-        if (res.status === 429) return local('Engineer busy · rule-based answer');
-        if (!isResponse(body)) return local('Offline · rule-based answer');
-        show(body.text, body.source === 'fallback' ? 'Rule-based answer' : null);
+        if (res.status === 429) return local('Mühendis meşgul · kural tabanlı yanıt');
+        if (!isResponse(body)) return local('Çevrimdışı · kural tabanlı yanıt');
+        show(body.text, body.source === 'fallback' ? 'Kural tabanlı yanıt' : null);
         history.push({ role: 'user', content: question }, { role: 'assistant', content: body.text.slice(0, NET_LIMITS.engineerHistoryChars) });
         history.splice(0, Math.max(0, history.length - NET_LIMITS.engineerHistoryMax));
         for (const a of body.actions.slice(0, 2)) execute(c, a);
       } catch {
-        if (pending === ctl) local('Offline · rule-based answer');
+        if (pending === ctl) local('Çevrimdışı · kural tabanlı yanıt');
       } finally {
         clearTimeout(timer);
         if (pending === ctl) pending = undefined;
@@ -245,7 +292,13 @@ const engineer: FeatureModule = {
     chipRow.addEventListener('click', (e) => {
       const chip = (e.target as HTMLElement).closest('button');
       if (chipEvent && now() - chipEvent.time <= ENGAGED_WINDOW_S) engaged = { event: chipEvent, at: now() };
-      if (chip?.textContent) askNow(chip.textContent);
+      if (chip?.textContent) {
+        // Explicit preset buttons respond immediately, even while inference is unavailable.
+        if (chip.textContent === 'Ağır çekimde göster' || chip.textContent === 'Tümseği ağır çekimde göster') {
+          execute(c, { tool: 'set_slow_motion', args: { scale: 0.25 } });
+        }
+        askNow(chip.textContent);
+      }
     });
     input.addEventListener('focus', engage);
 
@@ -310,9 +363,11 @@ const engineer: FeatureModule = {
       root.classList.toggle('is-open', s.engineerOpen);
       if (s.engineerOpen) root.classList.remove('is-fresh');
       root.hidden = !s.hudVisible || s.attract; // H and attract mode hide it with the rest of the HUD
+      syncAnswer();
     });
     c.addDisposer(() => {
       pending?.abort();
+      pending = undefined;
       ctx = undefined;
       ring = undefined;
       chipRow = undefined;

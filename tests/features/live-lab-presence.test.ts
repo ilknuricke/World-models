@@ -38,8 +38,8 @@ describe('socketUrl', () => {
 
 describe('misc', () => {
   it('formats the head count and classifies final close codes', () => {
-    expect(watchingText(1)).toBe('1 in the lab');
-    expect(watchingText(27)).toBe('27 in the lab');
+    expect(watchingText(1)).toBe('Laboratuvarda 1 kişi');
+    expect(watchingText(27)).toBe('Laboratuvarda 27 kişi');
     expect([4400, 4401, 4404, 4503].every(isFinalClose)).toBe(true);
     expect([1000, 1006, 1008, 1009, 1011].some(isFinalClose)).toBe(false);
   });

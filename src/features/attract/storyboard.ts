@@ -30,10 +30,10 @@ export interface Beat {
 const CLEAN: AttractPatch = { xray: false, overlay: 'clean', timeScale: 1, amplification: 1 };
 
 export const STORYBOARD: readonly Beat[] = [
-  { duration: 8, title: true, caption: 'Every bump is a geometry problem.', shot: { kind: 'orbit' }, patch: CLEAN, swap: 0 },
+  { duration: 8, title: true, caption: 'Her tümsek bir geometri problemidir.', shot: { kind: 'orbit' }, patch: CLEAN, swap: 0 },
   {
     duration: 8,
-    caption: 'Watch the links work over a bump.',
+    caption: 'Tümsekte bağlantıların nasıl çalıştığını izleyin.',
     shot: { kind: 'closeup', corner: 'fl' },
     at: 'single-wheel-bump',
     lead: 3,
@@ -42,7 +42,7 @@ export const STORYBOARD: readonly Beat[] = [
   },
   {
     duration: 8,
-    caption: 'Roll, made visible.',
+    caption: 'Gövde yatması görünür hâlde.',
     shot: { kind: 'front-view' },
     at: 'roll-reversal',
     lead: 0.6,
@@ -51,7 +51,7 @@ export const STORYBOARD: readonly Beat[] = [
   },
   {
     duration: 8,
-    caption: 'Geometry decides the grip.',
+    caption: 'Yol tutuşunu geometri belirler.',
     shot: { kind: 'trackside' },
     at: 'steady-state-roll',
     lead: 1,
@@ -60,7 +60,7 @@ export const STORYBOARD: readonly Beat[] = [
   },
   {
     duration: 6,
-    caption: 'Same bump. Different answer.',
+    caption: 'Aynı tümsek. Farklı tepki.',
     shot: { kind: 'closeup', corner: 'fl' },
     at: 'single-wheel-bump',
     lead: 1.5,
@@ -69,17 +69,17 @@ export const STORYBOARD: readonly Beat[] = [
   },
   {
     duration: 5,
-    caption: 'Same bump. Different answer.',
+    caption: 'Aynı tümsek. Farklı tepki.',
     shot: { kind: 'closeup', corner: 'fl' },
     at: 'single-wheel-bump',
     lead: 1.5,
     patch: { ...CLEAN, xray: true },
     swap: 2,
   },
-  { duration: 5, caption: 'Brakes on. The nose dives.', shot: { kind: 'trackside' }, at: 'brake-dive', lead: 0.4, patch: CLEAN, swap: 0 },
+  { duration: 5, caption: 'Fren yapılır. Burun öne dalar.', shot: { kind: 'trackside' }, at: 'brake-dive', lead: 0.4, patch: CLEAN, swap: 0 },
   {
     duration: 8,
-    caption: 'On two wheels, the fork takes it.',
+    caption: 'İki tekerlekte yükü çatal karşılar.',
     shot: { kind: 'closeup', corner: 'f' },
     at: 'brake-dive',
     lead: 1.5,
@@ -88,7 +88,7 @@ export const STORYBOARD: readonly Beat[] = [
     swap: 0,
     bike: true,
   },
-  { duration: 4, title: true, caption: 'Touch to explore.', shot: { kind: 'chase' }, patch: CLEAN, swap: 0 },
+  { duration: 4, title: true, caption: 'Keşfetmek için dokunun.', shot: { kind: 'chase' }, patch: CLEAN, swap: 0 },
 ];
 
 export const loopDuration = (board: readonly Beat[]): number => board.reduce((sum, b) => sum + b.duration, 0);

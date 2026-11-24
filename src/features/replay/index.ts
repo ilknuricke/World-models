@@ -60,11 +60,11 @@ export default {
     const playLabel = h('span', { class: 'sl-replay-label' }, COPY.replay);
     const slowTag = h('span', { class: 'sl-replay-tag', hidden: true }, COPY.slow);
     const bar = h('span', { class: 'sl-replay-bar-fill' });
-    const progress = h('span', { class: 'sl-replay-bar', role: 'progressbar', 'aria-label': 'Replay progress', 'aria-valuemin': 0, 'aria-valuemax': 100 }, bar);
+    const progress = h('span', { class: 'sl-replay-bar', role: 'progressbar', 'aria-label': 'Tekrar ilerlemesi', 'aria-valuemin': 0, 'aria-valuemax': 100 }, bar);
     const driveBtn = h('button', { type: 'button', class: 'sl-replay-btn is-primary', 'data-action': 'drive', title: COPY.driveItTitle }, COPY.driveIt);
     const playRow = h('div', { class: 'sl-replay-row is-playing', 'data-row': 'play', hidden: true }, h('span', { class: 'sl-replay-play-dot', 'aria-hidden': 'true' }), playLabel, slowTag, progress, driveBtn);
 
-    const shareInput = h('input', { class: 'sl-replay-link', type: 'text', readonly: true, 'aria-label': 'Replay link', spellcheck: 'false' });
+    const shareInput = h('input', { class: 'sl-replay-link', type: 'text', readonly: true, 'aria-label': 'Tekrar bağlantısı', spellcheck: 'false' });
     const copyBtn = h('button', { type: 'button', class: 'sl-replay-btn', 'data-action': 'copy' }, COPY.copy);
     const shareMsg = h('span', { class: 'sl-replay-share-msg', role: 'status' });
     const shareFine = h('span', { class: 'sl-replay-share-fine' }, COPY.linkNote);
@@ -205,6 +205,8 @@ export default {
     const save = () => {
       const d = drive();
       if (!d || sharePanel.hidden) return;
+      const siteKey = siteKeyFor(location);
+      if (!siteKey) return saveFailed('disabled');
       const gen = ++saveGen;
       endChallenge();
       saveBtn.hidden = true;
@@ -220,7 +222,7 @@ export default {
         if (span.minutes) shareMsg.textContent = savingPart(span.minutes);
         savePrivacy.hidden = false;
         widgetHost.hidden = false;
-        widget = challenge(widgetHost, siteKeyFor(location), (o) => {
+        widget = challenge(widgetHost, siteKey, (o) => {
           if (gen !== saveGen) return;
           if ('error' in o) return saveFailed(o.error);
           sharePanel.dataset.save = 'saving';

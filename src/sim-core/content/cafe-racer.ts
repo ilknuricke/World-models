@@ -48,7 +48,7 @@ export const cafeRacer: MotorcycleDefinition = {
   id: 'cafe-racer',
   class: 'motorcycle',
   name: 'Cafe racer',
-  subtitle: 'Representative parameters',
+  subtitle: 'Temsili parametreler',
   visualKey: 'cafe-racer',
   mass: 290,
   sprungMass: 254,

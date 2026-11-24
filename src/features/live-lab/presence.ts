@@ -27,7 +27,7 @@ export function segments(dist: Readonly<Record<string, number>>, mineKey: string
     .map((s) => ({ ...s, share: s.count / total, mine: s.key === mineKey }));
 }
 
-export const watchingText = (viewers: number): string => `${viewers} in the lab`;
+export const watchingText = (viewers: number): string => `Laboratuvarda ${viewers} kişi`;
 
 export interface ConnectParams {
   readonly origin: string;

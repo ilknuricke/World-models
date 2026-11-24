@@ -251,9 +251,9 @@ describe('hand-back and recovery (orchestrator decisions 2 and 5)', () => {
   });
 
   it('Returning chip words; stations copy shown in the UI has no digits and no rankings', () => {
-    expect(returningLabel('recover')).toBe('Finding the line…');
-    expect(returningLabel('track')).toBe('Rejoining the lap…');
-    expect(returningLabel(undefined)).toBe('Finding the line…');
+    expect(returningLabel('recover')).toBe('Sürüş çizgisi aranıyor…');
+    expect(returningLabel('track')).toBe('Tura dönülüyor…');
+    expect(returningLabel(undefined)).toBe('Sürüş çizgisi aranıyor…');
     for (const s of provingGround.stations) {
       for (const text of [s.name, s.caption, s.experiment]) {
         expect(text).not.toMatch(/\d/);

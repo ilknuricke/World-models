@@ -180,27 +180,27 @@ describe('rule-based answers agree with the simulation', () => {
   const roll = (id: Id) => ruleAnswer('why?', 'steady-state-roll', tel(id));
 
   it('roll clauses: strut gives up the most rear camber, wishbone flattest, multi-link between', () => {
-    expect(roll(MP)).toMatch(/at the rear it gives up the most camber of the three types/);
+    expect(roll(MP)).toMatch(/arka aksta üç tür arasında en fazla kamber kaybı bundadır/);
     expect(rank((id) => T[id].camberOR)[0]).toBe(MP);
-    expect(roll(DW)).toMatch(/tyre stays the flattest of the three types/);
+    expect(roll(DW)).toMatch(/lastik üç tür arasında yola en düz basan konumda kalır/);
     expect(rank((id) => -T[id].camberOF)[0]).toBe(DW);
     expect(rank((id) => -T[id].camberOR)[0]).toBe(DW);
-    expect(roll(ML)).toMatch(/between the strut and the double wishbone/);
+    expect(roll(ML)).toMatch(/MacPherson ile çift salıncak arasındadır/);
     for (const order of bothAxles((a) => a.gain)) expect(order[1]).toBe(ML);
   });
 
   it('brake-dive: the difference between the types is tiny', () => {
-    expect(ruleAnswer('why?', 'brake-dive', { ...tel(MP), long_g: -0.9, pitch_deg: 1.2 })).toMatch(/difference between the types is tiny/);
+    expect(ruleAnswer('why?', 'brake-dive', { ...tel(MP), long_g: -0.9, pitch_deg: 1.2 })).toMatch(/türler arasındaki fark çok küçüktür/);
     expect(spread((id) => T[id].brakePitch)).toBeLessThan(0.2);
   });
 
   it('roll-centre glossary: a higher roll centre rolls a little less (strut highest RC, least roll)', () => {
-    expect(ruleAnswer('What is a roll centre?', undefined, tel(MP))).toMatch(/the higher it is, .* the body rolls a little less/);
+    expect(ruleAnswer('Yalpa merkezi nedir?', undefined, tel(MP))).toMatch(/yükseldikçe .* gövde biraz daha az yatar/);
     expect(rank((id) => T[id].roll).at(-1)).toBe(rank((id) => K[id].front.rc)[0]);
   });
 
   it('never crowns a winner', () => {
-    expect(ruleAnswer('Which is best?', undefined, tel(DW))).toMatch(/None is best overall/);
+    expect(ruleAnswer('Hangi süspansiyon en iyi?', undefined, tel(DW))).toMatch(/Her koşulda en iyi olan bir tür yoktur/);
     expect(COMMON_CAR).toMatch(/No suspension type is best overall/);
   });
 });

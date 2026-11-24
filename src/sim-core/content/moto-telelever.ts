@@ -21,16 +21,16 @@ export const motoTelelever: MotorcycleSuspensionDefinition = {
   copy: {
     label: 'Telelever',
     short: 'Telelever',
-    descriptor: 'Wishbone-located fork and single-sided swingarm',
+    descriptor: 'Salıncakla konumlandırılan çatal ve tek taraflı arka salıncak',
     strengths: [
-      'Geometry resists brake dive, so the chassis stays nearly level',
-      'The wheel path adds trail as it compresses, so trail falls far less under braking',
-      'The fork tubes carry no spring, so slider stiction barely matters',
+      'Geometri fren dalmasına karşı koyar; şasi neredeyse yatay kalır',
+      'Sıkışma sırasında tekerlek yolu iz mesafesini artırır; frenlemede iz mesafesi çok daha az düşer',
+      'Çatal borularında yay yoktur; ilk hareket sürtünmesinin etkisi bu yüzden çok azdır',
     ],
     costs: [
-      'Less dive also means less of the familiar front-end feel under braking',
-      'The wheel path leans forward, typically harsher over sharp edges',
-      'More parts and more weight around the steering head, typically',
+      'Daha az dalma, frenlemede alışılmış ön taraf hissini de azaltır',
+      'Tekerlek yolu öne eğimlidir; keskin kenarlı engellerde genellikle daha sert tepki verir',
+      'Direksiyon başı çevresinde genellikle daha fazla parça ve ağırlık vardır',
     ],
     qualitative: { cost: 'higher', packaging: 'higher', complexity: 'higher' },
   },

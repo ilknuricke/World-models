@@ -6,9 +6,9 @@ import { APACHE_2_0, CODE_CREDITS, LICENSE_NOTICES, LICENSE_TEXTS, STDLIB_ATTRIB
 import { attributionText } from '../../src/features/credits/text';
 
 const attributions = JSON.parse(readFileSync('assets-src/ATTRIBUTION.json', 'utf8')) as Attribution[];
-const md = readFileSync('CREDITS.md', 'utf8');
+const md = readFileSync('CREDITS.md', 'utf8').replace(/\r\n/g, '\n');
 const DB11 =
-  '"Aston Martin db11" by Black Snow (https://sketchfab.com/BlackSnow02) is licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Source: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Modified: optimised/compressed (meshopt), decimated, re-materialed, badges hidden.';
+  '"Aston Martin db11" — Black Snow (https://sketchfab.com/BlackSnow02). CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/) koşullarıyla lisanslanmıştır. Kaynak: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Değişiklikler: optimize edildi ve sıkıştırıldı (meshopt), çokgen sayısı azaltıldı, malzemeler yenilendi, logolar gizlendi.';
 
 describe('attributionText', () => {
   it('produces the exact DB11 CC BY text (ARCHITECTURE §15)', () => {
@@ -19,7 +19,7 @@ describe('attributionText', () => {
   it('names title, author, licence and source for every CC0 entry', () => {
     for (const a of attributions.filter((x) => x.license === 'CC0-1.0')) {
       const t = attributionText(a);
-      expect(t).toContain(`"${a.title}" by ${a.author}`);
+      expect(t).toContain(`"${a.title}" — ${a.author}`);
       expect(t).toContain('CC0 1.0');
       expect(t).toContain(a.sourceUrl);
     }

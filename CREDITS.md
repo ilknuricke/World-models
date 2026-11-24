@@ -1,26 +1,31 @@
-# Credits
+# Katkıda bulunanlar
 
-Suspension Lab is built on the work of others. This file mirrors the in-app credits panel (ARCHITECTURE §15):
-asset attributions come from `assets-src/ATTRIBUTION.json` (copied into the asset manifest at build time), code
-and data credits from `src/features/credits/code-credits.ts`. `tests/features/credits.test.ts` checks that this
-file covers both.
+Süspansiyon Laboratuvarı, başkalarının çalışmalarından yararlanır. Bu dosya uygulamadaki katkılar panelini yansıtır (ARCHITECTURE §15).
+Görsel ve ses kaynaklarının atıfları `assets-src/ATTRIBUTION.json` dosyasından derleme sırasında kaynak bildirimine kopyalanır.
+Kod ve veri katkıları `src/features/credits/code-credits.ts` dosyasındadır. `tests/features/credits.test.ts` bu dosyanın ikisini de kapsadığını denetler.
 
-Vehicle meshes are used for their shape only; no manufacturer data is implied. Vehicle parameters are
-representative.
+Araç modelleri yalnızca biçimleri için kullanılır; üretici verilerini temsil etmez. Araç parametreleri örnek niteliğindedir.
+Lisansların ve telif bildirimlerinin özgün metinleri korunmuştur.
 
-## Assets
+## Görsel ve ses kaynakları
 
-### Car body mesh — CC BY 4.0
+### Araç gövde modeli — CC BY 4.0
 
-"Aston Martin db11" by Black Snow (https://sketchfab.com/BlackSnow02) is licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Source: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Modified: optimised/compressed (meshopt), decimated, re-materialed, badges hidden.
+"Aston Martin db11" — Black Snow (https://sketchfab.com/BlackSnow02). CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/) koşullarıyla lisanslanmıştır. Kaynak: https://sketchfab.com/3d-models/aston-martin-db11-0ce56f01b1ff40b3a4e36bc56873dbc7. Değişiklikler: optimize edildi ve sıkıştırıldı (meshopt), çokgen sayısı azaltıldı, malzemeler yenilendi, logolar gizlendi.
 
-### HDRIs — Poly Haven, CC0 1.0 (credited with thanks)
+### Motosiklet sürücüsü — Microsoft Rocketbox, MIT
+
+"Microsoft Rocketbox — Male Adult 04" — Microsoft Research / Rocketbox Studios; GLB dönüşümü: Tanmay (927tanmay). [Özgün model](https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_04), [MIT lisansı](https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md).
+Kullanılan [GLB dönüşümü](https://github.com/927tanmay/react-ai-voice-avatar/blob/main/assets/avatars/aarav.glb), Tanmay'ın [dönüştürme betiğiyle](https://github.com/927tanmay/react-ai-voice-avatar/blob/main/scripts/convert-rocketbox.py) hazırlanmıştır; [kaynak bildirimi](https://github.com/927tanmay/react-ai-voice-avatar/blob/main/assets/avatars/LICENSE.md).
+Kemikler yeniden adlandırıldı; yüz ifadeleri ve dokular paketlendi. Uygulamada motosiklet üzerinde oturma pozu verildi ve model meshopt ile sıkıştırıldı. Özgün telif ve izin bildirimleri aşağıda ve modelle birlikte dağıtılan `rider/ROCKETBOX-LICENSE.txt`, `rider/CONVERSION-LICENSE.txt` ve `rider/CONVERSION-NOTICE.md` dosyalarında korunur.
+
+### HDRI ortamları — Poly Haven, CC0 1.0 (teşekkürle anılır)
 
 - "Derelict Airfield 01" by Alexander Scholten — https://polyhaven.com/a/derelict_airfield_01
 - "Evening Road 01" by Sergej Majboroda — https://polyhaven.com/a/evening_road_01
 - "Ferndale Studio 03" by Dimitrios Savva, Greg Zaal — https://polyhaven.com/a/ferndale_studio_03
 
-### Textures — Poly Haven, CC0 1.0 (credited with thanks)
+### Dokular — Poly Haven, CC0 1.0 (teşekkürle anılır)
 
 - "Asphalt Track" by Dimitrios Savva — https://polyhaven.com/a/asphalt_track
 - "Cobblestone Floor 08" by Rob Tuytel — https://polyhaven.com/a/cobblestone_floor_08
@@ -29,42 +34,42 @@ representative.
 
 CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
 
-### Sounds — CC0 1.0
+### Sesler — CC0 1.0
 
 - "Starter Kit Racing sounds (engine, motorcycle engine, impact)" by Kenney (https://kenney.nl) —
   https://github.com/KenneyNL/Starter-Kit-Racing/tree/main/audio
 - "Skid sound (Starter Kit Racing)" by Landeplage (https://github.com/Landeplage) —
   https://github.com/KenneyNL/Starter-Kit-Racing/tree/main/audio
 
-## Code, data and fonts
+## Kod, veri ve yazı tipleri
 
-| Name | Use | Licence | Copyright |
+| Ad | Kullanım | Lisans | Telif hakkı |
 |---|---|---|---|
-| [Project Chrono](https://github.com/projectchrono/chrono) | Starting suspension hardpoint sets and joint topology (rescaled); tyre-curve and contact-patch deflection form from ChPac02Tire (ideas only) | BSD-3-Clause | Copyright (c) 2016, Project Chrono Development Team |
-| [AxleLab](https://github.com/KRoshanK/AxleLab) | Helper ideas adapted for tube placement, boot profile and part palette | MIT | Copyright (c) 2026 KRoshanK |
-| [stdlib-js](https://github.com/stdlib-js/stdlib) | Deterministic sin, cos, tan, argument reduction, ln, exp, expm1 and pow kernels (translated; see the NOTICE and changes below) | Apache-2.0 | Copyright (c) 2016-2026 The Stdlib Authors |
-| [Go math (exp)](https://github.com/golang/go) | The exp kernel, via stdlib-js | BSD-3-Clause | Copyright (c) 2009 The Go Authors. All rights reserved |
-| [fdlibm (FreeBSD msun)](https://svnweb.freebsd.org/base/head/lib/msun/) | atan, atan2, asin, acos and tanh kernels (ported); the sin, cos, tan, ln, exp and pow kernels via stdlib-js | fdlibm notice | Copyright (C) 1993-2004 by Sun Microsystems, Inc. All rights reserved |
-| [Jolt Physics](https://github.com/jrouwe/JoltPhysics) | Gear-shift state machine and limited-slip differential formula (ideas only, no code copied) | MIT | Copyright 2021 Jorrit Rouwe |
-| [Godot-Easy-Vehicle-Physics](https://github.com/DAShoe1/Godot-Easy-Vehicle-Physics) | Anti-lock release, traction slip cut and countersteer assist (ideas only, no code copied) | MIT | Copyright (c) 2024 David Shoemaker; Copyright (c) 2021 Dechode; Copyright (c) 2024 Baron Wittman |
-| [ArcadeCarPhysics](https://github.com/SergeyMakeev/ArcadeCarPhysics) | Speed-limited keyboard steering (idea only, no code copied) | MIT | Copyright (c) 2018 Sergey Makeev |
-| [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics) | Structure of the Stanley and pure-pursuit path trackers in the autopilot (re-implemented, no code copied) | MIT | Copyright (c) 2016 - now Atsushi Sakai and other contributors |
-| [folio-2025](https://github.com/brunosimon/folio-2025) | Skid-mark ribbon ring-buffer pattern (Tracks.js; re-expressed, no code copied) | MIT | Copyright (c) 2025 Bruno Simon |
-| [V8](https://github.com/v8/v8) | The Math.hypot algorithm, re-expressed with exact operations so Node and browsers agree (idea only) | BSD-3-Clause | Copyright 2014, the V8 project authors. All rights reserved |
-| [1€ Filter (Casiez, Roussel, Vogel, CHI 2012)](https://gery.casiez.net/1euro/) | Smoothing of phone tilt steering (written from the published algorithm) | Published algorithm | Géry Casiez, Nicolas Roussel, Daniel Vogel |
-| [three.js](https://github.com/mrdoob/three.js) | Rendering | MIT | Copyright © 2010-2026 three.js authors |
-| [meshoptimizer decoder](https://github.com/zeux/meshoptimizer) | Mesh decompression (via three.js addons) | MIT | Copyright (C) 2016-2026, by Arseny Kapoulkine |
-| [postprocessing](https://github.com/pmndrs/postprocessing) | Post-processing effects | Zlib | Copyright © 2015 Raoul van Rüschen |
-| [n8ao](https://github.com/N8python/n8ao) | Ambient occlusion | ISC | N8python (package licence ISC; repository LICENSE file CC0 1.0) |
-| [camera-controls](https://github.com/yomotsu/camera-controls) | Orbit camera | MIT | Copyright (c) 2017 @yomotsu |
-| [nanostores](https://github.com/nanostores/nanostores) | App state | MIT | Copyright 2020 Andrey Sitnik |
-| [mitt](https://github.com/developit/mitt) | Events | MIT | Copyright (c) 2021 Jason Miller |
+| [Project Chrono](https://github.com/projectchrono/chrono) | Başlangıç süspansiyon bağlantı noktaları ve mafsal yapısı (yeniden ölçeklendi); ChPac02Tire kaynaklı lastik eğrisi ve temas alanı deformasyon biçimi (yalnızca fikirler) | BSD-3-Clause | Copyright (c) 2016, Project Chrono Development Team |
+| [AxleLab](https://github.com/KRoshanK/AxleLab) | Boru yerleşimi, körük profili ve parça paleti için uyarlanan yardımcı fikirler | MIT | Copyright (c) 2026 KRoshanK |
+| [stdlib-js](https://github.com/stdlib-js/stdlib) | Deterministik sin, cos, tan, argüman indirgeme, ln, exp, expm1 ve pow çekirdekleri (uyarlandı; aşağıdaki NOTICE ve değişikliklere bakın) | Apache-2.0 | Copyright (c) 2016-2026 The Stdlib Authors |
+| [Go math (exp)](https://github.com/golang/go) | stdlib-js üzerinden exp çekirdeği | BSD-3-Clause | Copyright (c) 2009 The Go Authors. All rights reserved |
+| [fdlibm (FreeBSD msun)](https://svnweb.freebsd.org/base/head/lib/msun/) | Uyarlanan atan, atan2, asin, acos ve tanh çekirdekleri; stdlib-js üzerinden sin, cos, tan, ln, exp ve pow çekirdekleri | fdlibm notice | Copyright (C) 1993-2004 by Sun Microsystems, Inc. All rights reserved |
+| [Jolt Physics](https://github.com/jrouwe/JoltPhysics) | Vites değiştirme durum makinesi ve sınırlı kaymalı diferansiyel formülü (yalnızca fikirler; kod kopyalanmadı) | MIT | Copyright 2021 Jorrit Rouwe |
+| [Godot-Easy-Vehicle-Physics](https://github.com/DAShoe1/Godot-Easy-Vehicle-Physics) | Kilitlenme önleyici fren azaltma, patinajda güç kesme ve kontra direksiyon desteği (yalnızca fikirler; kod kopyalanmadı) | MIT | Copyright (c) 2024 David Shoemaker; Copyright (c) 2021 Dechode; Copyright (c) 2024 Baron Wittman |
+| [ArcadeCarPhysics](https://github.com/SergeyMakeev/ArcadeCarPhysics) | Hıza göre sınırlanan klavye direksiyonu (yalnızca fikir; kod kopyalanmadı) | MIT | Copyright (c) 2018 Sergey Makeev |
+| [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics) | Otomatik sürüşte Stanley ve pure-pursuit yol izleyicilerinin yapısı (yeniden uygulandı; kod kopyalanmadı) | MIT | Copyright (c) 2016 - now Atsushi Sakai and other contributors |
+| [folio-2025](https://github.com/brunosimon/folio-2025) | Lastik izi şeritleri için halka tampon düzeni (Tracks.js; yeniden ifade edildi, kod kopyalanmadı) | MIT | Copyright (c) 2025 Bruno Simon |
+| [V8](https://github.com/v8/v8) | Node ve tarayıcıların aynı sonucu vermesi için kesin işlemlerle yeniden ifade edilen Math.hypot algoritması (yalnızca fikir) | BSD-3-Clause | Copyright 2014, the V8 project authors. All rights reserved |
+| [1€ Filter (Casiez, Roussel, Vogel, CHI 2012)](https://gery.casiez.net/1euro/) | Telefon eğimiyle direksiyonun yumuşatılması (yayımlanan algoritmadan yazıldı) | Published algorithm | Géry Casiez, Nicolas Roussel, Daniel Vogel |
+| [three.js](https://github.com/mrdoob/three.js) | Görüntü oluşturma | MIT | Copyright © 2010-2026 three.js authors |
+| [meshoptimizer decoder](https://github.com/zeux/meshoptimizer) | Üç boyutlu model sıkıştırmasını açma (three.js eklentileri üzerinden) | MIT | Copyright (C) 2016-2026, by Arseny Kapoulkine |
+| [postprocessing](https://github.com/pmndrs/postprocessing) | Son işleme efektleri | Zlib | Copyright © 2015 Raoul van Rüschen |
+| [n8ao](https://github.com/N8python/n8ao) | Ortam gölgelemesi | ISC | N8python (package licence ISC; repository LICENSE file CC0 1.0) |
+| [camera-controls](https://github.com/yomotsu/camera-controls) | Yörünge kamerası | MIT | Copyright (c) 2017 @yomotsu |
+| [nanostores](https://github.com/nanostores/nanostores) | Uygulama durumu | MIT | Copyright 2020 Andrey Sitnik |
+| [mitt](https://github.com/developit/mitt) | Olaylar | MIT | Copyright (c) 2021 Jason Miller |
 | [Hono](https://github.com/honojs/hono) | Edge API | MIT | Copyright (c) 2021 - present, Yusuke Wada and Hono contributors |
-| [Zod](https://github.com/colinhacks/zod) | Validation | MIT | Copyright (c) 2025 Colin McDonnell |
-| [PartySocket](https://github.com/partykit/partykit) | Live room connection | MIT | Copyright (c) 2010-2012, Joe Walnes |
-| [uqr](https://github.com/unjs/uqr) | QR codes | MIT | Copyright (c) Project Nayuki; Copyright (c) 2023 Anthony Fu |
-| [stats-gl](https://github.com/RenaudRohlinger/stats-gl) | Debug statistics | MIT | Renaud Rohlinger |
-| [Geist Sans and Geist Mono](https://github.com/vercel/geist-font) | Typefaces (self-hosted via Fontsource) | OFL-1.1 | (C) 2023 Vercel, made in collaboration with basement.studio |
+| [Zod](https://github.com/colinhacks/zod) | Doğrulama | MIT | Copyright (c) 2025 Colin McDonnell |
+| [PartySocket](https://github.com/partykit/partykit) | Canlı oda bağlantısı | MIT | Copyright (c) 2010-2012, Joe Walnes |
+| [uqr](https://github.com/unjs/uqr) | QR kodları | MIT | Copyright (c) Project Nayuki; Copyright (c) 2023 Anthony Fu |
+| [stats-gl](https://github.com/RenaudRohlinger/stats-gl) | Hata ayıklama istatistikleri | MIT | Renaud Rohlinger |
+| [Geist Sans and Geist Mono](https://github.com/vercel/geist-font) | Yazı tipleri (Fontsource üzerinden yerel olarak barındırılır) | OFL-1.1 | (C) 2023 Vercel, made in collaboration with basement.studio |
 
 Geist fonts: SIL Open Font License 1.1 (https://openfontlicense.org). postprocessing: zlib licence.
 n8ao: ISC licence.
@@ -369,4 +374,56 @@ is preserved.
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
+```
+
+### Microsoft Rocketbox (MIT)
+
+```
+MIT License
+
+Copyright (c) 2020 Microsoft
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### Rocketbox GLB dönüşümü (MIT)
+
+```
+MIT License
+
+Copyright (c) 2026 Tanmay (927tanmay) and contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```

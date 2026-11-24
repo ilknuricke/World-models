@@ -1,9 +1,14 @@
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-  // remoteBindings off: dev/preview/e2e must boot without Cloudflare credentials (AI calls then fail locally; tests fake it).
-  plugins: [cloudflare({ remoteBindings: false })],
+const localConfig = fileURLToPath(new URL('./wrangler.local.jsonc', import.meta.url));
+
+export default defineConfig(({ mode }) => ({
+  // AI mode uses Cloudflare inference while the app and its other bindings stay local.
+  // The default mode still boots without an account for offline use and tests.
+  plugins: [cloudflare({ remoteBindings: mode === 'ai', ...(existsSync(localConfig) ? { configPath: localConfig } : {}) })],
   build: { target: 'es2022', sourcemap: true },
   environments: {
     client: {
@@ -20,4 +25,4 @@ export default defineConfig({
     // Worker environment is named after wrangler "name" with '-' -> '_'.
     suspension_lab: { build: { sourcemap: true } },
   },
-});
+}));

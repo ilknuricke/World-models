@@ -36,24 +36,27 @@ describe('content copy has no digits (§14)', () => {
   });
 
   it('the vehicle is generic: representative parameters, no manufacturer name', () => {
-    expect(gtCoupe.subtitle).toBe('Representative parameters');
+    expect(gtCoupe.subtitle).toBe('Temsili parametreler');
     expect(`${gtCoupe.name} ${gtCoupe.subtitle}`).not.toMatch(/aston|martin|db11/i);
   });
 });
 
 // ---- 13-01: M2 copy ----------------------------------------------------------------------------------------------
-const RANKING = /\b(best|better|worse|worst|superior|inferior|winner|wins?|beats?|outperforms?|fastest|safest|ideal|cheapest)\b/i;
-const NEGATION = /\b(no|none|not|never|neither|nor)\b/i;
+// Unicode boundaries keep Turkish dotted/dotless letters inside words; suffixes preserve Turkish ranking claims.
+const RANKING = /(?<!\p{L})(best|better|worse|worst|superior|inferior|winner|wins?|beats?|outperforms?|fastest|safest|ideal|cheapest|(?:en|daha) iyi\p{L}*|(?:en|daha) kötü\p{L}*|üstün(?:dür|lük)?|kazanan|kazanır|yener|en hızlı\p{L}*|en güvenli\p{L}*|en ucuz\p{L}*)(?!\p{L})/iu;
+const NEGATION = /(?<!\p{L})(no|none|not|never|neither|nor|değil(?:dir)?|yok(?:tur)?|hiçbir(?:i)?|asla)(?!\p{L})/iu;
+const matches = (pattern: RegExp, text: string): boolean => pattern.test(text) || pattern.test(text.toLocaleLowerCase('tr-TR'));
 /** Ranking words that do not rank suspension types (each with its reason). */
 const NOT_A_RANKING: readonly RegExp[] = [
   /near their best slip/, // the tyre's own slip at peak grip (driving card)
   /shows the geometry difference better than the driving does/, // compares two views, not two suspensions
   /^Which suspension is best\?$/, // a visitor's question chip; its answer says none is
+  /^Hangi süspansiyon (daha iyi|en iyi)\?$/, // the same visitor question in Turkish
   /One phone drives at a time and the newest one wins/, // phone pairing rule, not a suspension
 ];
 const sentences = (t: string): string[] => t.split(/(?<=[.!?])\s+|\n+/).filter((x) => x.trim());
 const rankings = (texts: readonly string[]): string[] =>
-  texts.flatMap(sentences).filter((x) => RANKING.test(x) && !NEGATION.test(x) && !NOT_A_RANKING.some((r) => r.test(x)));
+  texts.flatMap(sentences).filter((x) => matches(RANKING, x) && !matches(NEGATION, x) && !NOT_A_RANKING.some((r) => r.test(x)));
 const digits = (texts: readonly string[]): string[] => texts.filter((t) => /\d/.test(t.replace(/\{\w+\}/g, '')));
 
 /** Sources that hold no visitor copy: the model's instructions and the model/number plumbing. */
@@ -67,7 +70,7 @@ function literals(dirs: readonly string[]): string[] {
       const src = readFileSync(`${d}/${f}`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
       for (const m of src.matchAll(/'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`/g)) {
         const t = (m[1] ?? m[2] ?? '').replace(/\$\{[^}]*\}/g, '');
-        if (/^[A-Z][a-z']*[ ,.:\u2026]/.test(t) && /[a-z]{2,} [a-z]{2,}/.test(t)) out.push(t);
+        if (/^\p{Lu}/u.test(t) && /\p{L}{2,}\s+\p{L}{2,}/u.test(t)) out.push(t);
       }
     }
   return out;
@@ -105,27 +108,33 @@ describe('M2 copy (13-01): no digits, no rankings, models labelled', () => {
 
   it('the matchers catch digits and rankings, and pass negations', () => {
     expect(digits(['Brake from 50 km/h'])).toHaveLength(1);
+    expect(digits(['50 km/h hızdan fren yapın'])).toHaveLength(1);
     expect(digits(['Speed {speed}'])).toEqual([]);
+    expect(digits(['Hız {speed}'])).toEqual([]);
     expect(rankings(['The multi-link is the best here.'])).toHaveLength(1);
     expect(rankings(['A strut is the cheapest.'])).toHaveLength(1);
     expect(rankings(['None is best overall.', 'No type is best.'])).toEqual([]);
+    expect(rankings(['Çok bağlantılı süspansiyon burada en iyidir.'])).toHaveLength(1);
+    expect(rankings(['Bu süspansiyon daha iyi.', 'Bu tür en ucuz.', 'ÇİFT SALINCAK EN İYİ SEÇİM.'])).toHaveLength(3);
+    expect(rankings(['Her koşulda en iyi olan bir tür yoktur.', 'Hiçbiri en iyi değildir.', 'Hangi süspansiyon daha iyi?'])).toEqual([]);
     expect(literals(['src/features/drive']).length).toBeGreaterThan(20);
+    expect(literals(['src/features/drive']).some((text) => text.startsWith('Sürüş modu:'))).toBe(true);
   });
 
   it('models are labelled: representative vehicle, simplified assists, approximate states, model cues', () => {
     expect(DRIVE_COMMON).toMatch(/representative vehicle model \(not the data of any real car\)/);
     expect(DRIVE_COMMON).toMatch(/not predictions for any real car/);
     expect(COMMON_CAR).toMatch(/representative parameters, not the data of any real car/);
-    expect(aidsSummary({ abs: true, traction: true, stability: true, steering: true }).label).toMatch(/Assist: simplified model$/);
-    expect(aidsSummary({ abs: false, traction: true, stability: true, steering: true }).label).toMatch(/Assist: simplified model$/);
-    for (const id of ['abs', 'traction', 'stability'] as const) expect(LAMP_TITLE[id]).toMatch(/Assist: simplified model/);
-    expect(LAMP_TITLE.approximate).toMatch(/approximate/);
-    for (const k of ['aid-abs', 'aid-traction', 'aid-stability']) expect(COACH[k]!.chip).toBe('Assist · simplified model');
-    expect(GHOST.join(' ')).toMatch(/Driver model:/);
-    for (const st of provingGround.stations.filter((x) => !x.suspension)) expect(st.caption).toMatch(/approximate surface grip/i);
+    expect(aidsSummary({ abs: true, traction: true, stability: true, steering: true }).label).toMatch(/Destek: basitleştirilmiş model$/);
+    expect(aidsSummary({ abs: false, traction: true, stability: true, steering: true }).label).toMatch(/Destek: basitleştirilmiş model$/);
+    for (const id of ['abs', 'traction', 'stability'] as const) expect(LAMP_TITLE[id]).toMatch(/Destek: basitleştirilmiş model/);
+    expect(LAMP_TITLE.approximate).toMatch(/sonuçlar yaklaşıktır/);
+    for (const k of ['aid-abs', 'aid-traction', 'aid-stability']) expect(COACH[k]!.chip).toBe('Sürüş desteği · basitleştirilmiş model');
+    expect(GHOST.join(' ')).toMatch(/Sürücü modeli:/);
+    for (const st of provingGround.stations.filter((x) => !x.suspension)) expect(st.caption).toMatch(/Tutunma değerleri yaklaşık/);
     const sources = literals(['src/features/tyre-vfx']).join(' ') + readFileSync('src/features/tyre-vfx/index.ts', 'utf8');
     expect(sources).toMatch(/'model'/); // the grip-rings chip carries the "model" tag
-    expect(literals(['src/features/audio']).join(' ')).toMatch(/The tyre sound is a model cue/); // MD-45
+    expect(literals(['src/features/audio']).join(' ')).toMatch(/Lastik sesi bir model göstergesidir/); // MD-45
   });
 });
 

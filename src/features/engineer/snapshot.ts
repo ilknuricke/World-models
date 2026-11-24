@@ -228,7 +228,7 @@ export function surfaceLabel(s: Snap): string {
     const l = SURFACES[c.surface]?.label;
     if (l && !labels.includes(l)) labels.push(l);
   }
-  return labels.join(' / ').slice(0, 60) || 'Dry asphalt';
+  return labels.join(' / ').slice(0, 60) || 'Kuru asfalt';
 }
 
 /** Where the car is off the loop: the nearest station of the zone, else the zone, else the open field. */
@@ -243,7 +243,7 @@ export function placeOf(world: WorldDefinition | null | undefined, zone: string,
   }
   if (best) return { id: best.id, name: best.name };
   const z = world?.zones.find((q) => q.id === zone);
-  return z ? { id: z.id, name: z.name } : { id: 'field', name: 'Proving ground' };
+  return z ? { id: z.id, name: z.name } : { id: 'field', name: 'Test sahası' };
 }
 
 function driveBlock(s: Snap, d: DriveContext): EngineerDrive {
@@ -324,37 +324,37 @@ export function buildTelemetry(s: Snap, cornerIds: readonly string[], ctx: Paylo
 
 /** Three suggested questions per section phenomenon (no digits: numbers come from the sim). */
 export const CHIPS: Readonly<Record<Phenomenon, readonly [string, string, string]>> = {
-  'ride-resonance': ['Why does the car shake on the ripples?', 'What is wheel hop?', 'Do the dampers matter here?'],
-  'brake-dive': ['Why does the nose dip?', 'What is anti-dive?', 'Which suspension dives least?'],
-  'steering-lock': ['Why do the front wheels tilt?', 'What is caster?', 'Show me the front-left wheel'],
-  'single-wheel-bump': ['How does one wheel move alone?', 'What is bump steer?', 'Show me the bump in slow motion'],
-  'sustained-roll': ['Why does the outside wheel lean?', 'What is camber gain?', 'Which suspension is best?'],
-  harshness: ['Why does this feel harsh?', 'Does the strut add friction?', 'Show me a damper'],
-  'roll-reversal': ['Why does the body rock side to side?', 'What do the dampers do here?', 'Show me in slow motion'],
-  heave: ['Why does the car go light?', 'What happens in the dip?', 'Show me the springs'],
-  'steady-state-roll': ['Why does it lean more here?', 'What is a roll centre?', 'Compare it with a double wishbone'],
-  'lane-change': ['Why does the body sway?', 'How fast can roll change?', 'Show me in slow motion'],
-  'off-camber': ['Why does this bend feel different?', 'Which wheel works hardest?', 'What is a roll centre?'],
-  settle: ['What is the suspension doing now?', 'What is a roll centre?', 'Which suspension is best?'],
+  'ride-resonance': ['Araç dalgalı zeminde neden sarsılıyor?', 'Tekerlek sekmesi nedir?', 'Burada amortisörlerin etkisi var mı?'],
+  'brake-dive': ['Burun neden öne dalıyor?', 'Dalmaya direnç nedir?', 'Hangi süspansiyon en az dalar?'],
+  'steering-lock': ['Ön tekerlekler neden eğiliyor?', 'Kaster nedir?', 'Sol ön tekerleği göster'],
+  'single-wheel-bump': ['Tek tekerlek nasıl bağımsız hareket eder?', 'Süspansiyon hareketinden kaynaklanan yönlenme nedir?', 'Tümseği ağır çekimde göster'],
+  'sustained-roll': ['Dış tekerlek neden eğiliyor?', 'Kamber kazanımı nedir?', 'Hangi süspansiyon daha iyi?'],
+  harshness: ['Burada neden sert hissediliyor?', 'MacPherson sürtünmeyi artırır mı?', 'Bir amortisör göster'],
+  'roll-reversal': ['Gövde neden iki yana sallanıyor?', 'Amortisörler burada ne yapıyor?', 'Ağır çekimde göster'],
+  heave: ['Araç neden hafifliyor?', 'Çukurda ne oluyor?', 'Yayları göster'],
+  'steady-state-roll': ['Burada neden daha fazla yatıyor?', 'Yalpa merkezi nedir?', 'Çift salıncakla karşılaştır'],
+  'lane-change': ['Gövde neden sallanıyor?', 'Yatma hareketi ne kadar hızlı değişebilir?', 'Ağır çekimde göster'],
+  'off-camber': ['Bu viraj neden farklı hissettiriyor?', 'En çok hangi tekerlek çalışıyor?', 'Yalpa merkezi nedir?'],
+  settle: ['Süspansiyon şu anda ne yapıyor?', 'Yalpa merkezi nedir?', 'Hangi süspansiyon daha iyi?'],
 };
 
 /** Two or three questions after a detected drive event (rules.ts driveKey), no digits. */
 export const EVENT_CHIPS: Readonly<Record<string, readonly string[]>> = {
-  'slide-rear-lift': ['Why did I spin?', 'What is lift-off oversteer?', 'How do I avoid that?'],
-  'slide-rear': ['Why did the tail step out?', 'What is oversteer?', 'Does the suspension change this?'],
-  'slide-front': ['Why did it run wide?', 'What is understeer?', 'Does the suspension change this?'],
-  lockup: ['Why did the wheel lock?', 'What does ABS do?'],
-  wheelspin: ['Why did the wheel spin?', 'What does traction assist do?'],
-  'aid-abs': ['What did ABS do there?', 'Would it stop shorter without ABS?'],
-  'aid-traction': ['What did traction assist do?', 'Why did the rear wheels spin?'],
-  'aid-stability': ['What did stability assist do?', 'Why was the car rotating?'],
-  'strike-kerb': ['What happened at that wheel?', 'Does the suspension type matter here?'],
-  'strike-bump': ['What happened at that wheel?', 'Does the suspension type matter here?'],
-  'hard-stop': ['Why did the nose dive?', 'Does the suspension change the stopping distance?'],
-  'wheel-lift': ['Why did the wheel go light?', 'Does that cost grip?'],
-  'bump-stop': ['What is a bump stop?', 'Why did the wheel run out of travel?'],
-  swap: ['What changed when I switched?', 'Will I feel a difference?', 'Which suspension is best?'],
+  'slide-rear-lift': ['Neden spin attım?', 'Gaz kesince arkadan kayma nedir?', 'Bunu nasıl önlerim?'],
+  'slide-rear': ['Arka taraf neden kaydı?', 'Arkadan kayma nedir?', 'Süspansiyon bunu değiştirir mi?'],
+  'slide-front': ['Neden virajın dışına açıldı?', 'Önden kayma nedir?', 'Süspansiyon bunu değiştirir mi?'],
+  lockup: ['Tekerlek neden kilitlendi?', 'ABS ne yapar?'],
+  wheelspin: ['Tekerlek neden patinaj yaptı?', 'Çekiş desteği ne yapar?'],
+  'aid-abs': ['ABS orada ne yaptı?', 'ABS olmadan daha kısa mesafede durur mu?'],
+  'aid-traction': ['Çekiş desteği ne yaptı?', 'Arka tekerlekler neden patinaj yaptı?'],
+  'aid-stability': ['Denge desteği ne yaptı?', 'Araç neden dönüyordu?'],
+  'strike-kerb': ['O tekerlekte ne oldu?', 'Burada süspansiyon türü etkili mi?'],
+  'strike-bump': ['O tekerlekte ne oldu?', 'Burada süspansiyon türü etkili mi?'],
+  'hard-stop': ['Burun neden öne daldı?', 'Süspansiyon durma mesafesini değiştirir mi?'],
+  'wheel-lift': ['Tekerleğin yükü neden azaldı?', 'Bu tutuşu azaltır mı?'],
+  'bump-stop': ['Darbe takozu nedir?', 'Tekerlek neden hareket sınırına ulaştı?'],
+  swap: ['Değiştirince ne değişti?', 'Bir fark hisseder miyim?', 'Hangi süspansiyon daha iyi?'],
 };
 
 /** Chips while driving with no recent event. */
-export const DRIVE_CHIPS: readonly string[] = ['What changed when I switched?', 'What is understeer?', 'What does stability assist do?'];
+export const DRIVE_CHIPS: readonly string[] = ['Değiştirince ne değişti?', 'Önden kayma nedir?', 'Denge desteği ne yapar?'];

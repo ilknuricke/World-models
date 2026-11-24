@@ -27,7 +27,7 @@ const carSuspensions = [macpherson, doubleWishbone, multilink];
 export const VEHICLES: readonly VehicleChoice[] = [
   {
     id: gtCoupe.id,
-    label: 'Car',
+    label: 'Otomobil',
     hint: gtCoupe.name,
     suspensions: gtCoupe.suspensions.map((id) => {
       const s = carSuspensions.find((x) => x.id === id);
@@ -36,10 +36,10 @@ export const VEHICLES: readonly VehicleChoice[] = [
   },
   {
     id: DEFAULT_IDS.motorcycle,
-    label: 'Motorcycle',
+    label: 'Motosiklet',
     hint: 'Café racer',
     suspensions: [
-      { id: 'moto-classic', label: 'Classic' },
+      { id: 'moto-classic', label: 'Klasik' },
       { id: 'moto-modern', label: 'Modern' },
       { id: 'moto-telelever', label: 'Telelever' },
     ],
@@ -49,15 +49,15 @@ export const VEHICLES: readonly VehicleChoice[] = [
 export const vehicleOf = (id: string | undefined): VehicleChoice => VEHICLES.find((v) => v.id === id) ?? VEHICLES[0]!;
 
 export const VIEWS: readonly Choice<ViewMode>[] = [
-  { id: 'follow', label: 'Drive', hint: 'Chase camera follows the car.' },
-  { id: 'explore', label: 'Inspect', hint: 'Free orbit around the moving car.' },
-  { id: 'closeup', label: 'Close-up', hint: 'Suspension close-up.' },
+  { id: 'follow', label: 'Sürüş', hint: 'Takip kamerası otomobili izler.' },
+  { id: 'explore', label: 'İncele', hint: 'Hareket eden otomobilin çevresinde serbestçe dolaşın.' },
+  { id: 'closeup', label: 'Yakın plan', hint: 'Süspansiyonu yakından görün.' },
 ];
 
 export const SPEEDS: readonly Choice<number>[] = [
-  { id: 1, label: 'Real time' },
-  { id: 0.5, label: 'Half' },
-  { id: 0.25, label: 'Quarter' },
+  { id: 1, label: 'Gerçek zaman' },
+  { id: 0.5, label: 'Yarı hız' },
+  { id: 0.25, label: 'Çeyrek hız' },
 ];
 
 export const AMPLIFY = AMPLIFICATION_ON;
@@ -65,13 +65,13 @@ export const AMPLIFY = AMPLIFICATION_ON;
 export const SECTIONS: readonly Choice[] = provingLoop.segments.map((s) => ({ id: s.id, label: s.name }));
 
 export const CAMERA_CUES: readonly Choice<PresenterCue>[] = [
-  { id: 'focus-front-left', label: 'Front wheel' },
-  { id: 'focus-car', label: 'Whole car' },
+  { id: 'focus-front-left', label: 'Ön tekerlek' },
+  { id: 'focus-car', label: 'Tüm otomobil' },
 ];
 
 /** The ready-made audience poll for the vehicle on screen. */
 export function suspensionPoll(vehicleId: string | undefined): { question: string; options: string[] } {
-  return { question: 'Which suspension should we run next?', options: vehicleOf(vehicleId).suspensions.map((s) => s.label) };
+  return { question: 'Sırada hangi süspansiyonu deneyelim?', options: vehicleOf(vehicleId).suspensions.map((s) => s.label) };
 }
 
 /** Maps a poll option label back to a suspension of that vehicle (null if the poll was about something else). */

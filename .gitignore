@@ -3,6 +3,8 @@ dist/
 .wrangler/
 .dev.vars*
 .env*
+!.env.example
+wrangler.local.jsonc
 public/assets/
 public/asset-manifest.json
 test-results/

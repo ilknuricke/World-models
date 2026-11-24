@@ -78,11 +78,11 @@ describe('templates', () => {
 
   it('values are live and captured at the moment: speed, wheel, travel, the hard stop start speed', () => {
     const t = frame();
-    expect(compose(TEMPLATES.lockup!, ALL[3]!, t).text).toContain('front-right wheel');
-    expect(compose(TEMPLATES['slide-front']!, ALL[0]!, t).chip).toBe('Speed 72 km/h');
-    expect(compose(TEMPLATES['strike-kerb']!, ALL[8]!, t).chip).toBe('Travel RL +36 mm');
-    expect(compose(TEMPLATES['hard-stop']!, ALL[10]!, t).chip).toBe('From 99 km/h');
-    expect(compose(TEMPLATES['wheel-lift']!, ALL[11]!, t).chip).toBe('Load FR 2.8 kN');
+    expect(compose(TEMPLATES.lockup!, ALL[3]!, t).text).toContain('sağ ön tekerlek');
+    expect(compose(TEMPLATES['slide-front']!, ALL[0]!, t).chip).toBe('Hız 72 km/h');
+    expect(compose(TEMPLATES['strike-kerb']!, ALL[8]!, t).chip).toBe('Hareket SA +36 mm');
+    expect(compose(TEMPLATES['hard-stop']!, ALL[10]!, t).chip).toBe('Başlangıç hızı 99 km/h');
+    expect(compose(TEMPLATES['wheel-lift']!, ALL[11]!, t).chip).toBe('Yük SĞÖ 2.8 kN');
   });
 
   it('a slide picks its line by axle and lift; the coach has nothing to say about mode, zone or reset events', () => {
@@ -105,13 +105,13 @@ describe('templates', () => {
     const t = frame();
     const label = (id: string) => ({ macpherson: 'MacPherson strut', 'double-wishbone': 'Double wishbone', multilink: 'Multi-link' })[id] ?? id;
     expect(compose(templateFor(ALL[14]!)!, ALL[14]!, t, label).text).toBe(
-      'Now on Double wishbone. In this model it drives almost like MacPherson strut: the linkage moves differently, the feel hardly changes.',
+      'Şimdi Double wishbone kullanılıyor. Bu modelde sürüşü MacPherson strut ile neredeyse aynı: bağlantılar farklı hareket etse de sürüş hissi pek değişmez.',
     );
-    expect(compose(templateFor(ALL[13]!)!, ALL[13]!, t, label).text).toMatch(/^Now on Multi-link\. /);
+    expect(compose(templateFor(ALL[13]!)!, ALL[13]!, t, label).text).toMatch(/^Şimdi Multi-link kullanılıyor\. /);
   });
 
   it('the coach only states detected causes: lift-off rotation only for a rear slide flagged lift', () => {
-    const liftWords = /lift/i;
+    const liftWords = /gazı bırak/i;
     for (const m of ALL) {
       const id = templateFor(m)!.id;
       if (liftWords.test(TEMPLATES[id]!.text)) expect(m).toMatchObject({ kind: 'slide', axle: 'rear', lift: true });
@@ -227,6 +227,6 @@ describe('from a real detection to a line', () => {
     expect(lines).toHaveLength(1);
     expect(lines[0]!.line.id).toBe('slide-rear-lift');
     expect(lines[0]!.t).toBeGreaterThan(1.2 + AFTER_S);
-    expect(lines[0]!.line.chip).toMatch(/^Speed \d+ km\/h$/);
+    expect(lines[0]!.line.chip).toMatch(/^Hız \d+ km\/h$/);
   });
 });

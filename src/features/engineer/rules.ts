@@ -40,17 +40,17 @@ export interface RuleDrive {
 
 const n = (v: number, d = 2): string => String(Number(Math.abs(v).toFixed(d)));
 /** roll > 0 lifts the left side, i.e. the body leans to the right. */
-const side = (roll: number): string => (roll > 0 ? 'to the right' : 'to the left');
-const CORNER_NAMES: Readonly<Record<string, string>> = { fl: 'front-left', fr: 'front-right', rl: 'rear-left', rr: 'rear-right', f: 'front', r: 'rear' };
+const side = (roll: number): string => (roll > 0 ? 'sağa' : 'sola');
+const CORNER_NAMES: Readonly<Record<string, string>> = { fl: 'sol ön', fr: 'sağ ön', rl: 'sol arka', rr: 'sağ arka', f: 'ön', r: 'arka' };
 
 /** How each car suspension type answers body roll (agrees with the 02-04 difference report). */
 const ROLL_CLAUSE: Readonly<Record<string, string>> = {
-  macpherson: 'A strut adds little negative camber as it compresses, so the outside wheels lean with the body; at the rear it gives up the most camber of the three types.',
-  'double-wishbone': 'The shorter upper arm pulls the top of the outside wheel inward as it compresses, so the tyre stays the flattest of the three types.',
-  multilink: 'Its links add a moderate amount of negative camber in bump, between the strut and the double wishbone.',
+  macpherson: 'MacPherson sıkışırken az miktarda negatif kamber kazandırır; bu nedenle dış tekerlekler gövdeyle birlikte yatar; arka aksta üç tür arasında en fazla kamber kaybı bundadır.',
+  'double-wishbone': 'Kısa üst salıncak, sıkışma sırasında dış tekerleğin üstünü içeri çeker; böylece lastik üç tür arasında yola en düz basan konumda kalır.',
+  multilink: 'Bağlantıları sıkışmada orta düzeyde negatif kamber kazandırır; bu değer MacPherson ile çift salıncak arasındadır.',
 };
 
-const GENERIC_ROLL = 'How much the outside wheel leans with the body depends on how much camber the linkage adds in bump.';
+const GENERIC_ROLL = 'Dış tekerleğin gövdeyle ne kadar yatacağı, bağlantıların sıkışmada kazandırdığı kambere bağlıdır.';
 
 /** Outside front corner in a turn: lat_g < 0 is a right-hander, so the left side is outside. */
 function outsideFront(t: RuleTelemetry): string | undefined {
@@ -68,47 +68,51 @@ function corner(t: RuleTelemetry): string {
   const id = outsideFront(t);
   const c = id ? t.corners[id] : undefined;
   if (!id || !c || t.vehicle_class !== 'car') return '';
-  return ` The outside ${CORNER_NAMES[id]} wheel sits at ${c.camber_deg > 0 ? 'plus ' : 'minus '}${n(c.camber_deg)} degrees of camber to the road.`;
+  return ` Dıştaki ${CORNER_NAMES[id]} tekerleğin yola göre kamberi ${c.camber_deg > 0 ? 'artı ' : 'eksi '}${n(c.camber_deg)} derece.`;
 }
 
 function rollAnswer(t: RuleTelemetry, lead: string): string {
-  if (t.vehicle_class !== 'car') return `${lead} the bike leans ${n(t.roll_deg)} degrees so that gravity balances the cornering force.`;
-  return `${lead} the body rolls ${n(t.roll_deg)} degrees toward the outside and the outside tyres carry the extra load.${corner(t)} ${ROLL_CLAUSE[t.suspension] ?? GENERIC_ROLL}`;
+  if (t.vehicle_class !== 'car') return `${lead} motosiklet ${n(t.roll_deg)} derece yatar; böylece yerçekimi viraj kuvvetini dengeler.`;
+  return `${lead} gövde dışa doğru ${n(t.roll_deg)} derece yatar ve ek yükü dış lastikler taşır.${corner(t)} ${ROLL_CLAUSE[t.suspension] ?? GENERIC_ROLL}`;
 }
 
 const PHENOMENON: Readonly<Record<string, (t: RuleTelemetry) => string>> = {
   'ride-resonance': (t) =>
-    `The washboard ripples get shorter along the straight, so at ${n(t.speed_kmh, 0)} km/h they first rock the body and then make the wheels hop on their tyres. Springs and dampers are the same for every suspension type here, so this looks almost the same on all of them.`,
+    `Düzlük boyunca zemin dalgalarının aralığı kısalır; ${n(t.speed_kmh, 0)} km/h hızda önce gövde sallanır, sonra tekerlekler lastikler üzerinde seker. Burada tüm süspansiyon türlerinin yayları ve amortisörleri aynı olduğundan tepkileri de neredeyse aynıdır.`,
   'brake-dive': (t) =>
-    `Braking at ${n(t.long_g)} g moves load onto the front tyres, so the nose dips ${n(t.pitch_deg)} degrees. The linkage's side-view geometry resists part of that dive, but the difference between the types is tiny in this simulation.`,
+    `${n(t.long_g)} g ile frenleme yükü ön lastiklere aktarır ve burun ${n(t.pitch_deg)} derece öne dalar. Bağlantıların yandan görünüş geometrisi bu dalmanın bir kısmına karşı koyar; ancak bu simülasyonda türler arasındaki fark çok küçüktür.`,
   'steering-lock': (t) =>
-    `At full lock the tilt of the steering axis adds negative camber to the outside front wheel, so the steering geometry matters as much as the linkage here.${corner(t)}`,
+    `Direksiyon tam kırıldığında eksenin eğimi dış ön tekerleğe negatif kamber kazandırır; burada direksiyon geometrisi de bağlantılar kadar önemlidir.${corner(t)}`,
   'single-wheel-bump': (t) => {
     const id = mostTravel(t);
     const c = id ? t.corners[id] : undefined;
-    const lead = id && c ? `The ${CORNER_NAMES[id] ?? id} wheel ${c.travel_mm >= 0 ? 'rose' : 'dropped'} ${n(c.travel_mm, 0)} mm while the body stayed calm.` : 'Each wheel meets the bump on its own while the body stays calm.';
-    return `${lead} Independent suspension lets one wheel move without dragging the others, and bump steer is tuned to almost nothing, so the wheel keeps pointing straight.`;
+    const lead = id && c ? `Gövde sakin kalırken ${CORNER_NAMES[id] ?? id} tekerlek ${n(c.travel_mm, 0)} mm ${c.travel_mm >= 0 ? 'yükseldi' : 'alçaldı'}.` : 'Gövde sakin kalırken her tekerlek tümseği bağımsız karşılar.';
+    return `${lead} Bağımsız süspansiyon, diğerlerini sürüklemeden tek tekerleğin hareket etmesini sağlar; süspansiyon hareketinden kaynaklanan yönlenme de neredeyse sıfıra ayarlandığından tekerlek düz kalır.`;
   },
-  'sustained-roll': (t) => rollAnswer(t, `In this long fast bend at ${n(t.lat_g)} g`),
-  'steady-state-roll': (t) => rollAnswer(t, `Around the carousel at ${n(t.lat_g)} g`),
-  'off-camber': (t) => rollAnswer(t, `The road falls away from this bend, so at ${n(t.lat_g)} g`),
+  'sustained-roll': (t) => rollAnswer(t, `Bu uzun ve hızlı virajda ${n(t.lat_g)} g yanal ivmeyle`),
+  'steady-state-roll': (t) => rollAnswer(t, `Çember virajda ${n(t.lat_g)} g yanal ivmeyle`),
+  'off-camber': (t) => rollAnswer(t, `Yol bu virajın dışına doğru eğildiğinden ${n(t.lat_g)} g yanal ivmeyle`),
   harshness: (t) =>
-    `Cobbles and humps push the wheels up quickly at ${n(t.speed_kmh, 0)} km/h, and the dampers decide how much of that reaches the body. A strut has a little more friction from side load, which makes small bumps slightly harsher, but in this simulation the difference is small.`,
+    `Arnavut kaldırımı ve kasisler ${n(t.speed_kmh, 0)} km/h hızda tekerlekleri hızla yukarı iter; gövdeye ne kadarının ulaşacağını amortisörler belirler. MacPherson yan yük nedeniyle biraz daha fazla sürtünme üretir ve küçük darbeleri daha sert hissettirir; ancak bu simülasyonda fark küçüktür.`,
   'roll-reversal': (t) =>
-    `Through the chicane the load swaps from one side to the other, so the body rolls one way and then the other; right now it leans ${n(t.roll_deg)} degrees ${side(t.roll_deg)}. The dampers set how quickly the roll can change direction.`,
+    `Şikanda yük bir taraftan diğerine geçer; gövde de önce bir yana, sonra diğer yana yatar. Şu anda ${side(t.roll_deg)} ${n(t.roll_deg)} derece yatıyor; yön değişiminin hızını amortisörler belirler.`,
   heave: (t) =>
-    `Over the crest the car goes light and the springs extend; in the dip they compress as the car is pressed down. Right now the nose is ${n(t.pitch_deg)} degrees ${t.pitch_deg >= 0 ? 'down' : 'up'}.`,
+    `Tepede araç hafifler ve yaylar uzar; çukurda araç aşağı bastırıldıkça yaylar sıkışır. Şu anda burun ${n(t.pitch_deg)} derece ${t.pitch_deg >= 0 ? 'aşağıda' : 'yukarıda'}.`,
   'lane-change': (t) =>
-    `A double lane change at ${n(t.speed_kmh, 0)} km/h throws the load from side to side, so the body rolls first one way and then back. Right now it leans ${n(t.roll_deg)} degrees ${side(t.roll_deg)}.`,
-  settle: (t) => `On the run-in the car is almost straight and steady at ${n(t.speed_kmh, 0)} km/h, so the suspension settles back to its static ride height.`,
+    `${n(t.speed_kmh, 0)} km/h hızda çift şerit değiştirme yükü iki yana aktarır; gövde önce bir yana, sonra tersine yatar. Şu anda ${side(t.roll_deg)} ${n(t.roll_deg)} derece yatıyor.`,
+  settle: (t) => `Giriş düzlüğünde araç ${n(t.speed_kmh, 0)} km/h hızda neredeyse düz ve dengeli ilerler; süspansiyon statik sürüş yüksekliğine döner.`,
 };
 
 /** Short glossary answers for common questions, matched by keyword (checked before the section rule). */
 const GLOSSARY: readonly (readonly [RegExp, string])[] = [
-  [/^(?=.*\b(what|explain|mean))(?=.*roll cent(re|er))/i, 'The roll centre is the imaginary point the linkage lets the body pivot about in a corner; the higher it is, the more cornering load goes through the links instead of the springs, so the body rolls a little less.'],
-  [/\bbest\b|\bbetter\b|which (one|suspension)/i, 'None is best overall; each trades cost, packaging and wheel control: a strut is simple and compact, a double wishbone gives direct control of camber, and a multi-link gives more freedom to tune at the cost of complexity.'],
-  [/^(?=.*\b(what|explain|mean))(?=.*camber)/i, 'Camber is how far the top of the wheel leans in or out; negative camber means the top leans toward the car, which keeps the outside tyre flatter on the road in a corner.'],
+  [/^(?=.*(what|explain|mean|nedir|ne demek|açıkla))(?=.*(roll cent(re|er)|yalpa merkezi))/i, 'Yalpa merkezi, gövdenin virajda etrafında yattığı varsayımsal noktadır; yükseldikçe viraj yükünün daha büyük kısmı yaylar yerine bağlantılardan geçer ve gövde biraz daha az yatar.'],
+  [/\bbest\b|\bbetter\b|which (one|suspension)|daha iyi|en iyi|hangi süspansiyon/i, 'Her koşulda en iyi olan bir tür yoktur; maliyet, yerleşim ve tekerlek kontrolü arasında denge kurulur. MacPherson basit ve kompakttır, çift salıncak kamberi doğrudan kontrol eder, çok bağlantılı düzen ise daha fazla karmaşıklık karşılığında ayar özgürlüğü sağlar.'],
+  [/^(?=.*(what|explain|mean|nedir|ne demek|açıkla))(?=.*(camber|kamber))/i, 'Kamber, tekerleğin üst kısmının içe veya dışa eğimidir. Negatif kamberde üst kısım araca doğru eğilir; bu, virajda dış lastiğin yola daha düz basmasını sağlar.'],
 ];
+
+/** Preserve English case matching while also folding Turkish dotted and dotless I correctly. */
+const matchesQuestion = (pattern: RegExp, question: string): boolean =>
+  pattern.test(question) || pattern.test(question.toLocaleLowerCase('tr-TR'));
 
 // ---------------------------------------------------------------- Manual Drive (12-03)
 
@@ -192,25 +196,26 @@ const REAR_COMPLIANCE: Readonly<Record<string, 'small' | 'large'>> = { macpherso
 
 /** What changes between two types while driving (09-04 honesty report; pinned in engineer-drive-facts.test.ts). */
 function swapAnswer(previous: string, next: string): string {
-  const p = SUSPENSION_NAMES[previous] ?? previous;
-  const q = SUSPENSION_NAMES[next] ?? next;
+  const names: Readonly<Record<string, string>> = { macpherson: 'MacPherson', 'double-wishbone': 'çift salıncak', multilink: 'çok bağlantılı süspansiyon' };
+  const p = names[previous] ?? previous;
+  const q = names[next] ?? next;
   const from = REAR_COMPLIANCE[previous];
   const to = REAR_COMPLIANCE[next];
   if (from === undefined || to === undefined || from === to)
-    return `A ${p} and a ${q} drive almost the same in this model: the steering needed, the response and the grip limit hardly change, even though the linkages move differently. The close-up view shows the geometry difference better than the driving does.`;
+    return `Bu modelde ${p} ve ${q} ile sürüş neredeyse aynıdır: bağlantılar farklı hareket etse de gereken direksiyon açısı, tepki ve tutuş sınırı pek değişmez. Geometri farkı yakın görünümde daha kolay anlaşılır.`;
   if (to === 'large')
-    return 'On the multi-link the car needs a little more steering for the same corner, turns in a little quicker and the rear feels more planted, because its rear bushings steer the rear wheels slightly into the turn. The grip limit and the stopping distance stay almost the same.';
-  return `Coming from the multi-link, the ${q} needs a little less steering for the same corner and its rear is a little livelier, because the multi-link's extra rear compliance steer is gone. The grip limit and the stopping distance stay almost the same.`;
+    return 'Çok bağlantılı düzende arka burçlar arka tekerlekleri hafifçe virajın içine yönlendirir; aynı virajda biraz daha fazla direksiyon gerekir, dönüş tepkisi biraz hızlanır ve arka taraf daha dengeli hissedilir. Tutuş sınırı ve durma mesafesi neredeyse aynı kalır.';
+  return `Çok bağlantılı düzenden ${q} düzenine geçince arka burçların ek yönlendirme etkisi kaybolur; aynı virajda biraz daha az direksiyon gerekir ve arka taraf biraz daha hareketli olur. Tutuş sınırı ve durma mesafesi neredeyse aynı kalır.`;
 }
 
-const COMPARE_ANSWER = 'In this model the strut and the double wishbone drive almost the same; the multi-link needs a little more steering for the same corner and its rear feels more planted. The grip limit and the stopping distance are almost the same for all three, and none is best overall.';
+const COMPARE_ANSWER = 'Bu modelde MacPherson ve çift salıncakla sürüş neredeyse aynıdır; çok bağlantılı düzen aynı virajda biraz daha fazla direksiyon ister ve arka tarafı daha dengeli hissedilir. Üçünün tutuş sınırı ve durma mesafesi neredeyse aynıdır; her koşulda en iyi olan bir tür yoktur.';
 
 const DRIVE_GLOSSARY: readonly (readonly [RegExp, string])[] = [
-  [/^(?=.*\b(what|explain|mean))(?=.*understeer)/i, 'Understeer means the front tyres reach their grip limit first, so the car runs wide and more steering does not help; less speed or less steering gives the grip back.'],
-  [/^(?=.*\b(what|explain|mean))(?=.*oversteer)/i, 'Oversteer means the rear tyres reach their grip limit first, so the tail steps out and the car rotates more than you steer; easing the throttle and steering where you want to go catches it.'],
-  [/^(?=.*\bwhat (is|does))(?=.*\b(abs|anti-lock)\b)/i, 'The anti-lock assist (a simplified model) eases the brake on a wheel that is about to lock, so the tyre keeps turning and the car can still steer while you brake hard.'],
-  [/^(?=.*\bwhat (is|does))(?=.*\btraction\b)/i, 'The traction assist (a simplified model) trims the engine when the driven rear wheels begin to spin, so the rear tyres keep their grip.'],
-  [/^(?=.*\bwhat (is|does))(?=.*\bstability\b)/i, 'The stability assist (a simplified model) brakes a single wheel when the car rotates more or less than the steering asks, to pull it back toward where you steer.'],
+  [/^(?=.*(what|explain|mean|nedir|ne demek|açıkla))(?=.*(understeer|önden kayma))/i, 'Önden kaymada ön lastikler tutuş sınırına önce ulaşır; araç virajın dışına açılır ve direksiyonu daha fazla çevirmek işe yaramaz. Hızı veya direksiyon açısını azaltmak tutuşu geri kazandırır.'],
+  [/^(?=.*(what|explain|mean|nedir|ne demek|açıkla))(?=.*(oversteer|arkadan kayma))/i, 'Arkadan kaymada arka lastikler tutuş sınırına önce ulaşır; arka taraf dışa kayar ve araç direksiyonun istediğinden fazla döner. Gazı yumuşatmak ve gitmek istediğiniz yöne direksiyon vermek toparlamaya yardımcı olur.'],
+  [/^(?=.*(what (is|does)|ne yap|nedir))(?=.*\b(abs|anti-lock)\b)/i, 'ABS desteği, basitleştirilmiş bir modelle, kilitlenmek üzere olan tekerleğin frenini azaltır. Böylece lastik dönmeye devam eder ve sert frenlemede de araç yönlendirilebilir.'],
+  [/^(?=.*(what (is|does)|ne yap|nedir))(?=.*(traction|çekiş))/i, 'Çekiş desteği, basitleştirilmiş bir modelle, tahrik edilen arka tekerlekler patinaja başlayınca motor gücünü azaltır; böylece arka lastikler tutuşunu korur.'],
+  [/^(?=.*(what (is|does)|ne yap|nedir))(?=.*(stability|denge))/i, 'Denge desteği, basitleştirilmiş bir modelle, araç direksiyonun istediğinden fazla veya az döndüğünde tek tekerleğe fren uygular; aracı istenen yöne döndürmeye çalışır.'],
 ];
 
 const kmh = (t: RuleTelemetry) => `${n(t.speed_kmh, 0)} km/h`;
@@ -219,40 +224,40 @@ const kmh = (t: RuleTelemetry) => `${n(t.speed_kmh, 0)} km/h`;
 function driveAnswer(question: string, t: RuleTelemetry, d: RuleDrive): string {
   const ev = parseLabel(d.detected);
   if (!ev) {
-    if (/\b(switch|switched|swap|swapped|changed?)\b/i.test(question)) return COMPARE_ANSWER;
-    return `No slide, lock-up or other driving event was detected in the last few seconds, so there is no cause to explain yet. Right now the car is at ${kmh(t)} with ${n(t.lat_g)} g of cornering and ${n(d.sideslip_deg, 1)} degrees of sideslip.`;
+    if (matchesQuestion(/\b(switch|switched|swap|swapped|changed?)\b|değiştir|değişti/i, question)) return COMPARE_ANSWER;
+    return `Son birkaç saniyede kayma, kilitlenme veya başka bir sürüş olayı algılanmadı; bu nedenle henüz açıklanacak bir neden yok. Şu anda araç ${kmh(t)} hızda, ${n(t.lat_g)} g yanal ivme ve ${n(d.sideslip_deg, 1)} derece yana kayma açısıyla ilerliyor.`;
   }
-  const wheel = ev.wheel;
-  const c = t.corners[WHEEL_ID[wheel] ?? ''];
+  const wheel = CORNER_NAMES[WHEEL_ID[ev.wheel] ?? ''] ?? ev.wheel;
+  const c = t.corners[WHEEL_ID[ev.wheel] ?? ''];
   switch (ev.key) {
     case 'slide-rear-lift':
-      return `Lifting off the throttle mid-corner moved load onto the front tyres, so the lighter rear tyres lost grip and the car rotated, with ${n(d.sideslip_deg, 1)} degrees of sideslip at ${kmh(t)}. Next time ease off gradually or keep a little throttle through the corner.`;
+      return `Virajda gazı bırakınca yük ön lastiklere geçti; hafifleyen arka lastikler tutuşunu kaybetti ve araç ${kmh(t)} hızda ${n(d.sideslip_deg, 1)} derece yana kayma açısıyla döndü. Bir sonraki denemede gazı kademeli bırakın veya viraj boyunca biraz gazı koruyun.`;
     case 'slide-rear':
-      return `The rear tyres went past their grip, so the tail stepped out (oversteer), with ${n(d.sideslip_deg, 1)} degrees of sideslip at ${kmh(t)}. Throttle, a lift or a sudden steer near the limit takes grip from the rear; ease the throttle and steer where you want to go.`;
+      return `Arka lastikler tutuş sınırını aştı ve araç ${kmh(t)} hızda ${n(d.sideslip_deg, 1)} derece yana kayma açısıyla arkadan kaydı. Sınırda gaz vermek, gaz kesmek veya ani direksiyon hareketi arkada tutuş kaybettirir; gazı yumuşatın ve gitmek istediğiniz yöne direksiyon verin.`;
     case 'slide-front':
-      return `The front tyres went past their grip, so the car ran wide instead of turning (understeer) at ${kmh(t)} with ${n(d.steer_deg, 1)} degrees of steering. More steering does not help once the fronts slide; less speed or less steering gives the grip back.`;
+      return `Ön lastikler tutuş sınırını aştı; araç ${kmh(t)} hızda ve ${n(d.steer_deg, 1)} derece direksiyon açısıyla dönmek yerine dışarı açıldı. Ön lastikler kayarken daha fazla direksiyon işe yaramaz; hızı veya direksiyon açısını azaltmak tutuşu geri kazandırır.`;
     case 'lockup':
-      return `The ${wheel} wheel locked under braking: the brake asked for more than its tyre could take at ${kmh(t)}, and a sliding tyre cannot steer. Ease the pedal until the wheel turns again; the anti-lock assist does that for you when it is on.`;
+      return `${wheel} tekerlek ${kmh(t)} hızda fren kuvveti lastiğin tutuşunu aştığı için kilitlendi; kayan lastik yönlendirme yapamaz. Tekerlek yeniden dönene kadar pedalı gevşetin; ABS açıkken bunu sizin yerinize yapar.`;
     case 'wheelspin':
-      return `The ${wheel} wheel spun up at ${n(d.throttle_pct, 0)} percent throttle: the engine sent more drive than its tyre could take. Squeeze the throttle in gradually; the traction assist trims the engine for you when it is on.`;
+      return `${wheel} tekerlek ${n(d.throttle_pct, 0)}% gaz konumunda patinaja düştü; motorun ilettiği çekiş lastiğin tutuşunu aştı. Gaza kademeli basın; çekiş desteği açıkken motor gücünü sizin yerinize azaltır.`;
     case 'aid-abs':
-      return `The anti-lock assist (a simplified model) eased the brakes on a wheel that was about to lock, so it kept the wheels turning and the car could still steer. You were braking at ${n(d.brake_pct, 0)} percent pedal at ${kmh(t)}.`;
+      return `ABS desteği, basitleştirilmiş bir modelle, kilitlenmek üzere olan tekerleğin frenini azalttı; tekerlekler dönmeye devam etti ve araç yönlendirilebildi. ${kmh(t)} hızda fren pedalı ${n(d.brake_pct, 0)}% konumundaydı.`;
     case 'aid-traction':
-      return `The traction assist (a simplified model) trimmed the engine because the driven rear wheels began to spin at ${n(d.throttle_pct, 0)} percent throttle. That keeps the rear tyres gripping, so the tail stays in line.`;
+      return `Çekiş desteği, basitleştirilmiş bir modelle, arka tekerlekler ${n(d.throttle_pct, 0)}% gaz konumunda patinaja başlayınca motor gücünü azalttı. Böylece arka lastikler tutuşunu korur ve arka taraf çizgisinde kalır.`;
     case 'aid-stability':
-      return `The stability assist (a simplified model) braked one wheel because the car was rotating differently from what the steering asked, with ${n(d.sideslip_deg, 1)} degrees of sideslip. It pulls the car back toward where you steer.`;
+      return `Denge desteği, basitleştirilmiş bir modelle, araç ${n(d.sideslip_deg, 1)} derece yana kayma açısıyla direksiyonun istediğinden farklı döndüğü için tek tekerleğe fren uyguladı. Bu, aracı direksiyonla gösterdiğiniz yöne döndürmeye çalışır.`;
     case 'strike-kerb':
     case 'strike-bump': {
-      const what = ev.key === 'strike-kerb' ? 'kerb' : 'bump';
-      const travel = c ? ` and moved ${n(c.travel_mm, 0)} mm` : '';
-      return `The ${wheel} wheel hit a ${what}: its spring compressed quickly${travel}, and the damper settled it while the body stayed calmer. Independent suspension lets one wheel move without dragging the others.`;
+      const what = ev.key === 'strike-kerb' ? 'bordüre' : 'tümseğe';
+      const travel = c ? ` ve ${n(c.travel_mm, 0)} mm hareket etti` : '';
+      return `${wheel} tekerlek ${what} çarptı: yay hızla sıkıştı${travel}; gövde daha sakin kalırken amortisör salınımı söndürdü. Bağımsız süspansiyon diğerlerini sürüklemeden tek tekerleğin hareket etmesini sağlar.`;
     }
     case 'hard-stop':
-      return 'A hard stop: braking moved load onto the front tyres, so the nose dived and the front tyres did most of the work. The stopping distance is an output of this representative model, not a prediction for any real car.';
+      return 'Sert frenlemede yük ön lastiklere geçti; burun öne daldı ve işin çoğunu ön lastikler yaptı. Durma mesafesi bu örnek modelin çıktısıdır; gerçek bir araç için tahmin değildir.';
     case 'wheel-lift':
-      return `The ${wheel} wheel went light: load moved off it, and with almost no load a tyre has almost no grip. Crests, kerbs and hard cornering on the inside wheels do this.`;
+      return `${wheel} tekerleğin yükü azaldı; yük neredeyse sıfırken lastiğin tutuşu da neredeyse sıfırdır. Tepeler, bordürler ve sert virajda iç tekerlekler bu duruma yol açabilir.`;
     case 'bump-stop':
-      return `The ${wheel} wheel used up its suspension travel and touched the bump stop, which stiffens that corner sharply. Big bumps or kerbs at speed do this.`;
+      return `${wheel} tekerlek süspansiyon hareket mesafesini tüketip darbe takozuna dayandı; o köşenin sertliği aniden arttı. Büyük tümsekler veya hızlı geçilen bordürler buna yol açabilir.`;
     case 'swap':
       return swapAnswer(ev.previous, ev.next);
     default:
@@ -261,11 +266,11 @@ function driveAnswer(question: string, t: RuleTelemetry, d: RuleDrive): string {
 }
 
 export function ruleAnswer(question: string, phenomenon: string | undefined, t: RuleTelemetry): string {
-  for (const [re, text] of GLOSSARY) if (re.test(question)) return text;
+  for (const [re, text] of GLOSSARY) if (matchesQuestion(re, question)) return text;
   if (t.drive && t.vehicle_class === 'car') {
-    for (const [re, text] of DRIVE_GLOSSARY) if (re.test(question)) return text;
+    for (const [re, text] of DRIVE_GLOSSARY) if (matchesQuestion(re, question)) return text;
     return driveAnswer(question, t, t.drive);
   }
   const rule = phenomenon === undefined ? undefined : PHENOMENON[phenomenon];
-  return rule ? rule(t) : `On the ${t.section_name.toLowerCase()} at ${n(t.speed_kmh, 0)} km/h the suspension is keeping the tyres on the road; ask about the roll, the camber or a wheel to see more.`;
+  return rule ? rule(t) : `${t.section_name.toLocaleLowerCase('tr-TR')} bölümünde ${n(t.speed_kmh, 0)} km/h hızda süspansiyon lastikleri yolda tutuyor; daha fazla bilgi için gövde yatmasını, kamberi veya bir tekerleği sorun.`;
 }

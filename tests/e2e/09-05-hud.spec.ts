@@ -51,27 +51,27 @@ test.describe('09-05 handling HUD', () => {
     // the popover: four named switches and the honesty line
     const btn = page.locator('.sl-drive-aids-btn');
     await expect(btn).toBeVisible();
-    await expect(btn).toHaveAccessibleName('Assists: all on. Assist: simplified model');
+    await expect(btn).toHaveAccessibleName('Sürüş destekleri: tümü açık. Destek: basitleştirilmiş model');
     await btn.click();
     const panel = page.locator('#sl-drive-aids-panel');
     await expect(panel).toBeVisible();
     await expect(btn).toHaveAttribute('aria-expanded', 'true');
-    await expect(panel).toContainText('Assist: simplified model');
-    for (const name of ['Anti-lock brakes', 'Traction control', 'Stability control', 'Steering help'])
+    await expect(panel).toContainText('Destek: basitleştirilmiş model');
+    for (const name of ['Kilitlenme önleyici frenler', 'Çekiş kontrolü', 'Denge kontrolü', 'Direksiyon desteği'])
       await expect(page.getByRole('switch', { name, exact: true })).toBeChecked();
     await page.waitForTimeout(500);
     await page.screenshot({ path: join(SHOTS, '09-05-aids-1280.png') });
 
     // ABS off by pointer: store and kernel see it, the button says so, focus leaves the switch (keys keep driving)
-    await page.getByRole('switch', { name: 'Anti-lock brakes' }).click();
+    await page.getByRole('switch', { name: 'Kilitlenme önleyici frenler' }).click();
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveAids.abs)).toBe(false);
     expect((await page.evaluate(() => globalThis.__app!.state().driveAids)).traction).toBe(true);
-    await expect(btn).toHaveAccessibleName(/^Assists: Anti-lock brakes off/);
-    await expect(page.locator('.sl-drive-aids-tag')).toHaveText('Some off');
+    await expect(btn).toHaveAccessibleName(/^Sürüş destekleri: Kilitlenme önleyici frenler kapalı/);
+    await expect(page.locator('.sl-drive-aids-tag')).toHaveText('Bazıları kapalı');
     expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe('INPUT');
 
     // keyboard: Escape closes and returns focus; Enter on the focused button opens (and does not hand back)
-    await page.getByRole('switch', { name: 'Anti-lock brakes' }).focus();
+    await page.getByRole('switch', { name: 'Kilitlenme önleyici frenler' }).focus();
     await page.keyboard.press('Space');
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveAids.abs)).toBe(true);
     await page.keyboard.press('Escape');
@@ -89,18 +89,18 @@ test.describe('09-05 handling HUD', () => {
     await intent(page, { throttle: 1 });
     const tcs = await stepUntil(page, () => lamp(page, 'traction').isVisible(), 60);
     expect(tcs, 'traction lamp lit during a full-throttle launch').toBe(true);
-    await expect(lamp(page, 'traction')).toContainText('Traction');
+    await expect(lamp(page, 'traction')).toContainText('Çekiş');
     await page.screenshot({ path: join(SHOTS, '09-05-lamp-1280.png') });
 
     // approximate badge: aids off, get going, then a handbrake turn past the validated domain
     await page.evaluate(() => globalThis.__app!.set('driveAids', { abs: false, traction: false, stability: false, steering: false }));
-    await expect(page.locator('.sl-drive-aids-tag')).toHaveText('Off');
+    await expect(page.locator('.sl-drive-aids-tag')).toHaveText('Kapalı');
     await stepUntil(page, async () => (await drive(page)).speed > 18, 60, 0.25);
     await intent(page, { throttle: 0.4, steer: 1, handbrake: 1 });
     const slid = await stepUntil(page, () => lamp(page, 'approximate').isVisible(), 40, 0.05);
     expect(slid, 'approximate badge visible during a forced slide').toBe(true);
     expect((await drive(page)).approximate || (await lamp(page, 'approximate').isVisible())).toBe(true);
-    await expect(lamp(page, 'approximate')).toContainText('Approximate');
+    await expect(lamp(page, 'approximate')).toContainText('Yaklaşık');
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, '09-05-approx-1920.png') });

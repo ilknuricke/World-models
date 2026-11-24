@@ -5,7 +5,7 @@
 .sl-teaching-overlays-trace {
   position: absolute;
   right: var(--margin);
-  top: calc(var(--margin) + var(--sl-hud-top-h, 44px) + var(--sp-3));
+  top: var(--sl-message-trace-top);
   zoom: var(--sl-hud-zoom, 1);
   padding: 0;
   background: var(--glass);
@@ -28,13 +28,6 @@
 
 .sl-teaching-overlays-canvas {
   display: block;
-}
-
-/* the view control moves under the top-right groups below 1200 px (controls.css) */
-@media (max-width: 1200px) {
-  .sl-teaching-overlays-trace {
-    top: calc(var(--margin) + var(--sl-hud-top-h, 44px) + var(--sl-hud-view-h, 48px) + var(--sp-4));
-  }
 }
 
 @media (max-width: 720px) {

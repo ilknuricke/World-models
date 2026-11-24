@@ -13,6 +13,7 @@ import type { FeatureContext, FeatureModule, FrameInfo } from '../../contracts/a
 import type { DriveEvent } from '../../contracts/drive';
 import type { TelemetryFrame } from '../../contracts/telemetry';
 import { h, mount } from '../../ui/dom';
+import { acquireNarration, type MessageNarration } from '../../ui/narration';
 import { CoachEngine, compose, stationIn, stationLine, templateFor, type CoachMoment, type Line } from './rules';
 import './coach.css';
 
@@ -30,6 +31,7 @@ interface State {
   readonly text: HTMLElement;
   readonly chip: HTMLElement;
   readonly announce: HTMLElement;
+  readonly narration: MessageNarration;
   readonly engine: CoachEngine;
   quiet: boolean;
   hideAt: number;
@@ -52,10 +54,12 @@ function present(s: State, line: Line, visible: number): void {
   s.caption.hidden = false;
   // one polite announcement of the sentence; the number chip stays silent (07-03: numbers never sit in a live region)
   s.announce.textContent = line.text;
+  s.narration.say(line.text);
   s.ctx.bus.emit('insight:shown', { id: `coach:${line.id}`, text: line.text });
 }
 
-function hide(s: State): void {
+function hide(s: State, finishSpeaking = false): void {
+  s.narration.clear(!finishSpeaking);
   s.caption.hidden = true;
   s.caption.classList.remove('is-leaving');
   s.hideAt = Number.POSITIVE_INFINITY;
@@ -115,6 +119,8 @@ const coach: FeatureModule = {
   phase: 'overlay',
 
   init(c) {
+    const narration = acquireNarration(c.dom.overlay);
+    c.addDisposer(() => narration.dispose());
     const text = h('span', { class: 'sl-coach-text' });
     const chip = h('span', { class: 'sl-coach-chip sl-num', hidden: true });
     const caption = h('p', { class: 'sl-coach-caption', hidden: true }, text, chip);
@@ -129,6 +135,7 @@ const coach: FeatureModule = {
       text,
       chip,
       announce,
+      narration,
       engine: new CoachEngine(),
       quiet: false,
       hideAt: Number.POSITIVE_INFINITY,
@@ -145,7 +152,10 @@ const coach: FeatureModule = {
     c.watch((state) => {
       s.quiet = state.attract || !state.hudVisible;
       root.hidden = s.quiet;
-      if (s.quiet) s.engine.clear();
+      if (s.quiet) {
+        s.engine.clear();
+        s.narration.clear();
+      }
     });
     c.addDisposer(() => {
       st = undefined;
@@ -158,7 +168,7 @@ const coach: FeatureModule = {
     const t = frame.t;
     if (t.simTime >= s.hideAt) {
       s.caption.classList.add('is-leaving');
-      if (t.simTime >= s.hideAt + LEAVE_S) hide(s);
+      if (t.simTime >= s.hideAt + LEAVE_S) hide(s, true);
     }
     if (!driving(t) || t.vehicleClass !== 'car' || s.quiet) return;
     const line = s.engine.tick(t.simTime);
