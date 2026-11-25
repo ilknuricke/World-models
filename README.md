@@ -16,7 +16,9 @@ Menüler, klavye yardımı, telemetri panelleri, deney istasyonları, sürüş k
 
 Geniş ekranda açıklama mesajları, sağ üstteki kontrollerin altında küçük yazılı bir kartta gösterilir. Türkçe sesli anlatım her sayfa açılışında otomatik olarak açıktır ve yeni mesajları okumaya başlar. Tarayıcı otomatik sesi engellerse uygulamadaki ilk dokunuş veya tuş sesi başlatır. **Anlatım açık / kapalı** düğmesiyle o ziyaret boyunca anlatımı yönetebilirsiniz; yeni sayfa açılışında tekrar açık başlar. Bu ayar motor ve lastik seslerinden bağımsızdır. Sesli anlatım, tarayıcının ve işletim sisteminin konuşma desteğini kullanır. Her yeni açıklama bir kez okunur; sürekli değişen sayısal göstergeler tekrar tekrar okunmaz.
 
-Telefonda **Telemetri** ve **Mühendise sor** düğmeleri, ihtiyacınız olduğunda açılan ve kapatılabilen panelleri gösterir. Aynı anda yalnız biri açık kalır. Mühendisin cevabı soru panelinin içinde görünür; metni kaydırarak okuyabilirsiniz. Görsel viraj notları başlangıçta kapalıdır ve **Notlar** düğmesiyle açılır; sesli anlatım açık kalır. **Kamera** düğmesi kamera seçeneklerini açar. Bu düzen, dikey ve yatay telefon ekranlarında araç için daha fazla yer bırakır.
+Telefonda **Telemetri** ve **Mühendise sor** düğmeleri, ihtiyacınız olduğunda açılan ve kapatılabilen panelleri gösterir. Aynı anda yalnız biri açık kalır. Mühendisin cevabı soru panelinin içinde görünür; metni kaydırarak okuyabilirsiniz. Görsel viraj notları başlangıçta kapalıdır ve **Notlar** düğmesiyle açılır; sesli anlatım açık kalır. **Görünüm** düğmesi kamera seçeneklerini ve **Fizik** düğmesini açar. Bu düzen, dikey ve yatay telefon ekranlarında araç için daha fazla yer bırakır.
+
+**Fizik** düğmesi araç üzerindeki süspansiyon çizgilerini, başlangıç konumunu ve yük oklarını açıp kapatır. Kamera seçiminden bağımsızdır: Takip, Keşfet ve Yakın plan arasında geçiş yapmak bu tercihi değiştirmez. Fizik katmanları başlangıçta kapalıdır. Ölçüm grafiği yalnızca fizik katmanları açıkken Yakın plan görünümünde gösterilir.
 
 ## Bilgisayarınızda çalıştırma
 

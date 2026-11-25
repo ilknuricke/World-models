@@ -12,7 +12,7 @@ const PANEL_DT = 1 / 30;
 let tick: ((frame: FrameInfo) => void) | undefined;
 
 /**
- * Engineer layer (store.overlay === 'engineer'; entering close-up switches it on): live front-view construction,
+ * Engineer layer (store.overlay === 'engineer'; explicitly selected independently of the camera): live construction,
  * ghost rest pose, load arrows and the camber trace. Geometry follows the (possibly amplified) POSE fields; every
  * number shown is a TRUE value from the frame.
  */
@@ -58,17 +58,9 @@ export default {
     ctx.on('sim:seek', () => construction.reset());
 
     let active = false;
-    let view: string | undefined;
     let farFloor = 0.22;
     let focus: string | null = null;
     ctx.watch((s) => {
-      // Close-up defaults the engineer layer on (on entering it); the user can switch it off again there.
-      if (s.view === 'closeup' && view !== 'closeup' && s.overlay !== 'engineer') {
-        view = s.view;
-        ctx.store.setKey('overlay', 'engineer');
-        return;
-      }
-      view = s.view;
       // Close-up: only the focused axle's construction; the far one would cross the linkage through the body.
       farFloor = s.view === 'closeup' ? 0 : 0.22;
       // ...and only the focused corner (a bike: the focused end): the other wheels' lines would cross the frame.

@@ -193,7 +193,7 @@ for (const [name, viewport, isMobile] of [
 
       if (name === 'phone') {
         const notes = page.locator('.sl-narration-notes');
-        const camera = page.getByRole('button', { name: 'Kamera seçimi', exact: true });
+        const camera = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
         await expect(notes).toHaveAttribute('aria-expanded', 'false');
         await expect(page.locator('.sl-controls-br')).toBeHidden();
         await notes.tap();
@@ -220,7 +220,7 @@ for (const [name, viewport, isMobile] of [
       console.log(`[11-05] ${name}\n${report.join('\n')}`);
       if (name === 'phone') {
         await page.locator('.sl-narration-notes').tap();
-        await page.getByRole('button', { name: 'Kamera seçimi', exact: true }).tap();
+        await page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true }).tap();
         await expect(page.locator('.sl-narration-notes')).toHaveAttribute('aria-expanded', 'false');
         await expect(page.locator('.sl-coach-caption')).toBeHidden();
         await expect(page.locator('.sl-controls-br')).toBeHidden();

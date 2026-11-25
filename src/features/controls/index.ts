@@ -142,7 +142,7 @@ export default {
     const vehicleBtn = button('sl-controls-vehicle', 'Aracı değiştir', h('span', { class: 'sl-controls-icon' }), h('span', { class: 'sl-controls-vehicle-text' }));
     setIcon(vehicleBtn.firstElementChild!, 'swap');
     const fullscreen = button('sl-controls-fullscreen', 'Tam ekran');
-    const cameraBtn = button('sl-controls-camera-btn', 'Kamera seçimi', 'Kamera');
+    const cameraBtn = button('sl-controls-camera-btn', 'Görünüm seçenekleri', 'Görünüm');
     cameraBtn.setAttribute('aria-expanded', 'false');
     cameraBtn.setAttribute('aria-controls', 'sl-controls-camera');
     const helpBtn = button('sl-controls-help-btn', 'Klavye kısayolları', '?');
@@ -216,7 +216,9 @@ export default {
       setCameraOpen(false);
     });
     view.setOptions(VIEWS);
-    const viewWrap = h('div', { class: 'sl-controls-hud sl-controls-br', id: 'sl-controls-camera' }, view.el);
+    const physics = button('sl-controls-physics', 'Fizik katmanları', 'Fizik');
+    physics.addEventListener('click', () => c.store.setKey('overlay', c.store.get().overlay === 'engineer' ? 'clean' : 'engineer'));
+    const viewWrap = h('div', { class: 'sl-controls-hud sl-controls-br', id: 'sl-controls-camera' }, view.el, physics);
     cameraBtn.addEventListener('click', () => setCameraOpen(!cameraOpen));
 
     // --- HUD hidden: one quiet way back for touch users
@@ -313,6 +315,9 @@ export default {
       const copy = c.registries.suspensions.get(s.suspensionId)?.copy;
       descriptor.textContent = copy?.descriptor ?? '';
       view.setValue(s.view);
+      const physicsOn = s.overlay === 'engineer';
+      physics.setAttribute('aria-pressed', String(physicsOn));
+      physics.title = physicsOn ? 'Fizik katmanlarını gizle' : 'Fizik katmanlarını göster';
       if (lastSusp && s.suspensionId !== lastSusp) announce.textContent = `${copy?.label ?? s.suspensionId} süspansiyonu`;
       if (lastView && s.view !== lastView) announce.textContent = `${VIEWS.find((v) => v.id === s.view)?.label ?? s.view} kamerası`;
       lastSusp = s.suspensionId;

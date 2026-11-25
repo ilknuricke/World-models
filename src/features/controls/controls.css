@@ -409,6 +409,24 @@ button.sl-controls-help-row:hover {
 .sl-controls-br {
   right: var(--margin);
   bottom: var(--margin);
+  display: flex;
+  align-items: center;
+  gap: var(--sl-hud-gap);
+}
+.sl-controls-physics {
+  padding: 0 12px;
+  height: 44px;
+  font-size: 12px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-panel);
+}
+.sl-controls-physics:hover,
+.sl-controls-physics[aria-pressed='true'] {
+  background: var(--glass);
+  border-color: var(--accent-dim);
 }
 .sl-controls-view .sl-controls-segment {
   height: 38px;
@@ -632,10 +650,10 @@ button.sl-controls-help-row:hover {
     height: 44px;
   }
 }
-/* ... and below 1400 px the view control drops its key hints (F E C still work, the help card lists them) so the
-   driving pill, with every aid lamp lit, keeps clear of it */
+/* Below 1400 px, drop camera key hints so its physics toggle stays clear of the suspension and driving controls.
+   F E C still work, and the help card lists them. */
 @media (max-width: 1400px) {
-  :root:has(#overlay > .sl-drive.is-driving:not(.is-hidden)) .sl-controls-view .sl-controls-kbd {
+  .sl-controls-view .sl-controls-kbd {
     display: none;
   }
 }
@@ -735,7 +753,7 @@ button.sl-controls-help-row:hover {
     z-index: 5;
   }
   .sl-controls-br.is-mobile-open {
-    display: block;
+    display: flex;
   }
   .sl-controls-view .sl-controls-segment {
     min-width: 60px;

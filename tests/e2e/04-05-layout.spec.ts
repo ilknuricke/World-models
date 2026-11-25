@@ -145,7 +145,8 @@ test('desktop: follow, close-up and engineer-open layouts never overlap; the can
   const page = await (await browser.newContext({ viewport: SIZES[0], deviceScaleFactor: 1, reducedMotion: 'reduce' })).newPage();
   const errors = captureConsole(page);
   await boot(page, '/?e2e=1&quality=low&paused=1&t=20&amp=2.5');
-  await set(page, 'overlay', 'engineer');
+  await page.getByRole('button', { name: 'Fizik katmanları', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Fizik katmanları', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
   for (const size of SIZES) {
     await page.setViewportSize(size);
@@ -246,7 +247,8 @@ test('big screen with a live room: tag, presence line, join card, telemetry, pol
   await expect(host.locator('.rm-header')).toHaveAttribute('data-status', 'live', { timeout: 30_000 });
   await host.getByRole('button', { name: 'Anketi aç', exact: true }).click();
   await expect(screen.locator('.sl-poll')).toBeVisible({ timeout: 20_000 });
-  await set(screen, 'overlay', 'engineer');
+  await screen.getByRole('button', { name: 'Fizik katmanları', exact: true }).click();
+  await expect(screen.getByRole('button', { name: 'Fizik katmanları', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
   const all = ['.sl-controls-tag', '.sl-live-lab', '.sl-presenter', '.sl-poll', '.sl-telemetry-panel', '.sl-engineer', '.sl-debug-stats', '.sl-phone-drive'];
   for (const size of SIZES) {

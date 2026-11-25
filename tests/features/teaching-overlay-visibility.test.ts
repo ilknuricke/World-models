@@ -57,6 +57,7 @@ describe('close-up measurement panel lifecycle', () => {
     expect(panel.root.hidden).toBe(true);
     expect(panel.setCurves.mock.calls[0]![1]).toBe(vehicleClass === 'car' ? 'camber' : 'motionRatio');
 
+    store.setKey('overlay', 'engineer');
     for (const next of ['follow', 'explore'] as const) {
       store.setKey('view', 'closeup');
       expect(panel.root.hidden).toBe(false);
@@ -72,6 +73,7 @@ describe('close-up measurement panel lifecycle', () => {
 
   it.each(['car', 'motorcycle'] as const)('keeps HUD, attract and explicit overlay choices working for %s', (vehicleClass) => {
     const { store, group } = harness(vehicleClass);
+    store.setKey('overlay', 'engineer');
     store.setKey('view', 'closeup');
     for (const [key, hidden] of [['hudVisible', false], ['attract', true]] as const) {
       store.setKey(key, hidden);
@@ -87,8 +89,9 @@ describe('close-up measurement panel lifecycle', () => {
     expect(panel.root.hidden).toBe(true);
     store.setKey('view', 'explore');
     store.setKey('view', 'closeup');
-    expect(store.get().overlay).toBe('engineer');
-    expect(panel.root.hidden).toBe(false);
+    expect(store.get().overlay).toBe('clean');
+    expect(panel.root.hidden).toBe(true);
+    expect(group.visible).toBe(false);
   });
 
   it('does not show a close-up graph when the 3D engineer layer is explicitly enabled in another view', () => {
@@ -98,5 +101,21 @@ describe('close-up measurement panel lifecycle', () => {
     expect(panel.root.hidden).toBe(true);
     store.setKey('view', 'explore');
     expect(panel.root.hidden).toBe(true);
+  });
+
+  it.each(['car', 'motorcycle'] as const)('keeps the %s overlay choice independent of every camera and vehicle change', (vehicleClass) => {
+    const { store, group } = harness(vehicleClass);
+    for (const overlay of ['clean', 'engineer', 'clean'] as const) {
+      store.setKey('overlay', overlay);
+      for (const view of ['closeup', 'follow', 'explore', 'closeup'] as const) {
+        store.setKey('view', view);
+        expect(store.get().overlay).toBe(overlay);
+        expect(group.visible).toBe(overlay === 'engineer');
+        expect(panel.root.hidden).toBe(overlay !== 'engineer' || view !== 'closeup');
+      }
+      store.setKey('vehicleId', 'another-test-vehicle');
+      expect(store.get().overlay).toBe(overlay);
+      expect(group.visible).toBe(overlay === 'engineer');
+    }
   });
 });
