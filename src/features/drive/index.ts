@@ -20,6 +20,7 @@ import { idleState, noteFault, promptVisible, TIMING, type IdleState } from './i
 import { AID_COPY, AID_KEYS, aidsSummary, HUD_ICON, LAMP_TEXT, LAMP_TITLE, LAMPS, updateLamps, withAid } from './hud';
 import { createKeyboardSource } from './keyboard';
 import { gearLabel, isDriving } from './keys';
+import { mountLandscapeControls } from './landscape';
 import { createRumble, createRumbleState, rumbleLevels } from './rumble';
 import { createTouchSource } from './touch';
 import './drive.css';
@@ -176,6 +177,7 @@ export default {
     c.addDisposer(mount(c.dom.overlay, root));
     c.addDisposer(mount(c.dom.overlay, actions));
     c.addDisposer(mount(c.dom.overlay, announce));
+    const landscapeControls = mountLandscapeControls(c, pill, { toggle, stations: stationsBtn, assists: aidsBtn });
     const overlay = c.dom.overlay;
     const adopt = (n: Node) => {
       if (n instanceof HTMLElement && n.parentElement === overlay && n.classList.contains('sl-drive-action')) actions.append(n);
@@ -570,6 +572,7 @@ export default {
         shown.mode = m;
         shown.available = can;
         pill.dataset.mode = driving ? 'manual' : 'auto';
+        landscapeControls.update(driving ? 'manual' : 'auto', can || driving);
         root.classList.toggle('is-driving', driving);
         actions.classList.toggle('is-driving', driving);
         pill.classList.toggle('is-unavailable', !can && !driving);

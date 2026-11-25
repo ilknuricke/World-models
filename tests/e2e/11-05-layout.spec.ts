@@ -22,7 +22,8 @@ const HUD = [
   '.sl-controls-amp',
   '.sl-controls-bc',
   '.sl-controls-br',
-  '.sl-narration',
+  '.sl-narration-toggle',
+  '.sl-narration-notes',
   '.sl-telemetry-panel',
   '.sl-engineer',
   '.sl-teaching-overlays-trace',
@@ -232,6 +233,7 @@ for (const [name, viewport, isMobile] of [
 }
 
 const LANDSCAPE_HUD = [
+  '.sl-landscape-strip', '.sl-drive-mode-control',
   '.sl-controls-tag', '.sl-controls-tr', '.sl-controls-br', '.sl-controls-bc', '.sl-controls-amp', '.sl-controls-help', '.sl-controls-restore',
   '.sl-narration', '.sl-insights', '.sl-coach', '.sl-engineer-toggle', '.sl-engineer-panel', '.sl-telemetry-toggle', '.sl-telemetry-panel',
   '.sl-drive-pill', '.sl-drive-hint', '.sl-drive-actions', '.sl-drive-panel', '.sl-drive-steer', '.sl-drive-pedals',
@@ -250,6 +252,27 @@ async function expectLandscapeSceneClear(page: Page): Promise<void> {
       return rect.left < stage.right - 1 && rect.right > stage.left + 1 && rect.top < stage.bottom - 1 && rect.bottom > stage.top + 1;
     }).map((el) => el.className);
   }, LANDSCAPE_HUD), { message: 'every visible landscape menu or driving control stays outside the vehicle scene' }).toEqual([]);
+}
+
+async function expectModeBesideNarration(page: Page): Promise<void> {
+  await expect(page.locator('.sl-drive-toggle')).toHaveCount(1);
+  await expect(page.locator('.sl-drive-mode-control .sl-drive-toggle')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const strip = document.querySelector<HTMLElement>('.sl-landscape-strip')!;
+    const voice = document.querySelector<HTMLElement>('.sl-narration-toggle')!;
+    const host = document.querySelector<HTMLElement>('.sl-drive-mode-control')!;
+    const toggle = host.querySelector<HTMLElement>('.sl-drive-toggle')!;
+    const s = strip.getBoundingClientRect(), v = voice.getBoundingClientRect(), t = toggle.getBoundingClientRect();
+    return {
+      adjacent: voice.nextElementSibling === host,
+      sameRow: Math.abs(v.top + v.height / 2 - t.top - t.height / 2) <= 2,
+      initialVoiceVisible: v.width > 0 && v.left >= s.left - 1 && v.right <= s.right + 1,
+      initialModeVisible: t.width > 0 && t.left >= s.left - 1 && t.right <= Math.min(s.right, innerWidth) + 1,
+      startsWithoutPanning: Math.abs(strip.scrollLeft) <= 1,
+    };
+  }), { message: 'voice and the full Auto/Manual control initially share the top row, immediately adjacent without panning' }).toEqual({
+    adjacent: true, sameRow: true, initialVoiceVisible: true, initialModeVisible: true, startsWithoutPanning: true,
+  });
 }
 
 test.describe('11-05 phone station information after rotation', () => {
@@ -276,7 +299,7 @@ test.describe('11-05 phone station information after rotation', () => {
         return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height };
       };
       return {
-        stage: rect('#stage'), drive: rect('.sl-drive'), pill: rect('.sl-drive-pill'), hint: rect('.sl-drive-hint'),
+        stage: rect('#stage'), drive: rect('.sl-drive'), pill: rect('.sl-drive-pill:not(.sl-drive-mode-control)'), hint: rect('.sl-drive-hint'),
         reserve: Number.parseFloat(getComputedStyle(document.querySelector('#stage')!).bottom),
         topReserve: Number.parseFloat(getComputedStyle(document.querySelector('#stage')!).top),
       };
@@ -296,6 +319,7 @@ test.describe('11-05 phone station information after rotation', () => {
     expect(landscape.stage.bottom, 'the vehicle scene ends above the entire driving bar').toBeLessThanOrEqual(landscape.drive.top - 1);
     expect(landscape.topReserve, 'top menus also have their own space').toBeGreaterThan(0);
     await expectLandscapeSceneClear(page);
+    await expectModeBesideNarration(page);
     const display = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
     await display.tap();
     await expect(page.locator('.sl-controls-br')).toBeVisible();
@@ -305,10 +329,24 @@ test.describe('11-05 phone station information after rotation', () => {
     expect(pedals!.height, 'compact landscape pedals stay in their reserved band').toBeLessThanOrEqual(113);
     await page.screenshot({ path: join(SHOTS, `11-05-station-landscape-${landscapeSize.width}.png`) });
 
+    // These are the original working controls moved to the top, not a visual copy.
+    const mode = page.locator('.sl-drive-mode-control .sl-drive-toggle');
+    await mode.tap();
+    await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode), { timeout: 20_000 }).toBe('auto');
+    await expect(mode).toHaveAttribute('aria-pressed', 'false');
+    await mode.tap();
+    await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode)).toBe('manual');
+    await expect(mode).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.sl-drive-touch')).toBeVisible();
+    await expectModeBesideNarration(page);
+    await expectLandscapeSceneClear(page);
+
     // The same mounted layout must restore its space on rotation and HUD/mode changes.
     await page.setViewportSize({ width: 400, height: 840 });
     await expect.poll(async () => (await geometry()).reserve).toBe(0);
     await expect.poll(async () => (await geometry()).topReserve).toBe(0);
+    await expect(page.locator('.sl-landscape-strip')).toBeHidden();
+    await expect(page.locator('.sl-drive-pill:not(.sl-drive-mode-control) > .sl-drive-toggle')).toHaveCount(1);
     await page.setViewportSize({ width: 667, height: 376 });
     await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
     await page.evaluate(() => globalThis.__app!.set('hudVisible', false));
@@ -328,6 +366,7 @@ test.describe('11-05 phone station information after rotation', () => {
     await boot(page, '/?e2e=1&quality=low&paused=1&t=40');
     await page.setViewportSize(landscapeSize);
     await expectLandscapeSceneClear(page);
+    await expectModeBesideNarration(page);
 
     await page.locator('.sl-drive-stations-btn').tap();
     await expect(page.locator('.sl-drive-stations-panel')).toBeVisible();

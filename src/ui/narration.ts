@@ -230,7 +230,7 @@ function mountNarrator(overlay: HTMLElement): SharedNarration {
   sync(narrator.state);
 
   const gesture = (event: Event) => {
-    if (event.target instanceof Node && root.contains(event.target)) return;
+    if (event.target instanceof Node && (button.contains(event.target) || notes.contains(event.target))) return;
     if (event instanceof KeyboardEvent && (event.ctrlKey || event.metaKey || event.altKey || event.repeat)) return;
     if (!document.hidden) narrator.activate();
   };

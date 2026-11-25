@@ -61,8 +61,8 @@ body {
   #stage {
     top: var(--sl-mobile-scene-top, 0px);
   }
-  #overlay:has(> .sl-engineer.is-open) > :is(.sl-narration, .sl-teaching-overlays-trace),
-  #overlay:has(> .sl-telemetry-panel.is-mobile-expanded) > :is(.sl-narration, .sl-teaching-overlays-trace) {
+  #overlay:has(> .sl-engineer.is-open) > :is(.sl-narration, .sl-landscape-strip, .sl-teaching-overlays-trace),
+  #overlay:has(> .sl-telemetry-panel.is-mobile-expanded) > :is(.sl-narration, .sl-landscape-strip, .sl-teaching-overlays-trace) {
     display: none;
   }
   #overlay:has(> .sl-controls-br.is-mobile-open) > :is(.sl-insights, .sl-coach, .sl-teaching-overlays-trace) {

@@ -9,6 +9,9 @@
  * docks compact under the vehicle tag (controls.css) and the coach line moves to the top centre (coach.css).
  * Touch-driving: the pill sits between the steering slider and the pedals, the chips under the view control.
  */
+.sl-landscape-strip {
+  display: none;
+}
 :root:has(#overlay > .sl-drive:not(.is-hidden)) {
   --sl-hud-drive-h: calc(var(--sl-drive-pill-h) + var(--sl-hud-gap));
 }
@@ -719,6 +722,72 @@
 
 /* A scenario's instructions belong below the driving controls on a rotated phone. */
 @media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  .sl-landscape-strip:not([hidden]) {
+    position: absolute;
+    top: max(var(--margin), env(safe-area-inset-top, 0px));
+    left: max(var(--margin), env(safe-area-inset-left, 0px));
+    right: var(--sl-landscape-strip-right, var(--margin));
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+  .sl-landscape-strip.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .sl-landscape-strip > .sl-narration,
+  .sl-landscape-strip > .sl-controls-tag {
+    position: static;
+    flex: 0 0 auto;
+    inset: auto;
+    width: auto;
+    transform: none;
+    zoom: 1;
+  }
+  .sl-landscape-strip > .sl-narration {
+    gap: 4px;
+  }
+  .sl-landscape-strip .sl-narration-toggle {
+    flex: 0 0 44px;
+    width: 44px;
+    padding: 0;
+  }
+  .sl-drive-mode-control {
+    flex: 0 0 auto;
+    height: 44px;
+    padding: 0;
+    border: 0;
+  }
+  .sl-drive-mode-control[hidden] {
+    display: none;
+  }
+  .sl-drive-mode-control .sl-drive-toggle {
+    height: 44px;
+    width: 124px;
+  }
+  .sl-drive-mode-control .sl-drive-seg {
+    gap: 4px;
+    padding: 0 4px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .sl-drive-mode-control .sl-drive-stations-label,
+  .sl-drive-mode-control .sl-drive-aids-tag {
+    display: none;
+  }
+  .sl-drive-mode-control :is(.sl-drive-stations-btn, .sl-drive-aids-btn) {
+    height: 44px;
+    min-width: 44px;
+  }
+  .sl-drive:not(.is-driving) > .sl-drive-pill:not(.is-off-lap):not(.is-returning) {
+    display: none;
+  }
   .sl-drive-pedals {
     gap: 4px;
   }

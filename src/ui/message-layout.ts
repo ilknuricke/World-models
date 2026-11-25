@@ -3,11 +3,11 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
   let frame = 0;
   let disposed = false;
   const observed = new Set<Element>();
-  const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top'] as const;
+  const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top', '--sl-landscape-strip-right'] as const;
   const initial = properties.map((name) => overlay.style.getPropertyValue(name));
   const sceneProperties = ['--sl-mobile-scene-top', '--sl-mobile-scene-bottom'] as const;
   const initialScene = sceneProperties.map((name) => stage?.style.getPropertyValue(name) ?? '');
-  const topMenus = ['.sl-controls-tag', '.sl-controls-tr', '.sl-controls-br', '.sl-narration', '.sl-controls-amp', '.sl-controls-restore'];
+  const topMenus = ['.sl-controls-tag', '.sl-controls-tr', '.sl-controls-br', '.sl-narration', '.sl-landscape-strip', '.sl-controls-amp', '.sl-controls-restore'];
   const bottomMenus = ['.sl-engineer-toggle', '.sl-engineer-panel', '.sl-telemetry-toggle', '.sl-telemetry-panel', '.sl-drive-steer', '.sl-drive-pedals', '.sl-drive-panel', '.sl-insights', '.sl-coach', '.sl-teaching-overlays-trace', '.sl-controls-help', '.sl-ghost-lab', '.sl-ghost-lab-note', '.sl-replay-share', '.sl-replay-note'];
   const movingMenus = ['.sl-controls-bc', '.sl-drive:not(.is-hidden):not(.is-attract)', '.sl-drive-actions'];
   const selectors = [...topMenus, ...bottomMenus, ...movingMenus, '.sl-drive', '.sl-drive-hint', '.sl-engineer-answer'].join(', ');
@@ -80,6 +80,8 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
       const value = `${Math.ceil((pixels - area.top) / zoom)}px`;
       if (overlay.style.getPropertyValue(name) !== value) overlay.style.setProperty(name, value);
     }
+    const stripRight = `${Math.ceil((controls ? area.right - controls.left + gap : margin) / zoom)}px`;
+    if (overlay.style.getPropertyValue('--sl-landscape-strip-right') !== stripRight) overlay.style.setProperty('--sl-landscape-strip-right', stripRight);
   };
   const schedule = () => {
     if (!disposed && !frame) frame = requestAnimationFrame(update);
