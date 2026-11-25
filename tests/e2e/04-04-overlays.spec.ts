@@ -1,7 +1,7 @@
 /**
- * 04-04: teaching overlays. With store.overlay = 'engineer' the construction batch, ghost batch and camber trace
- * appear, follow every suspension swap (the trace keeps the previous type faint), close-up defaults the layer on,
- * and nothing logs an error. Saves front-view evidence screenshots per suspension type.
+ * 04-04: teaching overlays. With store.overlay = 'engineer' the construction and ghost batches appear; the camber
+ * trace appears only in close-up and keeps the previous suspension faint. Close-up defaults the layer on, and
+ * nothing logs an error. Saves front-view evidence screenshots per suspension type.
  *
  * Test-only camera (same trick as 03-03): three.js announces renderer/scene to `window.__THREE_DEVTOOLS__`; the
  * spec wraps renderer.render and places the camera in the CAR frame (x forward, y up, z right) while `__shot` is set.
@@ -105,7 +105,7 @@ test('engineer overlay: construction lines per suspension, trace keeps the previ
   const on = await overlayState(page);
   console.log('[04-04] overlay', JSON.stringify(on));
   expect(on?.visible).toBe(true);
-  expect(on?.panel).toBe(true);
+  expect(on?.panel).toBe(false); // The global 3D layer does not open a close-up readout in Follow.
   for (const l of on!.layers) {
     expect(l.count, l.name).toBeGreaterThan(20);
     expect(l.finite, l.name).toBe(true);
@@ -122,8 +122,21 @@ test('engineer overlay: construction lines per suspension, trace keeps the previ
   // Chase view: the rear axle is nearest the camera and drawn strongest.
   await page.evaluate(() => (globalThis.__shot = { eye: [-7, 1.7, 1.2], look: [0, 0.45, 0], fov: 32 }));
   await shot(page, 'chase-multilink');
-  // After two swaps the trace shows multilink with double wishbone faint.
+  // After two swaps the close-up trace shows multilink with double wishbone faint.
+  await page.evaluate(() => globalThis.__app!.set('view', 'closeup'));
+  await frame(page);
+  expect((await overlayState(page))?.panel).toBe(true);
   await page.locator('.sl-teaching-overlays-trace').screenshot({ path: join(SHOTS, '04-04-trace-after-swap.png'), timeout: 300_000 });
+
+  // Leaving close-up removes the readout without changing the visitor's global 3D layer selection.
+  for (const view of ['follow', 'explore'] as const) {
+    await page.evaluate((v) => globalThis.__app!.set('view', v), view);
+    await frame(page);
+    const state = await overlayState(page);
+    expect(state?.panel, `${view}: close-up readout hidden`).toBe(false);
+    expect(state?.visible, `${view}: 3D engineer layer preserved`).toBe(true);
+    expect(await page.evaluate(() => globalThis.__app!.state().overlay)).toBe('engineer');
+  }
 
   // Clean layer hides everything; entering close-up switches the engineer layer back on.
   await page.evaluate(() => globalThis.__app!.set('overlay', 'clean'));
@@ -133,6 +146,8 @@ test('engineer overlay: construction lines per suspension, trace keeps the previ
   expect(off?.panel).toBe(false);
   await page.evaluate(() => globalThis.__app!.set('view', 'closeup'));
   expect(await page.evaluate(() => globalThis.__app!.state().overlay)).toBe('engineer');
+  await frame(page);
+  expect((await overlayState(page))?.panel).toBe(true);
 
   await expectHealthyBoot(page, consoleErrors);
 });

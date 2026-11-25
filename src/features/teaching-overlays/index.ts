@@ -77,7 +77,8 @@ export default {
       if (on && !active) construction.reset();
       active = on;
       group.visible = on;
-      panel.setVisible(on && s.hudVisible && !s.attract);
+      // The measurement card belongs to close-up, independently of the selected 3D construction layer.
+      panel.setVisible(on && s.view === 'closeup' && s.hudVisible && !s.attract);
     });
 
     const size = new Vector2();

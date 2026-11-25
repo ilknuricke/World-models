@@ -162,7 +162,8 @@ test('desktop: follow, close-up and engineer-open layouts never overlap; the can
       chip.textContent = 'KAMBER SA −0.2° → −0.9°';
     });
     await shot(page, `follow-${tag}`);
-    let list = await expectClean(page, `follow ${tag}`, ['.sl-controls-tag', '.sl-telemetry-panel', '.sl-engineer', '.sl-teaching-overlays-trace', '.sl-controls-amp', '.sl-insights-caption']);
+    let list = await expectClean(page, `follow ${tag}`, ['.sl-controls-tag', '.sl-telemetry-panel', '.sl-engineer', '.sl-controls-amp', '.sl-insights-caption']);
+    await expect(page.locator('.sl-teaching-overlays-trace')).toBeHidden();
     await page.evaluate(() => {
       document.querySelector<HTMLElement>('.sl-insights-caption')!.hidden = true;
     });
@@ -177,6 +178,7 @@ test('desktop: follow, close-up and engineer-open layouts never overlap; the can
     await set(page, 'engineerOpen', true);
     await shot(page, `engineer-${tag}`);
     list = await expectClean(page, `engineer ${tag}`, ['.sl-engineer']);
+    await expect(page.locator('.sl-teaching-overlays-trace')).toBeHidden();
     await expectCanvasReachable(page, list, `engineer ${tag}`);
   }
 
@@ -246,7 +248,7 @@ test('big screen with a live room: tag, presence line, join card, telemetry, pol
   await expect(screen.locator('.sl-poll')).toBeVisible({ timeout: 20_000 });
   await set(screen, 'overlay', 'engineer');
 
-  const all = ['.sl-controls-tag', '.sl-live-lab', '.sl-presenter', '.sl-poll', '.sl-telemetry-panel', '.sl-engineer', '.sl-teaching-overlays-trace', '.sl-debug-stats', '.sl-phone-drive'];
+  const all = ['.sl-controls-tag', '.sl-live-lab', '.sl-presenter', '.sl-poll', '.sl-telemetry-panel', '.sl-engineer', '.sl-debug-stats', '.sl-phone-drive'];
   for (const size of SIZES) {
     await screen.setViewportSize(size);
     const tag = `${size.width}x${size.height}`;
@@ -254,14 +256,16 @@ test('big screen with a live room: tag, presence line, join card, telemetry, pol
     await set(screen, 'engineerOpen', false);
     await shot(screen, `screen-${tag}`);
     const list = await expectClean(screen, `screen ${tag}`, all);
+    await expect(screen.locator('.sl-teaching-overlays-trace')).toBeHidden();
     await expectCanvasReachable(screen, list, `screen ${tag}`);
     await set(screen, 'view', 'closeup');
     await shot(screen, `screen-closeup-${tag}`);
-    await expectClean(screen, `screen closeup ${tag}`, ['.sl-presenter', '.sl-poll']);
+    await expectClean(screen, `screen closeup ${tag}`, ['.sl-presenter', '.sl-poll', '.sl-teaching-overlays-trace']);
     await set(screen, 'view', 'follow');
     await set(screen, 'engineerOpen', true);
     await shot(screen, `screen-engineer-${tag}`);
     await expectClean(screen, `screen engineer ${tag}`, ['.sl-presenter', '.sl-engineer']);
+    await expect(screen.locator('.sl-teaching-overlays-trace')).toBeHidden();
   }
   await expectHealthyBoot(screen, errors);
 });
