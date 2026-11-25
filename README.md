@@ -2,6 +2,16 @@
 
 [World-models](https://github.com/Metdez/World-models) projesinin Türkçe sürümü. Aynı araç ve yol koşullarında farklı süspansiyon geometrilerini karşılaştırın; tekerlek hareketini, kamber açısını ve yük aktarımını üç boyutlu olarak inceleyin.
 
+## Kısa demo
+
+Araba ve motosiklet, süspansiyon değişimleri, ağır çekim ve “Mühendise sor” özelliğinin kısa gösterimi. Önizlemeye tıklayarak MP4 videoyu açabilirsiniz.
+
+[![Süspansiyon Laboratuvarı: araba ve motosiklet gösterimi](docs/media/suspension-lab-demo.gif)](docs/media/suspension-lab-demo.mp4?raw=true)
+
+[MP4 videoyu indir](docs/media/suspension-lab-demo.mp4?raw=true)
+
+Demo sessizdir; Türkçe sesli anlatım ve motor sesleri uygulamada kullanılabilir.
+
 Menüler, klavye yardımı, telemetri panelleri, deney istasyonları, sürüş koçu, tekrar oynatma ve paylaşım ekranları, telefon kumandası ve izleyici oylaması Türkçedir. Yapay zekâ mühendisi Türkçe yanıt verecek şekilde yapılandırılmıştır; hizmet kullanılamadığında kurallara dayalı Türkçe açıklamalar gösterilir. Teknik kimlikler, API alanları, klavye tuşları ve lisans metinleri korunmuştur.
 
 Açıklama mesajları, sağ üstteki kontrollerin altında küçük yazılı bir kartta gösterilir. Türkçe sesli anlatım her sayfa açılışında otomatik olarak açıktır ve yeni mesajları okumaya başlar. Tarayıcı otomatik sesi engellerse uygulamadaki ilk dokunuş veya tuş sesi başlatır. **Anlatım açık / kapalı** düğmesiyle o ziyaret boyunca anlatımı yönetebilirsiniz; yeni sayfa açılışında tekrar açık başlar. Bu ayar motor ve lastik seslerinden bağımsızdır. Sesli anlatım, tarayıcının ve işletim sisteminin konuşma desteğini kullanır. Her yeni açıklama bir kez okunur; sürekli değişen sayısal göstergeler tekrar tekrar okunmaz.
