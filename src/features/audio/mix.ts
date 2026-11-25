@@ -14,8 +14,8 @@ const GEARS: Readonly<Record<VehicleClass, readonly number[]>> = {
   motorcycle: [11, 19, 27, 35, 44, 54, 70],
 };
 const RATE: Readonly<Record<VehicleClass, readonly [idle: number, redline: number]>> = {
-  car: [0.62, 1.55],
-  motorcycle: [0.72, 1.85],
+  car: [0.52, 1.38],
+  motorcycle: [0.8, 2.15],
 };
 export const RATE_MIN = 0.5;
 export const RATE_MAX = 2.2;
@@ -58,7 +58,7 @@ export interface Tone {
 export function engineTone(out: Tone, cls: VehicleClass, speed: number, ax: number, timeScale: number, paused: boolean): Tone {
   const revs = engineRevs(cls, speed);
   const [idle, red] = RATE[cls];
-  const slow = 0.5 + 0.5 * clamp(timeScale, 0, 1);
+  const slow = 0.5 + 0.5 * clamp(Number.isFinite(timeScale) ? timeScale : 1, 0, 1);
   out.rate = clamp((idle + (red - idle) * revs) * slow, RATE_MIN, RATE_MAX);
   const a = Number.isFinite(ax) ? ax : 0;
   const throttle = clamp(a / 4, 0, 1);
@@ -111,6 +111,27 @@ export function engineToneDrive(out: Tone, cls: VehicleClass, rpm: number, idleR
   out.rate = clamp((idle + (red - idle) * revs) * slow, RATE_MIN, RATE_MAX);
   const load = Number.isFinite(throttle) ? clamp(throttle, 0, 1) : 0;
   out.gain = paused ? 0 : clamp(0.14 + 0.28 * load + 0.08 * revs, 0, ENGINE_GAIN_MAX);
+  return out;
+}
+
+export interface EngineColour {
+  pulseRate: number;
+  cutoff: number;
+  intake: number;
+  intakeFrequency: number;
+}
+
+/** Independent engine colour: intake opens under load, overrun closes the exhaust's high-frequency band. */
+export function engineColour(out: EngineColour, cls: VehicleClass, revs: number, load: number, rpm: number, timeScale: number): EngineColour {
+  const r = clamp(Number.isFinite(revs) ? revs : 0, 0, 1);
+  const l = clamp(Number.isFinite(load) ? load : 0, 0, 1);
+  const slow = 0.5 + 0.5 * clamp(Number.isFinite(timeScale) ? timeScale : 1, 0, 1);
+  const idle = cls === 'car' ? 900 : 1100;
+  const speed = Number.isFinite(rpm) && rpm > 0 ? clamp(rpm, idle, cls === 'car' ? 8000 : 10000) : idle + r * (cls === 'car' ? 5800 : 6900);
+  out.pulseRate = speed / 3000 * slow;
+  out.cutoff = cls === 'car' ? 650 + 1100 * r + 1800 * l : 1200 + 2100 * r + 3200 * l;
+  out.intake = l * (cls === 'car' ? 0.06 + 0.10 * r : 0.10 + 0.20 * r);
+  out.intakeFrequency = cls === 'car' ? 550 + 1200 * r : 1100 + 2200 * r;
   return out;
 }
 

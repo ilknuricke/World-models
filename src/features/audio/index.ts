@@ -1,6 +1,7 @@
 /**
  * Audio (plan 07-03): engine loop pitched by speed and throttle (car / motorcycle loops crossfaded by vehicle
- * class), tyre noise from grip use, a thump on kerbs, bumps and bump-stop hits, a quiet tick on a suspension swap.
+ * class), class-specific combustion/intake layers and exhaust filtering, tyre noise from grip use, a thump on kerbs,
+ * bumps and bump-stop hits, a quiet tick on a suspension swap.
  * While driving (11-02): the engine follows the powertrain's real engine speed and throttle, the tyre cue starts
  * before the grip limit (SQUEAL_ONSET) as a warning, and a synthesised road-noise bed follows the wheels' travel rate
  * with a cobble / kerb texture (in every mode). Not listened to by the author: tuned on paper and in unit tests only.
@@ -11,7 +12,8 @@
 import type { Assets, FeatureContext, FeatureModule, FrameInfo } from '../../contracts/app';
 import type { VehicleClass } from '../../contracts/suspension';
 import { h, mount } from '../../ui/dom';
-import { engineTone, engineToneDrive, MASTER_GAIN, ramp, skidTone, squealTone, surfaceTone, THUMP_RATE, thumpGain, tyreUse, type SurfaceTone, type Tone } from './mix';
+import { createEngineVoice, outputLimiterCurve, type EngineVoice } from './engine';
+import { engineColour, engineRevs, engineTone, engineToneDrive, MASTER_GAIN, ramp, skidTone, squealTone, surfaceTone, THUMP_RATE, thumpGain, tyreUse, type EngineColour, type SurfaceTone, type Tone } from './mix';
 import './audio.css';
 
 const STORAGE_KEY = 'sl-audio';
@@ -48,7 +50,7 @@ interface Graph {
   readonly ac: AudioContext;
   readonly master: GainNode;
   readonly m: { v: number };
-  readonly engines: Readonly<Record<VehicleClass, Voice>>;
+  readonly engines: Readonly<Record<VehicleClass, EngineVoice>>;
   readonly skid: Voice;
   readonly road: Road;
   readonly impact: AudioBuffer | null;
@@ -83,7 +85,17 @@ async function buildGraph(ac: AudioContext, assets: Assets): Promise<Graph> {
   const [car, motorcycle, skid, impact] = await Promise.all([load(ENGINE_ASSET.car), load(ENGINE_ASSET.motorcycle), load('audio/skid'), load('audio/impact')]);
   const master = ac.createGain();
   master.gain.value = 0;
-  master.connect(ac.destination);
+  // Keep simultaneous engine/tyre/road/impact peaks below clipping without changing the mute envelope.
+  const compressor = ac.createDynamicsCompressor();
+  compressor.threshold.value = -8;
+  compressor.knee.value = 10;
+  compressor.ratio.value = 8;
+  compressor.attack.value = 0.004;
+  compressor.release.value = 0.15;
+  const limiter = ac.createWaveShaper();
+  limiter.curve = outputLimiterCurve();
+  limiter.oversample = '2x';
+  master.connect(compressor).connect(limiter).connect(ac.destination);
   const loop = (buffer: AudioBuffer | null): Voice => {
     const gain = ac.createGain();
     gain.gain.value = 0;
@@ -130,7 +142,7 @@ async function buildGraph(ac: AudioContext, assets: Assets): Promise<Graph> {
   osc.connect(depth);
   osc.start();
   const road: Road = { gain: roadGain, filter, osc, depth, g: { v: 0 }, f: { v: 110 }, m: { v: 20 }, d: { v: 0 } };
-  return { ac, master, m: { v: 0 }, engines: { car: loop(car), motorcycle: loop(motorcycle) }, skid: loop(skid), road, impact, tick };
+  return { ac, master, m: { v: 0 }, engines: { car: createEngineVoice(ac, master, car, noise, 'car'), motorcycle: createEngineVoice(ac, master, motorcycle, noise, 'motorcycle') }, skid: loop(skid), road, impact, tick };
 }
 
 let frameHandler: ((frame: FrameInfo) => void) | undefined;
@@ -265,6 +277,7 @@ function init(c: FeatureContext): void {
   };
 
   const tone: Tone = { rate: 1, gain: 0 };
+  const colour: EngineColour = { pulseRate: 1, cutoff: 1000, intake: 0, intakeFrequency: 1000 };
   const road: SurfaceTone = { gain: 0, freq: 110, mod: 0, depth: 0 };
   const armed = new Uint8Array(8).fill(1);
   frameHandler = ({ t }) => {
@@ -280,12 +293,21 @@ function init(c: FeatureContext): void {
     const pt = d.mode !== 'auto' && vehicle.class === 'car' ? vehicle.handling?.powertrain : undefined;
     if (pt) engineToneDrive(tone, t.vehicleClass, d.engineRpm, pt.idleRpm, pt.redlineRpm, d.throttle, s.timeScale, s.paused);
     else engineTone(tone, t.vehicleClass, t.speed, t.ax, s.timeScale, s.paused);
+    const revs = pt ? (d.engineRpm - pt.idleRpm) / (pt.redlineRpm - pt.idleRpm) : engineRevs(t.vehicleClass, t.speed);
+    const load = pt ? d.throttle : Math.max(0, Math.min(1, t.ax / 4));
+    engineColour(colour, t.vehicleClass, revs, load, pt ? d.engineRpm : 0, s.timeScale);
     for (let i = 0; i < CLASSES.length; i++) {
       const cls = CLASSES[i]!;
       const v = g.engines[cls];
       const active = cls === t.vehicleClass;
       ramp(v.gain.gain, v.g, active ? tone.gain : 0, now);
-      if (active && v.src) ramp(v.src.playbackRate, v.r, tone.rate, now);
+      if (active) {
+        if (v.src) ramp(v.src.playbackRate, v.r, tone.rate, now);
+        ramp(v.pulse.playbackRate, v.p, colour.pulseRate, now);
+        ramp(v.filter.frequency, v.f, colour.cutoff, now, 2);
+        ramp(v.intake.gain, v.i, colour.intake, now, 0.0005);
+        ramp(v.intakeFilter.frequency, v.n, colour.intakeFrequency, now, 2);
+      }
     }
 
     let grip = 0;
