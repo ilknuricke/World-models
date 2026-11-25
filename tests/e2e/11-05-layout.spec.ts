@@ -344,7 +344,30 @@ test.describe('11-05 phone station information after rotation', () => {
     await expectLandscapeSceneClear(page);
     await display.tap();
     const pedals = await page.locator('.sl-drive-pedals').boundingBox();
-    expect(pedals!.height, 'compact landscape pedals stay in their reserved band').toBeLessThanOrEqual(113);
+    const steer = await page.locator('.sl-drive-steer').boundingBox();
+    const gas = await page.locator('.sl-drive-pad[data-pad="gas"]').boundingBox();
+    const brake = await page.locator('.sl-drive-pad[data-pad="brake"]').boundingBox();
+    expect(pedals!.height, 'landscape pedals form one compact row').toBeLessThanOrEqual(49);
+    expect(Math.abs(pedals!.width - 110), 'the whole two-pedal row has a compact footprint').toBeLessThanOrEqual(1);
+    expect(steer!.width, 'landscape steering remains narrower than the old touch slider').toBeGreaterThanOrEqual(144);
+    expect(steer!.width).toBeLessThanOrEqual(197);
+    for (const [name, target] of [['steering', steer], ['gas', gas], ['brake', brake]] as const) {
+      expect(target, `${name} target is visible`).not.toBeNull();
+      expect(Math.min(target!.width, target!.height), `${name} keeps a usable 48 px touch target`).toBeGreaterThanOrEqual(48);
+      expect(target!.height, `${name} stays within the slim bottom control row`).toBeLessThanOrEqual(49);
+    }
+    expect(Math.abs(gas!.y - brake!.y), 'gas and brake share the same row').toBeLessThanOrEqual(1);
+    const hintBox = await hint.boundingBox();
+    if (hintBox) {
+      for (const target of [steer!, pedals!]) {
+        const overlapsHint = target.x < hintBox.x + hintBox.width && target.x + target.width > hintBox.x
+          && target.y < hintBox.y + hintBox.height && target.y + target.height > hintBox.y;
+        expect(overlapsHint, 'compact driving controls stay clear of the scenario instructions').toBe(false);
+      }
+    }
+    const clearStage = await geometry();
+    expect(clearStage.stage.bottom).toBeLessThanOrEqual(Math.min(steer!.y, pedals!.y, hintBox?.y ?? landscapeSize.height) - 1);
+    await expectLandscapeSceneClear(page);
     const originalPill = page.locator('.sl-drive > .sl-drive-pill:not(.sl-drive-mode-control)');
     const noNotices = await originalPill.evaluate((el) => !el.matches('.is-returning, .is-off-lap') && !el.querySelector('.sl-drive-lamps.is-lit'));
     if (noNotices) await expect(originalPill).toBeHidden();
@@ -383,6 +406,10 @@ test.describe('11-05 phone station information after rotation', () => {
     await expect(page.locator('.sl-drive-pill:not(.sl-drive-mode-control) > .sl-drive-toggle')).toHaveCount(1);
     await expect(page.locator('.sl-drive-pill:not(.sl-drive-mode-control) > .sl-drive-readout')).toHaveCount(1);
     await expect(page.locator('.sl-drive-speed-hud')).toHaveCount(0);
+    const portraitSteer = await page.locator('.sl-drive-steer').boundingBox();
+    const portraitPedals = await page.locator('.sl-drive-pedals').boundingBox();
+    expect(Math.abs(portraitSteer!.height - 72), 'portrait keeps its previous steering size').toBeLessThanOrEqual(1);
+    expect(Math.abs(portraitPedals!.height - 156), 'portrait keeps its previous stacked pedals').toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 667, height: 376 });
     await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
     await page.evaluate(() => globalThis.__app!.set('hudVisible', false));

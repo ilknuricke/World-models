@@ -822,13 +822,6 @@
   .sl-drive:not(.is-driving) > .sl-drive-pill:not(.is-off-lap):not(.is-returning) {
     display: none;
   }
-  .sl-drive-pedals {
-    gap: 4px;
-  }
-  .sl-drive-pad,
-  .sl-drive-pad[data-pad='gas'] {
-    height: 54px;
-  }
   #overlay > .sl-drive {
     left: 0;
     right: 0;
@@ -1163,5 +1156,35 @@
   }
   .sl-drive-lamp:not([data-lamp='approximate']) .sl-drive-lamp-text {
     display: none;
+  }
+}
+
+/* Keep these after the base touch styles so both pedals retain their compact size. */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --sl-drive-steer-w: clamp(144px, 24vw, 196px);
+    /* The centre notices reserve space for the entire two-pedal row. */
+    --sl-drive-pad-w: 110px;
+  }
+  .sl-drive-steer {
+    height: 48px;
+  }
+  .sl-drive-steer-track {
+    inset: 4px 0;
+  }
+  .sl-drive-steer-knob {
+    width: 44px;
+    height: 44px;
+    box-shadow: var(--shadow-panel), inset 0 0 0 5px var(--glass);
+  }
+  .sl-drive-pedals {
+    flex-direction: row;
+    gap: 6px;
+  }
+  .sl-drive-pad,
+  .sl-drive-pad[data-pad='gas'] {
+    width: 52px;
+    height: 48px;
+    font-size: 11px;
   }
 }
