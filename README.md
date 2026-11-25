@@ -20,6 +20,8 @@ Telefonda **Telemetri** ve **Mühendise sor** düğmeleri, ihtiyacınız olduğu
 
 **Fizik** düğmesi araç üzerindeki süspansiyon çizgilerini, başlangıç konumunu ve yük oklarını açıp kapatır. Kamera seçiminden bağımsızdır: Takip, Keşfet ve Yakın plan arasında geçiş yapmak bu tercihi değiştirmez. Fizik katmanları başlangıçta kapalıdır. Ölçüm grafiği yalnızca fizik katmanları açıkken Yakın plan görünümünde gösterilir.
 
+Telefon yatayken araç, üst ve alt menülerden ayrı bir orta alanda gösterilir. Açılan paneller için bu alan yeniden boyutlandırılır. Yatay manuel sürüşte süspansiyon seçeneklerini **Görünüm** düğmesiyle açabilirsiniz.
+
 ## Bilgisayarınızda çalıştırma
 
 Node.js **22.12 veya üzeri** gerekir. Windows'ta güncel Node.js LTS sürümünü kullanın.

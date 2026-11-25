@@ -1,12 +1,16 @@
-/** Place messages below the controls and keep the compact driving scene clear of occupied bottom panels. */
+/** Keep messages below controls and reserve a clear landscape scene between the visible HUD bands. */
 export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement): () => void {
   let frame = 0;
   let disposed = false;
   const observed = new Set<Element>();
   const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top'] as const;
   const initial = properties.map((name) => overlay.style.getPropertyValue(name));
-  const initialSceneBottom = stage?.style.getPropertyValue('--sl-mobile-scene-bottom') ?? '';
-  const selectors = '.sl-controls-tr, .sl-controls-br, .sl-narration, .sl-insights, .sl-coach, .sl-engineer-answer, .sl-engineer-panel, .sl-telemetry-panel, .sl-drive, .sl-drive-hint';
+  const sceneProperties = ['--sl-mobile-scene-top', '--sl-mobile-scene-bottom'] as const;
+  const initialScene = sceneProperties.map((name) => stage?.style.getPropertyValue(name) ?? '');
+  const topMenus = ['.sl-controls-tag', '.sl-controls-tr', '.sl-controls-br', '.sl-narration', '.sl-controls-amp', '.sl-controls-restore'];
+  const bottomMenus = ['.sl-engineer-toggle', '.sl-engineer-panel', '.sl-telemetry-toggle', '.sl-telemetry-panel', '.sl-drive-steer', '.sl-drive-pedals', '.sl-drive-panel', '.sl-insights', '.sl-coach', '.sl-teaching-overlays-trace', '.sl-controls-help', '.sl-ghost-lab', '.sl-ghost-lab-note', '.sl-replay-share', '.sl-replay-note'];
+  const movingMenus = ['.sl-controls-bc', '.sl-drive:not(.is-hidden):not(.is-attract)', '.sl-drive-actions'];
+  const selectors = [...topMenus, ...bottomMenus, ...movingMenus, '.sl-drive', '.sl-drive-hint', '.sl-engineer-answer'].join(', ');
   const box = (selector: string): DOMRect | null => {
     const el = overlay.querySelector<HTMLElement>(selector);
     if (!el || el.hidden || getComputedStyle(el).visibility === 'hidden') return null;
@@ -38,11 +42,37 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
     if (stage) {
       const sheet = compact ? box('.sl-engineer-panel') ?? box('.sl-telemetry-panel') : null;
       const landscape = compact && window.matchMedia('(max-width: 960px) and (max-height: 500px) and (orientation: landscape)').matches;
-      const drive = landscape ? box('.sl-drive.is-driving:not(.is-hidden):not(.is-attract)') : null;
-      const occupiedTop = Math.min(sheet?.top ?? area.bottom, drive?.top ?? area.bottom);
-      const bottom = sheet || drive ? Math.max(0, area.bottom - occupiedTop + gap) : 0;
-      const value = `${Math.ceil(bottom)}px`;
-      if (stage.style.getPropertyValue('--sl-mobile-scene-bottom') !== value) stage.style.setProperty('--sl-mobile-scene-bottom', value);
+      let top = 0;
+      let bottom = sheet ? Math.max(0, area.bottom - sheet.top + gap) : 0;
+      if (landscape) {
+        let topEdge = area.top;
+        let bottomEdge = area.bottom;
+        for (const selector of topMenus) {
+          const menu = box(selector);
+          if (menu) topEdge = Math.max(topEdge, menu.bottom + gap);
+        }
+        // Popovers are separate from their parent's box; measure every matching panel.
+        for (const selector of bottomMenus) {
+          for (const el of overlay.querySelectorAll<HTMLElement>(selector)) {
+            if (el.hidden || getComputedStyle(el).visibility === 'hidden') continue;
+            const menu = el.getBoundingClientRect();
+            if (menu.width > 0 && menu.height > 0) bottomEdge = Math.min(bottomEdge, menu.top - gap);
+          }
+        }
+        for (const selector of movingMenus) {
+          const menu = box(selector);
+          if (!menu) continue;
+          if (menu.top + menu.height / 2 < area.top + area.height / 2) topEdge = Math.max(topEdge, menu.bottom + gap);
+          else bottomEdge = Math.min(bottomEdge, menu.top - gap);
+        }
+        top = Math.max(0, topEdge - area.top);
+        bottom = Math.max(0, area.bottom - bottomEdge);
+      }
+      for (const [index, pixels] of [top, bottom].entries()) {
+        const name = sceneProperties[index]!;
+        const value = `${Math.ceil(pixels)}px`;
+        if (stage.style.getPropertyValue(name) !== value) stage.style.setProperty(name, value);
+      }
     }
     const traceTop = captionTop + (captionHeight > 0 ? captionHeight + gap : 0);
     for (const [index, pixels] of [toolbarTop, captionTop, traceTop].entries()) {
@@ -85,8 +115,10 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
     viewport?.removeEventListener('resize', schedule);
     viewport?.removeEventListener('scroll', schedule);
     if (stage) {
-      if (initialSceneBottom) stage.style.setProperty('--sl-mobile-scene-bottom', initialSceneBottom);
-      else stage.style.removeProperty('--sl-mobile-scene-bottom');
+      sceneProperties.forEach((name, index) => {
+        if (initialScene[index]) stage.style.setProperty(name, initialScene[index]!);
+        else stage.style.removeProperty(name);
+      });
     }
     properties.forEach((name, index) => {
       if (initial[index]) overlay.style.setProperty(name, initial[index]!);

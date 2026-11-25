@@ -719,6 +719,37 @@
 
 /* A scenario's instructions belong below the driving controls on a rotated phone. */
 @media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  .sl-drive-pedals {
+    gap: 4px;
+  }
+  .sl-drive-pad,
+  .sl-drive-pad[data-pad='gas'] {
+    height: 54px;
+  }
+  #overlay > .sl-drive {
+    left: 0;
+    right: 0;
+    transform: none;
+  }
+  #overlay > .sl-drive:not(.is-driving) {
+    top: calc(max(var(--margin), env(safe-area-inset-top, 0px)) + 52px);
+    bottom: auto;
+    max-width: none;
+  }
+  #overlay .sl-drive-panel {
+    position: fixed;
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 52px);
+    left: 50%;
+    max-height: min(32dvh, 144px);
+    overflow-y: auto;
+  }
+  .sl-drive:not(.is-driving) .sl-drive-stations-label {
+    display: none;
+  }
+  #overlay:has(> .sl-controls-br.is-mobile-open) > .sl-drive:not(.is-driving) {
+    visibility: hidden;
+  }
   #overlay > .sl-drive.is-driving {
     bottom: var(--sl-mobile-dock-bottom, var(--margin));
     gap: 4px;
@@ -740,6 +771,13 @@
   }
   .sl-drive.is-driving .sl-drive-station-text {
     font-size: 11px;
+  }
+  #overlay > .sl-drive-actions:not(.is-driving) {
+    left: 0;
+    right: 0;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 60px);
+    transform: none;
+    justify-content: center;
   }
 }
 

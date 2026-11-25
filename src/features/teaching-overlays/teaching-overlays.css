@@ -36,3 +36,15 @@
     transform-origin: top right;
   }
 }
+
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #overlay > .sl-teaching-overlays-trace {
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 60px);
+    max-width: calc(50vw - 2 * var(--margin));
+    max-height: min(25dvh, 100px);
+    overflow: auto;
+    pointer-events: auto;
+    transform: none;
+  }
+}

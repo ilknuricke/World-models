@@ -180,6 +180,20 @@
   padding: var(--sp-3);
   border-radius: var(--radius-panel);
 }
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #overlay .sl-replay-share,
+  #overlay .sl-replay-note {
+    position: fixed;
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 52px);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-height: min(32dvh, 144px);
+    overflow-y: auto;
+  }
+}
+
 .sl-replay-share[hidden],
 .sl-replay-note[hidden] {
   display: none;

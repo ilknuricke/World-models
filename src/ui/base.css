@@ -57,6 +57,25 @@ body {
   }
 }
 
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #stage {
+    top: var(--sl-mobile-scene-top, 0px);
+  }
+  #overlay:has(> .sl-engineer.is-open) > :is(.sl-narration, .sl-teaching-overlays-trace),
+  #overlay:has(> .sl-telemetry-panel.is-mobile-expanded) > :is(.sl-narration, .sl-teaching-overlays-trace) {
+    display: none;
+  }
+  #overlay:has(> .sl-controls-br.is-mobile-open) > :is(.sl-insights, .sl-coach, .sl-teaching-overlays-trace) {
+    display: none;
+  }
+  #overlay:has(> .sl-engineer.is-open) .sl-engineer-panel {
+    max-height: min(calc(var(--sl-engineer-viewport-height, 100dvh) * 0.36), 160px);
+  }
+  #overlay > .sl-telemetry-panel.is-mobile-expanded {
+    max-height: min(36dvh, 160px);
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;

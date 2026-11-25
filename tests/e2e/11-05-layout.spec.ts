@@ -231,11 +231,33 @@ for (const [name, viewport, isMobile] of [
   });
 }
 
+const LANDSCAPE_HUD = [
+  '.sl-controls-tag', '.sl-controls-tr', '.sl-controls-br', '.sl-controls-bc', '.sl-controls-amp', '.sl-controls-help', '.sl-controls-restore',
+  '.sl-narration', '.sl-insights', '.sl-coach', '.sl-engineer-toggle', '.sl-engineer-panel', '.sl-telemetry-toggle', '.sl-telemetry-panel',
+  '.sl-drive-pill', '.sl-drive-hint', '.sl-drive-actions', '.sl-drive-panel', '.sl-drive-steer', '.sl-drive-pedals',
+  '.sl-teaching-overlays-trace', '.sl-ghost-lab', '.sl-ghost-lab-note', '.sl-replay-share', '.sl-replay-note', '.sl-credits',
+];
+
+/** Use the actual resized scene, not test-only contact projections based on the full viewport. */
+async function expectLandscapeSceneClear(page: Page): Promise<void> {
+  await expect.poll(() => page.evaluate((selectors) => {
+    const stage = document.querySelector('#stage')!.getBoundingClientRect();
+    if (stage.height <= 0 || stage.width <= 0) return ['scene has no visible area'];
+    return [...document.querySelectorAll<HTMLElement>(selectors.join(','))].filter((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      if (el.hidden || rect.width <= 0 || rect.height <= 0 || style.visibility === 'hidden' || style.display === 'none') return false;
+      return rect.left < stage.right - 1 && rect.right > stage.left + 1 && rect.top < stage.bottom - 1 && rect.bottom > stage.top + 1;
+    }).map((el) => el.className);
+  }, LANDSCAPE_HUD), { message: 'every visible landscape menu or driving control stays outside the vehicle scene' }).toEqual([]);
+}
+
 test.describe('11-05 phone station information after rotation', () => {
   test.use({ viewport: { width: 400, height: 840 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   test.setTimeout(300_000);
 
-  test('landscape moves station information below the drive pill and keeps the scene above it', async ({ page }) => {
+  for (const landscapeSize of [{ width: 844, height: 390 }, { width: 568, height: 320 }]) {
+  test(`${landscapeSize.width}x${landscapeSize.height}: landscape keeps scenario information and touch controls outside the scene`, async ({ page }) => {
     const errors = captureConsole(page);
     await boot(page, '/?e2e=1&quality=low&paused=1&t=40');
     test.skip(!(await page.evaluate(() => globalThis.__app!.drive().available)), 'no Manual Drive plant in this build');
@@ -256,37 +278,95 @@ test.describe('11-05 phone station information after rotation', () => {
       return {
         stage: rect('#stage'), drive: rect('.sl-drive'), pill: rect('.sl-drive-pill'), hint: rect('.sl-drive-hint'),
         reserve: Number.parseFloat(getComputedStyle(document.querySelector('#stage')!).bottom),
+        topReserve: Number.parseFloat(getComputedStyle(document.querySelector('#stage')!).top),
       };
     });
 
     expect((await geometry()).reserve, 'portrait keeps its existing full scene').toBe(0);
-    await page.setViewportSize({ width: 844, height: 390 });
+    await page.setViewportSize(landscapeSize);
     await raf(page);
     await expect(hint).toHaveAttribute('data-kind', 'station');
     await expect(hint).toBeVisible();
     await expect.poll(async () => (await geometry()).reserve, { message: 'rotation reserves space for the driving information' }).toBeGreaterThan(0);
     const landscape = await geometry();
     expect(landscape.hint.top, 'station information is below the drive pill').toBeGreaterThanOrEqual(landscape.pill.bottom);
-    expect(landscape.hint.bottom).toBeLessThanOrEqual(390);
+    expect(landscape.hint.bottom).toBeLessThanOrEqual(landscapeSize.height);
     expect(landscape.hint.left).toBeGreaterThanOrEqual(0);
-    expect(landscape.hint.right).toBeLessThanOrEqual(844);
+    expect(landscape.hint.right).toBeLessThanOrEqual(landscapeSize.width);
     expect(landscape.stage.bottom, 'the vehicle scene ends above the entire driving bar').toBeLessThanOrEqual(landscape.drive.top - 1);
-    await page.screenshot({ path: join(SHOTS, '11-05-station-landscape.png') });
+    expect(landscape.topReserve, 'top menus also have their own space').toBeGreaterThan(0);
+    await expectLandscapeSceneClear(page);
+    const display = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
+    await display.tap();
+    await expect(page.locator('.sl-controls-br')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await display.tap();
+    const pedals = await page.locator('.sl-drive-pedals').boundingBox();
+    expect(pedals!.height, 'compact landscape pedals stay in their reserved band').toBeLessThanOrEqual(113);
+    await page.screenshot({ path: join(SHOTS, `11-05-station-landscape-${landscapeSize.width}.png`) });
 
     // The same mounted layout must restore its space on rotation and HUD/mode changes.
     await page.setViewportSize({ width: 400, height: 840 });
     await expect.poll(async () => (await geometry()).reserve).toBe(0);
+    await expect.poll(async () => (await geometry()).topReserve).toBe(0);
     await page.setViewportSize({ width: 667, height: 376 });
     await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
     await page.evaluate(() => globalThis.__app!.set('hudVisible', false));
-    await expect.poll(async () => (await geometry()).reserve, { message: 'a hidden HUD leaves no stale scene gap' }).toBe(0);
+    // Touch controls intentionally remain usable with the HUD hidden, and still need their own space.
+    await expectLandscapeSceneClear(page);
     await page.getByRole('button', { name: 'Kontrolleri göster', exact: true }).tap();
     await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
     await page.locator('.sl-controls-live').tap();
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode)).toBe('auto');
-    await expect.poll(async () => (await geometry()).reserve, { message: 'returning to Auto releases the manual driving bar space' }).toBe(0);
+    await expectLandscapeSceneClear(page);
+    await expect.poll(async () => (await geometry()).reserve, { message: 'Auto keeps its bottom suspension and launcher dock clear' }).toBeGreaterThan(0);
     await expectHealthyBoot(page, errors);
   });
+
+  test(`${landscapeSize.width}x${landscapeSize.height}: landscape keeps camera, physics, notes and requested sheets outside the scene`, async ({ page }) => {
+    const errors = captureConsole(page);
+    await boot(page, '/?e2e=1&quality=low&paused=1&t=40');
+    await page.setViewportSize(landscapeSize);
+    await expectLandscapeSceneClear(page);
+
+    await page.locator('.sl-drive-stations-btn').tap();
+    await expect(page.locator('.sl-drive-stations-panel')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await page.locator('.sl-drive-stations-btn').press('Escape');
+    await expect(page.locator('.sl-drive-stations-panel')).toBeHidden();
+
+    const display = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
+    await display.tap();
+    await expect(page.locator('.sl-controls-br')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await page.getByRole('radio', { name: 'Yakın plan', exact: true }).tap();
+    await display.tap();
+    const physics = page.getByRole('button', { name: 'Fizik katmanları', exact: true });
+    await physics.tap();
+    await display.tap(); // Readouts yield to the open camera menu; they return when it closes.
+    await expect(page.locator('.sl-teaching-overlays-trace')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await display.tap();
+    await physics.tap();
+    await page.getByRole('radio', { name: 'Takip', exact: true }).tap();
+
+    await page.locator('.sl-telemetry-toggle').tap();
+    await expect(page.locator('.sl-telemetry-panel')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await page.locator('.sl-telemetry-close').tap();
+    await page.getByRole('button', { name: 'Mühendise sor', exact: true }).tap();
+    await expect(page.locator('.sl-engineer-panel')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await page.locator('.sl-engineer-close').tap();
+
+    await page.locator('.sl-narration-notes').tap();
+    await showCoach(page, LONG_LINE);
+    await expectLandscapeSceneClear(page);
+    await showCoach(page, null);
+    await page.screenshot({ path: join(SHOTS, `11-05-landscape-clear-scene-${landscapeSize.width}.png`) });
+    await expectHealthyBoot(page, errors);
+  });
+  }
 });
 
 test.describe('11-05 annex budget (high tier)', () => {

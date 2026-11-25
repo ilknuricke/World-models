@@ -4,6 +4,7 @@
   --sl-caption-top: calc(var(--sl-message-top) + 38px);
   --sl-message-trace-top: calc(var(--sl-caption-top) + 132px);
 }
+
 .sl-narration,
 .sl-insights,
 .sl-coach,
@@ -183,5 +184,21 @@
   .sl-insights-caption,
   .sl-coach-caption {
     font-size: 11px;
+  }
+}
+
+/* Rotated phones keep optional readouts in the bottom band, beside the physics graph. */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #overlay > .sl-narration {
+    top: max(var(--margin), env(safe-area-inset-top, 0px));
+    left: calc(max(var(--margin), env(safe-area-inset-left, 0px)) + 78px);
+  }
+  #overlay > :is(.sl-insights, .sl-coach) {
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 60px);
+    left: max(var(--margin), env(safe-area-inset-left, 0px));
+    right: auto;
+    width: min(292px, calc(50vw - 2 * var(--margin)));
+    max-height: min(25dvh, 100px);
   }
 }

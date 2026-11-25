@@ -98,7 +98,14 @@ function fixture(width = 844, height = 390) {
     win.dispatchEvent(new Event('resize'));
     flush();
   };
-  return { overlay, stage, drive, hint, start, rotate };
+  return { overlay, stage, controls, drive, hint, start, rotate };
+}
+
+function expectOutsideScene(stage: ElementStub, ...menus: ElementStub[]) {
+  const top = Number.parseFloat(stage.style.getPropertyValue('--sl-mobile-scene-top'));
+  const bottom = viewport.height - Number.parseFloat(stage.style.getPropertyValue('--sl-mobile-scene-bottom'));
+  expect(bottom).toBeGreaterThan(top);
+  for (const menu of menus) expect(menu.rect.bottom <= top || menu.rect.top >= bottom).toBe(true);
 }
 
 beforeEach(() => {
@@ -124,21 +131,25 @@ beforeEach(() => {
 
 afterEach(() => { dispose?.(); dispose = undefined; vi.unstubAllGlobals(); });
 
-describe('landscape driving scene clearance', () => {
+describe('landscape menu scene clearance', () => {
   it('reserves the scene above the complete driving bar only in a short landscape viewport', () => {
     const h = fixture(390, 844);
     h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('0px');
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
     h.drive.rect = rectangle(260, 240, 300, 140);
     h.rotate(844, 390);
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('158px');
     h.rotate(390, 844);
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('0px');
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
     h.rotate(1280, 800);
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('0px');
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
   });
 
-  it('releases the scene on Auto, hidden HUD or attract mode without requiring a resize', () => {
+  it('releases hidden or attract controls and follows Auto moving to the top without requiring a resize', () => {
     const h = fixture(); h.start();
     const reserved = h.stage.style.getPropertyValue('--sl-mobile-scene-bottom');
     expect(reserved).toBe('158px');
@@ -149,7 +160,10 @@ describe('landscape driving scene clearance', () => {
       expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe(reserved);
     }
     h.drive.classes.delete('is-driving'); mutate(h.drive, 'class'); flush();
+    h.drive.rect = rectangle(260, 62, 300, 44);
+    mutate(h.drive, 'class'); flush();
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('114px');
   });
 
   it('tracks a hint appearing or disappearing even if the outer bar keeps the same size', () => {
@@ -174,6 +188,115 @@ describe('landscape driving scene clearance', () => {
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('158px');
   });
 
+  it('keeps the Auto toolbar, suspension menu and launchers outside both scene edges', () => {
+    const h = fixture();
+    h.drive.classes.delete('is-driving');
+    h.drive.rect = rectangle(260, 62, 300, 44);
+    const suspension = h.overlay.append(new ElementStub('sl-controls-bc'));
+    suspension.rect = rectangle(158, 336, 556, 44);
+    const engineer = h.overlay.append(new ElementStub('sl-engineer-toggle'));
+    engineer.rect = rectangle(10, 336, 130, 44);
+    const telemetry = h.overlay.append(new ElementStub('sl-telemetry-toggle'));
+    telemetry.rect = rectangle(730, 336, 104, 44);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('114px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('62px');
+    expectOutsideScene(h.stage, h.controls, h.drive, suspension, engineer, telemetry);
+  });
+
+  it('keeps manual suspension controls above the scene and both touch controls below it', () => {
+    const h = fixture();
+    const suspension = h.overlay.append(new ElementStub('sl-controls-bc'));
+    suspension.rect = rectangle(10, 62, 292, 44);
+    const touch = h.overlay.append(new ElementStub('sl-drive-touch'));
+    touch.rect = rectangle(0, 0, 844, 390); // The transparent touch container must never be counted as a menu.
+    const steer = touch.append(new ElementStub('sl-drive-steer'));
+    steer.rect = rectangle(10, 308, 236, 72);
+    const pedals = touch.append(new ElementStub('sl-drive-pedals'));
+    pedals.rect = rectangle(758, 224, 76, 156);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('114px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('174px');
+    expectOutsideScene(h.stage, suspension, h.drive, steer, pedals);
+  });
+
+  it('expands and releases the top band when the camera popup opens without a resize', () => {
+    const h = fixture();
+    const camera = h.overlay.append(new ElementStub('sl-controls-br'));
+    camera.hidden = true;
+    camera.rect = rectangle(565, 62, 269, 44);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
+    camera.hidden = false; mutate(camera, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('114px');
+    expectOutsideScene(h.stage, camera);
+    camera.hidden = true; mutate(camera, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
+    mutate(camera, 'style');
+    expect(frames.size).toBe(0); // Inline geometry outputs do not create a mutation/resize feedback loop.
+  });
+
+  it('measures visible absolute popovers even when the first matching panel is hidden', () => {
+    const h = fixture();
+    const hidden = h.drive.append(new ElementStub('sl-drive-panel'));
+    hidden.hidden = true; hidden.rect = rectangle(0, 0, 300, 250);
+    const popover = h.drive.append(new ElementStub('sl-drive-panel'));
+    popover.rect = rectangle(270, 180, 300, 130);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('218px');
+    expectOutsideScene(h.stage, popover, h.drive);
+    popover.hidden = true; mutate(popover, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('158px');
+  });
+
+  it('keeps visible physics and explanatory readouts in the bottom band', () => {
+    const h = fixture();
+    h.drive.classes.add('is-hidden');
+    const notes = h.overlay.append(new ElementStub('sl-insights'));
+    notes.rect = rectangle(10, 280, 292, 72);
+    const physics = h.overlay.append(new ElementStub('sl-teaching-overlays-trace'));
+    physics.rect = rectangle(330, 220, 292, 132);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('178px');
+    expectOutsideScene(h.stage, notes, physics);
+    physics.hidden = true; mutate(physics, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('118px');
+  });
+
+  it('keeps a positive scene at a small landscape size with coarse pedals and an open camera menu', () => {
+    const h = fixture(568, 320);
+    h.drive.rect = rectangle(180, 202, 280, 108);
+    const pedals = h.overlay.append(new ElementStub('sl-drive-pedals'));
+    pedals.rect = rectangle(482, 198, 76, 112);
+    const steer = h.overlay.append(new ElementStub('sl-drive-steer'));
+    steer.rect = rectangle(10, 238, 180, 72);
+    const camera = h.overlay.append(new ElementStub('sl-controls-br'));
+    camera.rect = rectangle(289, 62, 269, 44);
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('114px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('130px');
+    expectOutsideScene(h.stage, h.controls, h.drive, camera, pedals, steer);
+  });
+
+  it('updates clearance when replay and comparison popovers open or close on a small phone', () => {
+    const h = fixture(568, 320);
+    h.drive.classes.add('is-hidden');
+    const comparison = h.overlay.append(new ElementStub('sl-ghost-lab-note'));
+    comparison.rect = rectangle(10, 220, 300, 60);
+    const replay = h.overlay.append(new ElementStub('sl-replay-share'));
+    replay.rect = rectangle(258, 130, 300, 100);
+    replay.hidden = true;
+    h.start();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('108px');
+    replay.hidden = false; mutate(replay, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('198px');
+    expectOutsideScene(h.stage, comparison, replay);
+    replay.hidden = true; mutate(replay, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('108px');
+    comparison.hidden = true; mutate(comparison, 'hidden'); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
+  });
+
   it('does not reserve space for a drive bar hidden by its layout', () => {
     const h = fixture(); h.drive.visibility = 'hidden'; h.start();
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('0px');
@@ -184,6 +307,7 @@ describe('landscape driving scene clearance', () => {
 
   it('restores existing inline values and stops all scheduled work when disposed', () => {
     const h = fixture();
+    h.stage.style.setProperty('--sl-mobile-scene-top', '7px');
     h.stage.style.setProperty('--sl-mobile-scene-bottom', '12px');
     h.overlay.style.setProperty('--sl-caption-top', '99px');
     h.start();
@@ -192,6 +316,7 @@ describe('landscape driving scene clearance', () => {
     dispose!(); dispose = undefined;
     expect(frames.size).toBe(0);
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('12px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('7px');
     expect(h.overlay.style.getPropertyValue('--sl-caption-top')).toBe('99px');
     expect(MutationStub.instances.every((observer) => observer.disconnect.mock.calls.length === 1)).toBe(true);
     expect(ResizeStub.instances.every((observer) => observer.disconnect.mock.calls.length === 1)).toBe(true);

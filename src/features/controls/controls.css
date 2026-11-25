@@ -804,7 +804,7 @@ button.sl-controls-help-row:hover {
   }
 }
 
-@media (min-width: 600px) and (max-width: 960px) and (max-height: 500px) {
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
   .sl-controls-tr {
     flex-direction: row;
   }
@@ -819,5 +819,31 @@ button.sl-controls-help-row:hover {
   .sl-controls-susp .sl-controls-segment {
     font-size: 11px;
     padding: 0 4px;
+  }
+}
+
+/* One top toolbar also on narrow rotated phones; manual suspension choices open with the display menu. */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  .sl-controls-help {
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 52px);
+    max-height: min(32dvh, 144px);
+    overflow-y: auto;
+  }
+  .sl-controls-tag {
+    max-width: 70px;
+  }
+  .sl-controls-tr {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .sl-controls-br {
+    top: calc(max(var(--margin), env(safe-area-inset-top, 0px)) + 52px);
+  }
+  :root:has(#overlay > .sl-drive.is-driving:not(.is-hidden)) .sl-controls-bc {
+    display: none;
+  }
+  #overlay:has(> .sl-drive.is-driving:not(.is-hidden)):has(> .sl-controls-br.is-mobile-open) > .sl-controls-bc {
+    display: grid;
   }
 }

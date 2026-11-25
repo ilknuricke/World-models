@@ -65,6 +65,16 @@
   pointer-events: auto;
   animation: sl-ghost-lab-in var(--dur-hud) var(--ease);
 }
+
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #overlay > .sl-ghost-lab,
+  #overlay > .sl-ghost-lab-note {
+    top: auto;
+    bottom: calc(var(--sl-mobile-dock-bottom, var(--margin)) + 52px);
+    max-height: min(32dvh, 144px);
+    overflow-y: auto;
+  }
+}
 .sl-ghost-lab[hidden],
 .sl-ghost-lab [hidden],
 .sl-ghost-lab-note[hidden] {
