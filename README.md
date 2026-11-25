@@ -26,7 +26,7 @@ Yatay telefonda **Otomatik / Manuel** seçimi **Anlatım** düğmesinin hemen ya
 
 Hız ve vites, yatay manuel sürüşte araç penceresinin sol üst köşesinde küçük bir gösterge olarak yer alır. Boş hız çubuğu altta yer kaplamaz; senaryo açıklamaları ve etkin uyarılar alt alanda gösterilir.
 
-Yatay telefonda direksiyon daha kısa bir sürgüdür; **Gaz** ve **Fren**, altta yan yana duran 48 piksel yüksekliğinde düğmelerdir. Üstteki konum simgesi **Deney noktaları** seçimini, ayar sürgüleri simgesi **Sürüş destekleri** ayarlarını açar. Diğer küçük düğmeler süspansiyon karşılaştırması, son anları tekrar izleme/paylaşma ve lastik tutunma halkaları içindir.
+Yatay telefonda direksiyon daha kısa bir sürgüdür; **Gaz** ve **Fren**, altta yan yana duran 48 piksel yüksekliğinde düğmelerdir. Süspansiyon karşılaştırması, son anları tekrar izleme/paylaşma ve lastik tutunma halkaları düğmeleri, direksiyon ile pedalların arasındaki alt sıradadır. Senaryo açıklamaları ve etkin uyarılar bu sıranın üzerinde gösterilir. Üstteki konum simgesi **Deney noktaları** seçimini, ayar sürgüleri simgesi **Sürüş destekleri** ayarlarını açar.
 
 ## Bilgisayarınızda çalıştırma
 

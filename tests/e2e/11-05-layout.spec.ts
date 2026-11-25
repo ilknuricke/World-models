@@ -291,6 +291,25 @@ async function expectSpeedInsideScene(page: Page): Promise<void> {
   });
 }
 
+async function expectActionsInBottomRow(page: Page): Promise<void> {
+  await expect(page.locator('.sl-drive-actions.is-driving')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const steering = document.querySelector('.sl-drive-steer')!.getBoundingClientRect();
+    const pedals = document.querySelector('.sl-drive-pedals')!.getBoundingClientRect();
+    const actions = document.querySelector<HTMLElement>('.sl-drive-actions.is-driving')!;
+    const row = actions.getBoundingClientRect();
+    const failures: string[] = [];
+    if (row.left < steering.right - 1 || row.right > pedals.left + 1) failures.push('actions leave the gap between steering and pedals');
+    if (row.top < Math.min(steering.top, pedals.top) - 1 || row.bottom > Math.max(steering.bottom, pedals.bottom) + 1) failures.push('actions leave the bottom control band');
+    for (const notice of document.querySelectorAll<HTMLElement>('.sl-drive-hint, .sl-drive > .sl-drive-pill:not(.sl-drive-mode-control)')) {
+      const rect = notice.getBoundingClientRect();
+      if (!notice.checkVisibility({ opacityProperty: true, visibilityProperty: true }) || rect.width <= 0 || rect.height <= 0) continue;
+      if (row.left < rect.right - 1 && row.right > rect.left + 1 && row.top < rect.bottom - 1 && row.bottom > rect.top + 1) failures.push('actions overlap driving notices');
+    }
+    return failures;
+  }), { message: 'auxiliary actions share the bottom control row without covering steering, pedals or notices' }).toEqual([]);
+}
+
 test.describe('11-05 phone station information after rotation', () => {
   test.use({ viewport: { width: 400, height: 840 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   test.setTimeout(300_000);
@@ -342,6 +361,7 @@ test.describe('11-05 phone station information after rotation', () => {
     await display.tap();
     await expect(page.locator('.sl-controls-br')).toBeVisible();
     await expectLandscapeSceneClear(page);
+    const cameraOpenSceneHeight = await page.locator('#stage').evaluate((el) => el.getBoundingClientRect().height);
     await display.tap();
     const pedals = await page.locator('.sl-drive-pedals').boundingBox();
     const steer = await page.locator('.sl-drive-steer').boundingBox();
@@ -367,6 +387,9 @@ test.describe('11-05 phone station information after rotation', () => {
     }
     const clearStage = await geometry();
     expect(clearStage.stage.bottom).toBeLessThanOrEqual(Math.min(steer!.y, pedals!.y, hintBox?.y ?? landscapeSize.height) - 1);
+    await expectActionsInBottomRow(page);
+    await expect.poll(async () => (await geometry()).topReserve, { message: 'ordinary manual driving reserves only the one-row top toolbar' }).toBe(62);
+    expect((await geometry()).stage.height, 'closing the camera menu recovers the scene height previously occupied by auxiliary controls').toBeGreaterThan(cameraOpenSceneHeight + 40);
     await expectLandscapeSceneClear(page);
     const originalPill = page.locator('.sl-drive > .sl-drive-pill:not(.sl-drive-mode-control)');
     const noNotices = await originalPill.evaluate((el) => !el.matches('.is-returning, .is-off-lap') && !el.querySelector('.sl-drive-lamps.is-lit'));
@@ -397,6 +420,10 @@ test.describe('11-05 phone station information after rotation', () => {
     await expectModeBesideNarration(page);
     await expectSpeedInsideScene(page);
     await expectLandscapeSceneClear(page);
+    await page.evaluate(() => globalThis.__app!.set('amplification', 2.5));
+    await expectActionsInBottomRow(page); // The older amplified-touch selector must not send them back above the car.
+    await expectLandscapeSceneClear(page);
+    await page.evaluate(() => globalThis.__app!.set('amplification', 1));
 
     // The same mounted layout must restore its space on rotation and HUD/mode changes.
     await page.setViewportSize({ width: 400, height: 840 });

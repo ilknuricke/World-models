@@ -1187,4 +1187,19 @@
     height: 48px;
     font-size: 11px;
   }
+  /* Share the bottom thumb-control band; amplification must not lift this row back above the scene. */
+  #overlay:has(> .sl-drive-touch:not([hidden])) > .sl-drive-actions.is-driving,
+  #overlay:has(> .sl-drive-touch:not([hidden])):has(.sl-controls-amp:not([hidden])) > .sl-drive-actions.is-driving {
+    top: auto;
+    left: calc(max(var(--margin), env(safe-area-inset-left)) + var(--sl-drive-steer-w) + var(--sl-hud-gap));
+    right: calc(max(var(--margin), env(safe-area-inset-right)) + var(--sl-drive-pad-w) + var(--sl-hud-gap));
+    bottom: max(var(--margin), env(safe-area-inset-bottom));
+    height: 48px;
+    justify-content: center;
+    gap: 4px;
+  }
+  /* Only visible notices need a row above the shared controls; the layout measures their real height. */
+  #overlay:has(> .sl-drive-touch:not([hidden])):has(> .sl-drive-actions.is-driving > .sl-drive-action:not([hidden])) > .sl-drive.is-driving {
+    bottom: calc(max(var(--margin), env(safe-area-inset-bottom)) + 56px);
+  }
 }
