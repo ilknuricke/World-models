@@ -186,15 +186,32 @@ interface SharedNarration {
 const overlays = new WeakMap<HTMLElement, SharedNarration>();
 
 function mountNarrator(overlay: HTMLElement): SharedNarration {
-  const button = h('button', { type: 'button', class: 'sl-narration-toggle', 'aria-label': 'Sesli anlatım', 'aria-pressed': 'true' });
-  const root = h('div', { class: 'sl-narration' }, button);
+  const fullLabel = h('span', { class: 'sl-narration-full' });
+  const compactLabel = h('span', { class: 'sl-narration-compact', 'aria-hidden': 'true' });
+  const button = h('button', { type: 'button', class: 'sl-narration-toggle', 'aria-label': 'Sesli anlatım', 'aria-pressed': 'true' }, fullLabel, compactLabel);
+  const notes = h('button', { type: 'button', class: 'sl-narration-notes', 'aria-label': 'Viraj notlarını göster', 'aria-expanded': 'false', title: 'Viraj notlarını ekranda göster' }, 'Notlar');
+  const root = h('div', { class: 'sl-narration' }, button, notes);
   overlay.append(root);
+  let notesOpen = false;
+  const setNotesOpen = (open: boolean) => {
+    notesOpen = open;
+    overlay.classList.toggle('sl-mobile-notes-open', open);
+    notes.setAttribute('aria-expanded', String(open));
+    notes.setAttribute('aria-label', open ? 'Viraj notlarını gizle' : 'Viraj notlarını göster');
+    notes.title = open ? 'Viraj notlarını gizle' : 'Viraj notlarını ekranda göster';
+  };
+  notes.addEventListener('click', () => setNotesOpen(!notesOpen));
+  const closeNotes = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') setNotesOpen(false);
+  };
+  window.addEventListener('keydown', closeNotes);
   let narrator: Narrator;
   const sync = (state: NarrationState) => {
     button.disabled = !state.supported;
     button.setAttribute('aria-pressed', String(state.enabled));
-    button.textContent = !state.supported ? 'Anlatım desteklenmiyor' : state.unavailable ? 'Ses kullanılamıyor'
+    fullLabel.textContent = !state.supported ? 'Anlatım desteklenmiyor' : state.unavailable ? 'Ses kullanılamıyor'
       : state.enabled ? (state.speaking ? ((state.priority ?? 0) > 0 ? 'Mühendis yanıtı okunuyor' : 'Anlatım okunuyor') : 'Anlatım açık') : 'Anlatım kapalı';
+    compactLabel.textContent = !state.supported || state.unavailable ? 'Ses yok' : state.enabled ? 'Anlatım' : 'Sessiz';
     button.title = !state.supported ? 'Tarayıcınız sesli anlatımı desteklemiyor.'
       : state.unavailable ? 'Türkçe ses şu anda kullanılamıyor. Yeniden denemek için anlatımı kapatıp açın.'
       : !state.enabled ? 'Türkçe sesli anlatımı aç'
@@ -232,7 +249,9 @@ function mountNarrator(overlay: HTMLElement): SharedNarration {
     cleanup() {
       window.removeEventListener('pointerdown', gesture, true);
       window.removeEventListener('keydown', gesture, true);
+      window.removeEventListener('keydown', closeNotes);
       document.removeEventListener('visibilitychange', visibility);
+      overlay.classList.remove('sl-mobile-notes-open');
       narrator.dispose();
       root.remove();
     },

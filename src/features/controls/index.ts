@@ -119,7 +119,7 @@ export default {
     // --- top-left: vehicle tag
     const name = h('div', { class: 'sl-controls-name' });
     const subtitle = h('span', {});
-    const credits = h('button', { type: 'button', class: 'sl-controls-link', 'aria-expanded': 'false' }, 'Katkıda bulunanlar');
+    const credits = h('button', { type: 'button', class: 'sl-controls-link', 'aria-label': 'Katkıda bulunanlar', 'aria-expanded': 'false' }, 'Katkıda bulunanlar');
     const tag = h(
       'header',
       { class: 'sl-controls-hud sl-controls-tag' },
@@ -142,11 +142,14 @@ export default {
     const vehicleBtn = button('sl-controls-vehicle', 'Aracı değiştir', h('span', { class: 'sl-controls-icon' }), h('span', { class: 'sl-controls-vehicle-text' }));
     setIcon(vehicleBtn.firstElementChild!, 'swap');
     const fullscreen = button('sl-controls-fullscreen', 'Tam ekran');
+    const cameraBtn = button('sl-controls-camera-btn', 'Kamera seçimi', 'Kamera');
+    cameraBtn.setAttribute('aria-expanded', 'false');
+    cameraBtn.setAttribute('aria-controls', 'sl-controls-camera');
     const helpBtn = button('sl-controls-help-btn', 'Klavye kısayolları', '?');
     helpBtn.setAttribute('aria-expanded', 'false');
     helpBtn.setAttribute('aria-controls', 'sl-controls-help');
     const time = h('div', { class: 'sl-controls-group', role: 'group', 'aria-label': 'Zaman' }, live, pause, slow);
-    const tools = h('div', { class: 'sl-controls-group', role: 'group', 'aria-label': 'Görünüm' }, vehicleBtn, fullscreen, helpBtn);
+    const tools = h('div', { class: 'sl-controls-group', role: 'group', 'aria-label': 'Görünüm' }, vehicleBtn, cameraBtn, fullscreen, helpBtn);
     const topRight = h('div', { class: 'sl-controls-hud sl-controls-tr' }, time, tools);
 
     live.addEventListener('click', () => {
@@ -200,11 +203,21 @@ export default {
     const susp = createSegmented('Süspansiyon', 'sl-controls-susp', (id) => c.store.setKey('suspensionId', id));
     const descriptor = h('p', { class: 'sl-controls-descriptor' });
     const bottom = h('div', { class: 'sl-controls-hud sl-controls-bc' }, susp.el, descriptor);
+    let cameraOpen = false;
+    const setCameraOpen = (open: boolean) => {
+      const restoreCameraFocus = cameraOpen && !open && viewWrap.contains(document.activeElement);
+      cameraOpen = open;
+      viewWrap.classList.toggle('is-mobile-open', open);
+      cameraBtn.setAttribute('aria-expanded', String(open));
+      if (restoreCameraFocus) cameraBtn.focus();
+    };
     const view = createSegmented('Kamera', 'sl-controls-view', (id) => {
       if (id === 'follow' || id === 'explore' || id === 'closeup') c.store.setKey('view', id);
+      setCameraOpen(false);
     });
     view.setOptions(VIEWS);
-    const viewWrap = h('div', { class: 'sl-controls-hud sl-controls-br' }, view.el);
+    const viewWrap = h('div', { class: 'sl-controls-hud sl-controls-br', id: 'sl-controls-camera' }, view.el);
+    cameraBtn.addEventListener('click', () => setCameraOpen(!cameraOpen));
 
     // --- HUD hidden: one quiet way back for touch users
     const restore = h('button', { type: 'button', class: 'sl-controls-restore', hidden: true }, 'Kontrolleri göster');
@@ -234,7 +247,8 @@ export default {
       if (r === null) return false;
       if (r === 'help') setHelp(help.hidden);
       else if (r === 'escape') {
-        if (help.hidden && !c.store.get().creditsOpen) return false;
+        if (help.hidden && !c.store.get().creditsOpen && !cameraOpen) return false;
+        setCameraOpen(false);
         setHelp(false);
         c.store.setKey('creditsOpen', false);
       } else set(r);
@@ -319,6 +333,7 @@ export default {
       const isLive = s.clock === 'live' && !s.paused && s.timeScale === 1;
       live.classList.toggle('is-live', isLive);
       live.lastElementChild!.textContent = isLive ? 'Canlı' : 'Canlıya dön';
+      live.setAttribute('aria-label', isLive ? 'Canlı' : 'Canlıya dön');
       live.title = isLive ? 'Ortak canlı tur takip ediliyor' : 'Ortak canlı tura dön';
       setIcon(pause, s.paused ? 'play' : 'pause');
       pause.setAttribute('aria-label', s.paused ? 'Oynat' : 'Duraklat');
@@ -332,9 +347,12 @@ export default {
       credits.setAttribute('aria-expanded', String(s.creditsOpen));
       const hidden = !s.hudVisible || s.attract;
       for (const el of hud) el.classList.toggle('is-hidden', hidden);
-      if (hidden) setHelp(false);
+      if (hidden) {
+        setHelp(false);
+        setCameraOpen(false);
+      }
       restore.hidden = s.hudVisible || s.attract;
     });
-    c.addDisposer(installMessageLayout(c.dom.overlay));
+    c.addDisposer(installMessageLayout(c.dom.overlay, c.dom.stage));
   },
 } satisfies FeatureModule;

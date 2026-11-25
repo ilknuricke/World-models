@@ -47,6 +47,16 @@ body {
   pointer-events: auto;
 }
 
+@media (max-width: 720px), (max-width: 960px) and (max-height: 500px) {
+  #stage {
+    bottom: var(--sl-mobile-scene-bottom, 0px);
+  }
+  #overlay:has(> .sl-engineer.is-keyboard-open) > .sl-narration,
+  #overlay:has(> .sl-engineer.is-keyboard-open) .sl-controls-group[aria-label='Görünüm'] {
+    display: none;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;

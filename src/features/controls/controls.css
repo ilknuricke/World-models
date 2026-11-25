@@ -246,6 +246,9 @@
   font: 400 12px / 1 var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+.sl-controls-camera-btn {
+  display: none;
+}
 .sl-controls-slow {
   padding: 0 var(--sp-2);
 }
@@ -634,5 +637,169 @@ button.sl-controls-help-row:hover {
 @media (max-width: 1400px) {
   :root:has(#overlay > .sl-drive.is-driving:not(.is-hidden)) .sl-controls-view .sl-controls-kbd {
     display: none;
+  }
+}
+
+/* A two-row phone toolbar and one shared bottom dock leave the centre of the scene clear. */
+@media (max-width: 720px), (max-width: 960px) and (max-height: 500px) {
+  :root {
+    --margin: 10px;
+    --sl-hud-zoom: 1;
+    --sl-hud-tag-h: 44px;
+    --sl-hud-gap: 8px;
+    --sl-hud-pill-h: 44px;
+    --sl-hud-susp-base-h: 52px;
+    --sl-mobile-dock-bottom: max(var(--margin), env(safe-area-inset-bottom, 0px));
+    --sl-mobile-sheet-bottom: calc(var(--sl-mobile-dock-bottom) + 52px);
+  }
+  .sl-controls-tag {
+    top: max(var(--margin), env(safe-area-inset-top, 0px));
+    left: max(var(--margin), env(safe-area-inset-left, 0px));
+    height: 44px;
+    max-width: calc(100vw - 2 * var(--margin) - 196px);
+    min-width: 0;
+    gap: 0;
+    padding: 3px 8px;
+  }
+  .sl-controls-wordmark,
+  .sl-controls-sub > span {
+    display: none;
+  }
+  .sl-controls-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .sl-controls-sub {
+    line-height: 12px;
+  }
+  .sl-controls-tag .sl-controls-link {
+    padding: 0;
+    font-size: 0;
+  }
+  .sl-controls-tag .sl-controls-link::before {
+    content: 'Bilgi';
+    font-size: 10px;
+  }
+  .sl-controls-tr {
+    top: max(var(--margin), env(safe-area-inset-top, 0px));
+    right: max(var(--margin), env(safe-area-inset-right, 0px));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .sl-controls-group {
+    height: 44px;
+    gap: 2px;
+    padding: 0 2px;
+  }
+  .sl-controls-btn,
+  .sl-controls-live {
+    height: 44px;
+    min-width: 44px;
+    padding: 0 6px;
+  }
+  .sl-controls-live {
+    gap: 4px;
+  }
+  .sl-controls-live-text {
+    font-size: 0;
+  }
+  .sl-controls-live-text::before {
+    content: 'Dön';
+    font-size: 10px;
+  }
+  .sl-controls-live.is-live .sl-controls-live-text::before {
+    content: 'Canlı';
+  }
+  .sl-controls-camera-btn {
+    display: inline-flex;
+    font-size: 10px;
+  }
+  .sl-controls-vehicle-text,
+  .sl-controls-segment-label,
+  .sl-controls-kbd,
+  .sl-controls-help-btn {
+    display: none;
+  }
+  .sl-controls-segment-short {
+    display: inline;
+  }
+  .sl-controls-br {
+    display: none;
+    top: calc(max(var(--margin), env(safe-area-inset-top, 0px)) + 104px);
+    right: max(var(--margin), env(safe-area-inset-right, 0px));
+    bottom: auto;
+    z-index: 5;
+  }
+  .sl-controls-br.is-mobile-open {
+    display: block;
+  }
+  .sl-controls-view .sl-controls-segment {
+    min-width: 60px;
+    height: 44px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .sl-controls-view .sl-controls-segment-label {
+    display: inline;
+  }
+  .sl-controls-bc {
+    left: max(var(--margin), env(safe-area-inset-left, 0px));
+    right: max(var(--margin), env(safe-area-inset-right, 0px));
+    bottom: calc(var(--sl-mobile-dock-bottom) + 52px);
+    transform: none;
+    gap: 0;
+  }
+  .sl-controls-susp {
+    width: 100%;
+    padding: 4px;
+  }
+  .sl-controls-susp .sl-controls-segment {
+    flex: 1 1 0;
+    height: 44px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+  .sl-controls-descriptor,
+  #overlay > .sl-live-lab {
+    display: none;
+  }
+  #overlay:has(> .sl-engineer.is-open) > :is(.sl-controls-bc, .sl-drive, .sl-drive-actions, .sl-controls-br),
+  #overlay:has(> .sl-telemetry-panel.is-mobile-expanded) > :is(.sl-controls-bc, .sl-drive, .sl-drive-actions, .sl-controls-br) {
+    display: none;
+  }
+  .sl-controls-help {
+    max-height: calc(100dvh - 2 * var(--margin));
+    overflow-y: auto;
+  }
+  .sl-controls-amp {
+    top: calc(max(var(--margin), env(safe-area-inset-top, 0px)) + 104px);
+    left: var(--margin);
+    transform: none;
+    gap: 6px;
+    max-width: calc(100vw - 2 * var(--margin));
+    padding-left: 8px;
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 960px) and (max-height: 500px) {
+  .sl-controls-tr {
+    flex-direction: row;
+  }
+  .sl-controls-br {
+    top: calc(max(var(--margin), env(safe-area-inset-top, 0px)) + 52px);
+  }
+  .sl-controls-bc {
+    left: calc(max(var(--margin), env(safe-area-inset-left, 0px)) + 158px);
+    right: calc(max(var(--margin), env(safe-area-inset-right, 0px)) + 120px);
+    bottom: var(--sl-mobile-dock-bottom);
+  }
+  .sl-controls-susp .sl-controls-segment {
+    font-size: 11px;
+    padding: 0 4px;
   }
 }

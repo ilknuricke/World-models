@@ -191,6 +191,18 @@ for (const [name, viewport, isMobile] of [
       if (name === 'phone') expect(tele).toBeUndefined();
       else expect(tele!.w).toBeLessThan(200); // folded to the g-g and its two numbers
 
+      if (name === 'phone') {
+        const notes = page.locator('.sl-narration-notes');
+        const camera = page.getByRole('button', { name: 'Kamera seçimi', exact: true });
+        await expect(notes).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('.sl-controls-br')).toBeHidden();
+        await notes.tap();
+        await camera.tap();
+        await expect(notes).toHaveAttribute('aria-expanded', 'true');
+        await expect(camera).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.locator('.sl-controls-br')).toBeVisible();
+      }
+
       await showCoach(page, LONG_LINE);
       await raf(page);
       list = await boxes(page);
@@ -204,8 +216,15 @@ for (const [name, viewport, isMobile] of [
       expect(coach.h).toBeLessThanOrEqual(140);
       const controls = list.find((b) => b.sel === '.sl-controls-br')!;
       expect(coach.y).toBeGreaterThan(controls.y + controls.h);
-      expect(coach.x + coach.w).toBeLessThanOrEqual(viewport.width - 16);
+      expect(coach.x + coach.w).toBeLessThanOrEqual(viewport.width - (name === 'phone' ? 10 : 16));
       console.log(`[11-05] ${name}\n${report.join('\n')}`);
+      if (name === 'phone') {
+        await page.locator('.sl-narration-notes').tap();
+        await page.getByRole('button', { name: 'Kamera seçimi', exact: true }).tap();
+        await expect(page.locator('.sl-narration-notes')).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('.sl-coach-caption')).toBeHidden();
+        await expect(page.locator('.sl-controls-br')).toBeHidden();
+      }
       await showCoach(page, null);
       await expectHealthyBoot(page, errors);
     });

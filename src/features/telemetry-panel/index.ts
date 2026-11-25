@@ -23,6 +23,72 @@ const BIKE_LABEL: Readonly<Record<Metric, string>> = { ...METRIC_LABEL, camber: 
 /** Smallest sparkline span per metric (SI), so a quiet signal is not magnified into noise. */
 const MIN_SPAN: Readonly<Record<Metric, number>> = { camber: (1 * Math.PI) / 180, travel: 0.02, load: 1000 };
 
+const MOBILE_PANEL_QUERY = '(max-width: 720px), (max-width: 960px) and (max-height: 500px)';
+
+/** Keep the phone's scene clear until the visitor asks for the telemetry sheet. */
+export function mountTelemetryDisclosure(c: FeatureContext, root: HTMLElement, header: HTMLElement, refresh: () => void = () => {}): void {
+  const toggle = h('button', {
+    class: 'sl-telemetry-toggle', type: 'button', hidden: true,
+    'aria-label': 'Telemetri', 'aria-expanded': 'false', 'aria-controls': 'sl-telemetry-panel',
+  }, 'Telemetri');
+  const close = h('button', { class: 'sl-telemetry-close', type: 'button', 'aria-label': 'Telemetriyi kapat', hidden: true }, '×');
+  header.append(close);
+  c.addDisposer(mount(c.dom.overlay, toggle));
+  const media = typeof globalThis.matchMedia === 'function' ? globalThis.matchMedia(MOBILE_PANEL_QUERY) : null;
+  let mobile = media?.matches ?? false;
+  let expanded = false;
+  let driveMode = c.store.get().driveMode;
+
+  const sync = () => {
+    const state = c.store.get();
+    const visible = state.hudVisible && !state.attract;
+    const wasHidden = root.hidden;
+    root.hidden = !visible || (mobile ? !expanded : state.engineerOpen);
+    root.classList.toggle('is-mobile-expanded', mobile && expanded);
+    toggle.hidden = !mobile || !visible;
+    close.hidden = !mobile;
+    toggle.setAttribute('aria-expanded', String(mobile && expanded));
+    toggle.title = expanded ? 'Telemetriyi kapat' : 'Telemetriyi aç';
+    if (wasHidden && !root.hidden) refresh(); // Opening a sheet while paused still shows the current sample.
+  };
+  const collapse = (focus = false) => {
+    expanded = false;
+    sync();
+    if (focus && !toggle.hidden) toggle.focus();
+  };
+  toggle.addEventListener('click', () => {
+    if (!mobile) return;
+    expanded = !expanded;
+    if (expanded) c.store.setKey('engineerOpen', false);
+    sync();
+  });
+  close.addEventListener('click', () => collapse(true));
+  const resize = () => {
+    mobile = media?.matches ?? false;
+    collapse(); // A desktop panel must not become an open phone sheet after rotation/resizing.
+  };
+  const escape = (event: KeyboardEvent) => {
+    if (!mobile || !expanded || event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    collapse(true);
+  };
+  media?.addEventListener?.('change', resize);
+  document.addEventListener('keydown', escape);
+  c.watch((state) => {
+    // Release the dock before touch pedals appear; a CSS-hidden expanded sheet must not keep other controls hidden.
+    const takingOver = mobile && state.driveMode !== 'auto' && state.driveMode !== driveMode;
+    if (takingOver || state.engineerOpen || !state.hudVisible || state.attract) expanded = false;
+    driveMode = state.driveMode;
+    sync();
+  });
+  sync();
+  c.addDisposer(() => {
+    media?.removeEventListener?.('change', resize);
+    document.removeEventListener('keydown', escape);
+  });
+}
+
 /** Display form of a TRUE corner metric (format.ts conversions). */
 export const DISPLAY: Readonly<Record<Metric, { readonly convert: (si: number) => number; readonly decimals: number; readonly unit: string }>> = {
   camber: { convert: deg, decimals: 1, unit: '°' },
@@ -247,10 +313,11 @@ const telemetryPanel: FeatureModule = {
     const ghostName = h('span');
     const ghostNote = h('span');
     const ghostLegend = h('span', { class: 'sl-telemetry-panel-legend is-ghost', hidden: true }, ghostName, ghostNote);
+    const header = h('header', { class: 'sl-telemetry-panel-head' }, h('span', { class: 'sl-label' }, 'Telemetri'), scaleNote);
     const root = h(
       'section',
-      { class: 'sl-telemetry-panel', 'aria-label': 'Telemetri' },
-      h('header', { class: 'sl-telemetry-panel-head' }, h('span', { class: 'sl-label' }, 'Telemetri'), scaleNote),
+      { class: 'sl-telemetry-panel', id: 'sl-telemetry-panel', 'aria-label': 'Telemetri' },
+      header,
       h(
         'div',
         { class: 'sl-telemetry-panel-top' },
@@ -310,6 +377,7 @@ const telemetryPanel: FeatureModule = {
     st = s;
     tabs.forEach((b, i) => b.addEventListener('click', () => setMetric(s, i)));
     resetVehicle(s);
+    mountTelemetryDisclosure(c, root, header, () => { draw(s); writeNumbers(s); });
 
     c.on('sim:vehicle', () => resetVehicle(s));
     c.on('sim:suspension', ({ previous }) => configure(s, previous));
@@ -319,8 +387,6 @@ const telemetryPanel: FeatureModule = {
       s.lastSimTime = -Infinity;
     });
     c.watch((state) => {
-      // The engineer panel grows upward into this column: give it the space while open. Attract mode is a clean film.
-      root.hidden = !state.hudVisible || state.engineerOpen || state.attract;
       // Close-up: the wheel is the hero; the card folds to the g-g and its two numbers (the camber trace takes over).
       root.classList.toggle('is-compact', state.view === 'closeup');
       scaleNote.hidden = state.amplification === 1;

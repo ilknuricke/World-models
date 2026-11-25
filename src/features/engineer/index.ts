@@ -25,6 +25,7 @@ const WHY_WINDOW_S = 1;
 const REQUEST_TIMEOUT_MS = 17_000;
 const HIGHLIGHT_MS = 4000;
 const WHY = 'Bunu neden yaptı?';
+const COMPACT_QUERY = '(max-width: 720px), (max-width: 960px) and (max-height: 500px)';
 /** A detected drive event counts for questions this long after it (ARCH-M2 §12.4)... */
 const EVENT_WINDOW_S = 5;
 /** ...or this long once the visitor engaged with it (opened the panel, focused the input, its chips were shown). */
@@ -209,12 +210,52 @@ const engineer: FeatureModule = {
     const send = h('button', { class: 'sl-engineer-send', type: 'submit', 'aria-label': 'Sor' }, '↵');
     const form = h('form', { class: 'sl-engineer-form' }, input, send);
     const why = h('button', { class: 'sl-engineer-why', type: 'button' }, WHY);
-    const panel = h('section', { class: 'sl-engineer-panel', id: 'sl-engineer-panel', 'aria-label': 'Yarış mühendisi', hidden: true }, why, chipRow, form);
+    const close = h('button', { class: 'sl-engineer-close', type: 'button', 'aria-label': 'Mühendisi kapat' }, '×');
+    const head = h('div', { class: 'sl-engineer-head' }, h('span', {}, 'Yarış mühendisi'), close);
+    const questions = h('div', { class: 'sl-engineer-questions' }, why, chipRow);
+    const panel = h('section', { class: 'sl-engineer-panel', id: 'sl-engineer-panel', 'aria-label': 'Yarış mühendisi', hidden: true }, head, questions, form);
     const toggle = h('button', { class: 'sl-engineer-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': 'sl-engineer-panel' }, 'Mühendise sor');
     const root = h('div', { class: 'sl-engineer' }, panel, toggle);
     rootEl = root;
     c.addDisposer(mount(c.dom.overlay, root));
     c.addDisposer(mount(c.dom.overlay, answer));
+
+    // A phone gets one bounded sheet, rather than a form and a second card over the vehicle.
+    // Keep the same status node and narration owner when rotating or resizing the page.
+    const compact = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(COMPACT_QUERY) : null;
+    const viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    const syncViewport = () => {
+      if (!viewport) return;
+      if (!compact?.matches) {
+        root.style.removeProperty('--sl-engineer-keyboard-inset');
+        root.style.removeProperty('--sl-engineer-viewport-height');
+        root.classList.remove('is-keyboard-open');
+        return;
+      }
+      // Safari may leave the layout viewport unchanged when the software keyboard appears.
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      root.style.setProperty('--sl-engineer-keyboard-inset', `${inset}px`);
+      root.style.setProperty('--sl-engineer-viewport-height', `${viewport.height}px`);
+      root.classList.toggle('is-keyboard-open', inset > 0);
+    };
+    const placeAnswer = () => {
+      if (compact?.matches) panel.append(answer);
+      else c.dom.overlay.append(answer);
+      syncViewport();
+    };
+    if (compact) {
+      placeAnswer();
+      compact.addEventListener('change', placeAnswer);
+      c.addDisposer(() => compact.removeEventListener('change', placeAnswer));
+    }
+    if (viewport) {
+      viewport.addEventListener('resize', syncViewport);
+      viewport.addEventListener('scroll', syncViewport);
+      c.addDisposer(() => {
+        viewport.removeEventListener('resize', syncViewport);
+        viewport.removeEventListener('scroll', syncViewport);
+      });
+    }
 
     const narration = acquireNarration(c.dom.overlay, { priority: 10 });
     c.addDisposer(() => narration.dispose());
@@ -345,11 +386,16 @@ const engineer: FeatureModule = {
       const q = input.value.trim();
       if (q) askNow(q);
       input.value = '';
+      if (q && compact?.matches) input.blur();
     });
     toggle.addEventListener('click', () => {
       if (!c.store.get().engineerOpen) engage();
       root.classList.remove('is-fresh');
       c.store.setKey('engineerOpen', !c.store.get().engineerOpen);
+    });
+    close.addEventListener('click', () => {
+      c.store.setKey('engineerOpen', false);
+      toggle.focus();
     });
     root.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -357,7 +403,15 @@ const engineer: FeatureModule = {
         toggle.focus();
       }
     });
+    let previousDriveMode = c.store.get().driveMode;
     c.watch((s) => {
+      const takeover = previousDriveMode === 'auto' && s.driveMode !== 'auto';
+      previousDriveMode = s.driveMode;
+      if (compact?.matches && takeover && s.engineerOpen) {
+        // Touch driving hides this sheet. Drop its open state too so the Auto-return control stays reachable.
+        c.store.setKey('engineerOpen', false);
+        return; // A nested store notification owns the new closed state, not this older snapshot.
+      }
       panel.hidden = !s.engineerOpen;
       toggle.setAttribute('aria-expanded', String(s.engineerOpen));
       root.classList.toggle('is-open', s.engineerOpen);
