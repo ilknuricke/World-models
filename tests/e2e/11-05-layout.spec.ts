@@ -231,6 +231,64 @@ for (const [name, viewport, isMobile] of [
   });
 }
 
+test.describe('11-05 phone station information after rotation', () => {
+  test.use({ viewport: { width: 400, height: 840 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  test.setTimeout(300_000);
+
+  test('landscape moves station information below the drive pill and keeps the scene above it', async ({ page }) => {
+    const errors = captureConsole(page);
+    await boot(page, '/?e2e=1&quality=low&paused=1&t=40');
+    test.skip(!(await page.evaluate(() => globalThis.__app!.drive().available)), 'no Manual Drive plant in this build');
+
+    // Select an actual experiment: ?spawn alone does not show the visitor's station information.
+    await page.locator('.sl-drive-stations-btn').tap();
+    await page.locator('#sl-drive-stations-panel [data-station="steering-pad"]').tap();
+    const hint = page.locator('.sl-drive-hint');
+    await expect(hint).toHaveAttribute('data-kind', 'station');
+    await expect(hint).toHaveClass(/is-shown/);
+    await expect(page.locator('.sl-drive-touch')).toBeVisible();
+
+    const geometry = () => page.evaluate(() => {
+      const rect = (selector: string) => {
+        const r = document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height };
+      };
+      return {
+        stage: rect('#stage'), drive: rect('.sl-drive'), pill: rect('.sl-drive-pill'), hint: rect('.sl-drive-hint'),
+        reserve: Number.parseFloat(getComputedStyle(document.querySelector('#stage')!).bottom),
+      };
+    });
+
+    expect((await geometry()).reserve, 'portrait keeps its existing full scene').toBe(0);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await raf(page);
+    await expect(hint).toHaveAttribute('data-kind', 'station');
+    await expect(hint).toBeVisible();
+    await expect.poll(async () => (await geometry()).reserve, { message: 'rotation reserves space for the driving information' }).toBeGreaterThan(0);
+    const landscape = await geometry();
+    expect(landscape.hint.top, 'station information is below the drive pill').toBeGreaterThanOrEqual(landscape.pill.bottom);
+    expect(landscape.hint.bottom).toBeLessThanOrEqual(390);
+    expect(landscape.hint.left).toBeGreaterThanOrEqual(0);
+    expect(landscape.hint.right).toBeLessThanOrEqual(844);
+    expect(landscape.stage.bottom, 'the vehicle scene ends above the entire driving bar').toBeLessThanOrEqual(landscape.drive.top - 1);
+    await page.screenshot({ path: join(SHOTS, '11-05-station-landscape.png') });
+
+    // The same mounted layout must restore its space on rotation and HUD/mode changes.
+    await page.setViewportSize({ width: 400, height: 840 });
+    await expect.poll(async () => (await geometry()).reserve).toBe(0);
+    await page.setViewportSize({ width: 667, height: 376 });
+    await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
+    await page.evaluate(() => globalThis.__app!.set('hudVisible', false));
+    await expect.poll(async () => (await geometry()).reserve, { message: 'a hidden HUD leaves no stale scene gap' }).toBe(0);
+    await page.getByRole('button', { name: 'Kontrolleri göster', exact: true }).tap();
+    await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
+    await page.locator('.sl-controls-live').tap();
+    await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode)).toBe('auto');
+    await expect.poll(async () => (await geometry()).reserve, { message: 'returning to Auto releases the manual driving bar space' }).toBe(0);
+    await expectHealthyBoot(page, errors);
+  });
+});
+
 test.describe('11-05 annex budget (high tier)', () => {
   test.use({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
   test.setTimeout(400_000);

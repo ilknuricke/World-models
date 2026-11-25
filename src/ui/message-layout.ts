@@ -1,4 +1,4 @@
-/** Keep explanatory messages below the actual, possibly wrapped top-right controls. */
+/** Place messages below the controls and keep the compact driving scene clear of occupied bottom panels. */
 export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement): () => void {
   let frame = 0;
   let disposed = false;
@@ -6,7 +6,7 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
   const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top'] as const;
   const initial = properties.map((name) => overlay.style.getPropertyValue(name));
   const initialSceneBottom = stage?.style.getPropertyValue('--sl-mobile-scene-bottom') ?? '';
-  const selectors = '.sl-controls-tr, .sl-controls-br, .sl-narration, .sl-insights, .sl-coach, .sl-engineer-answer, .sl-engineer-panel, .sl-telemetry-panel';
+  const selectors = '.sl-controls-tr, .sl-controls-br, .sl-narration, .sl-insights, .sl-coach, .sl-engineer-answer, .sl-engineer-panel, .sl-telemetry-panel, .sl-drive, .sl-drive-hint';
   const box = (selector: string): DOMRect | null => {
     const el = overlay.querySelector<HTMLElement>(selector);
     if (!el || el.hidden || getComputedStyle(el).visibility === 'hidden') return null;
@@ -37,7 +37,10 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
     const captionHeight = Math.max(box('.sl-insights')?.height ?? 0, box('.sl-coach')?.height ?? 0, compact ? 0 : box('.sl-engineer-answer')?.height ?? 0);
     if (stage) {
       const sheet = compact ? box('.sl-engineer-panel') ?? box('.sl-telemetry-panel') : null;
-      const bottom = sheet ? Math.max(0, area.bottom - sheet.top + gap) : 0;
+      const landscape = compact && window.matchMedia('(max-width: 960px) and (max-height: 500px) and (orientation: landscape)').matches;
+      const drive = landscape ? box('.sl-drive.is-driving:not(.is-hidden):not(.is-attract)') : null;
+      const occupiedTop = Math.min(sheet?.top ?? area.bottom, drive?.top ?? area.bottom);
+      const bottom = sheet || drive ? Math.max(0, area.bottom - occupiedTop + gap) : 0;
       const value = `${Math.ceil(bottom)}px`;
       if (stage.style.getPropertyValue('--sl-mobile-scene-bottom') !== value) stage.style.setProperty('--sl-mobile-scene-bottom', value);
     }
@@ -52,11 +55,14 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
     if (!disposed && !frame) frame = requestAnimationFrame(update);
   };
   const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
+  // A dock can change position or visibility without changing size. Ignore our own CSS variable writes.
+  const visibility = new MutationObserver(schedule);
   const observe = () => {
     for (const el of overlay.querySelectorAll(selectors)) {
       if (observed.has(el)) continue;
       observed.add(el);
       resize?.observe(el);
+      visibility.observe(el, { attributes: true, attributeFilter: ['class', 'hidden', 'data-kind'] });
     }
     schedule();
   };
@@ -73,6 +79,7 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
     cancelAnimationFrame(frame);
     children.disconnect();
     resize?.disconnect();
+    visibility.disconnect();
     observed.clear();
     window.removeEventListener('resize', schedule);
     viewport?.removeEventListener('resize', schedule);

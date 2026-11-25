@@ -717,6 +717,32 @@
   }
 }
 
+/* A scenario's instructions belong below the driving controls on a rotated phone. */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  #overlay > .sl-drive.is-driving {
+    bottom: var(--sl-mobile-dock-bottom, var(--margin));
+    gap: 4px;
+  }
+  .sl-drive.is-driving .sl-drive-hint {
+    order: 1;
+  }
+  .sl-drive.is-driving .sl-drive-hint:not(.is-shown) {
+    display: none;
+  }
+  .sl-drive.is-driving .sl-drive-hint[data-kind='station'] {
+    min-height: 0;
+    max-width: min(440px, 100%);
+    max-height: min(20dvh, 80px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    pointer-events: auto;
+    padding: 6px 10px;
+  }
+  .sl-drive.is-driving .sl-drive-station-text {
+    font-size: 11px;
+  }
+}
+
 /* ---------------------------------------------------------------- Returning chip (10-04) */
 
 .sl-drive-return {
