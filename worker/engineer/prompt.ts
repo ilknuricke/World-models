@@ -1,6 +1,6 @@
 /** System prompt + message list for the Race Engineer (ARCHITECTURE §12.5 step 2). */
 import type { EngineerRequest, EngineerTelemetry } from '../../src/contracts/engineer';
-import type { TrackSegmentDefinition } from '../../src/contracts/track';
+import type { Phenomenon, TrackSegmentDefinition } from '../../src/contracts/track';
 import type { StationDefinition } from '../../src/contracts/world';
 import { factsFor } from './facts';
 import type { ChatMessage } from './model';
@@ -23,6 +23,16 @@ D2. Explain ONLY what DETECTED names. If DETECTED is none, say plainly that no s
 D3. For "what changed when I switched", use MEASURED DIFFERENCES WHILE DRIVING; for the strut against the double wishbone say they drive almost the same here.
 D4. Assists are simplified models; launch and stopping figures are model outputs, not predictions for a real car.
 D5. While driving the only tools are the camera close-up and the glow; never change slow motion, switch suspension or jump anywhere, even if asked.`;
+
+/** The track is shared; corner captions about outside car wheels need a single-track interpretation. */
+const MOTO_SECTION: Partial<Record<Phenomenon, string>> = {
+  'sustained-roll': 'A sustained corner: the whole motorcycle leans into the turn. Explain the measured lean and tyre loads.',
+  'steady-state-roll': 'A long constant-radius corner: observe whole-bike lean and lateral acceleration.',
+  'off-camber': 'An outward-banked corner: explain the motorcycle lean and tyre contact relative to the road.',
+  'roll-reversal': 'Successive turns reverse the motorcycle lean; the steering geometry and suspension respond to the direction change.',
+};
+
+const MOTO_CONTEXT = `MOTORCYCLE CONTEXT: This vehicle has one front wheel and one rear wheel. It leans into a turn as a whole. Use the active Classic, Modern or Telelever facts and the front/rear telemetry; its lean is distinct from a car body rolling outward. Suspension recommendations concern motorcycle presets unless the visitor explicitly asks to compare vehicle classes.`;
 
 const CORNER = { fl: 'front-left', fr: 'front-right', rl: 'rear-left', rr: 'rear-right', f: 'front', r: 'rear' } as const;
 const DERIVED: Readonly<Record<string, string>> = {
@@ -90,9 +100,14 @@ export function describeDrive(t: EngineerTelemetry): string {
 
 export function buildMessages(req: EngineerRequest, section: TrackSegmentDefinition | undefined, station?: StationDefinition): ChatMessage[] {
   const t = req.telemetry;
+  const motorcycle = t.vehicle_class === 'motorcycle';
   const driving = t.drive !== undefined && t.vehicle_class === 'car';
-  const where = station ? `STATION: ${station.name}. ${station.caption} Try: ${station.experiment}` : section ? `SECTION: ${section.name}. ${section.caption}` : `SECTION: ${t.section_name}`;
-  const rules = driving ? `${RULES.replace('A visitor is watching a self-driving car', 'A visitor is driving the car').replace(/^3\. .*\n/m, '')}\n${DRIVE_RULES}` : RULES;
+  const caption = section && motorcycle ? MOTO_SECTION[section.phenomenon] ?? section.caption : section?.caption;
+  const where = station ? `STATION: ${station.name}. ${station.caption} Try: ${station.experiment}` : section ? `SECTION: ${section.name}. ${caption}` : `SECTION: ${t.section_name}`;
+  const autoRules = motorcycle
+    ? `${RULES.replace('A visitor is watching a self-driving car', 'A visitor is watching a self-driving motorcycle').replace('In a corner, the outside wheels are the ones named in EVENT.', 'In a corner, describe the whole motorcycle leaning into the turn and its front and rear tyre loads.')}\n${MOTO_CONTEXT}`
+    : RULES;
+  const rules = driving ? `${RULES.replace('A visitor is watching a self-driving car', 'A visitor is driving the car').replace(/^3\. .*\n/m, '')}\n${DRIVE_RULES}` : autoRules;
   const drive = driving ? `\n${describeDrive(t)}` : '';
   const system = `${rules}\nFACTS\n${factsFor(t.vehicle_class, t.suspension, driving)}\n${where}\nTELEMETRY (from the simulator${driving ? ', captured at the detected event' : ', live'})\n${describeTelemetry(t)}${drive}`;
   return [{ role: 'system', content: system }, ...req.history.map((m) => ({ role: m.role, content: m.content })), { role: 'user', content: req.question }];

@@ -22,6 +22,7 @@ export const COMMON_CAR = [AUTO_INTRO, SHARED, SIGNS, GRIP_USE, DEFINITIONS, ROL
 
 export const COMMON_MOTORCYCLE = `The motorcycle is a self-driving cafe racer with representative parameters, not the data of any real bike. It leans into corners; roll_deg is its lean angle. Corners: f front, r rear.
 Typical tendencies: a telescopic fork compresses under braking, so the front dives and the steering geometry tightens; a Telelever front separates braking forces from the spring, so it dives much less; a linkage rear suspension usually stiffens progressively deeper into its travel; a twin-shock rear is simpler and lighter in parts.
+The motorcycle presets use different springs and dampers as well as different mechanisms; their responses are not a geometry-only comparison.
 Not modelled: frame and fork flex, tyre temperature and wear, rider body movement and aerodynamics.
 No layout is best overall; each trades cost, weight, feel and control.`;
 
@@ -44,6 +45,21 @@ Its camber gain in bump and its camber recovery in roll lie between the strut an
 It has the lowest roll centre of the three here, so slightly more of the load transfer goes through the springs and the body rolls a tiny bit more. In this layout its roll centre moves sideways the least of the three as the body rolls, because its lower links sit close to horizontal across the car.
 Its main real-world advantage is control of toe and camber under cornering and braking forces through deliberately designed bushing compliance. This simulation uses rigid links, so that advantage is not modelled and does not show; all three types were tuned to almost no bump steer.
 Strengths: typically the most freedom to tune camber, toe and anti-dive or anti-squat independently, and good isolation. Costs: the most parts, cost and tuning effort.`,
+};
+
+/** Representative layouts from the motorcycle content definitions, separate from the car's active cards. */
+export const MOTORCYCLE_SUSPENSION_FACTS: Readonly<Record<string, string>> = {
+  'moto-classic': `ACTIVE SUSPENSION: Klasik motorcycle preset. A right-way-up telescopic fork guides the front wheel, with the springs and dampers working along the fork axis.
+Under braking the fork compresses, reducing the front ride height and changing rake and trail. Sliding friction can delay its first movement over small bumps.
+The rear is a conventional swingarm with twin direct-acting shocks. Its geometry is nearly linear; a dual-rate spring changes stiffness deeper in travel.
+Typical trade-offs are simple construction and maintenance against brake dive and sliding friction. These are representative settings; fork and frame flex are not modelled.`,
+  'moto-modern': `ACTIVE SUSPENSION: Modern motorcycle preset. An inverted telescopic fork guides the front wheel; it shares the Classic preset's steering geometry and still dives under braking.
+The rear swingarm drives a monoshock through a rocker and linkage. The changing motion ratio makes the rear progressively stiffer deeper into travel, even though the shock spring itself is linear.
+Typical trade-offs are control of the rear motion ratio and central shock placement against extra joints, bearings and packaging space. An inverted fork can be stiffer in real construction, but fork flex is not modelled here and is not evidence of extra grip.`,
+  'moto-telelever': `ACTIVE SUSPENSION: Telelever motorcycle preset. A front locating arm and joint determine the wheel path; the fork tubes steer and guide, while the spring and damper act on the arm.
+The arm geometry sets anti-dive rather than an assigned anti-dive constant. It opposes brake dive and preserves steering geometry more than the telescopic layouts; the front wheel path can increase trail as the suspension compresses.
+The rear is a single-sided swingarm with a direct-acting monoshock, without the Modern preset's rocker linkage.
+Typical trade-offs are less brake dive and less spring loading through the fork tubes against extra front-end parts, different brake feel and a wheel path that can feel harsher on sharp edges. These are representative mechanisms, not specifications for a production motorcycle.`,
 };
 
 // ---------------------------------------------------------------- Manual Drive (12-03)
@@ -80,11 +96,15 @@ const ML_AUTO = 'This simulation uses rigid links, so that advantage is not mode
 const ML_DRIVE = 'While the visitor drives, this model includes that compliance (see the compliance fact); all three types were tuned to almost no bump steer.';
 
 export function factsFor(vehicleClass: string, suspension: string, driving = false): string {
-  if (driving && vehicleClass === 'car') {
+  if (vehicleClass === 'motorcycle') {
+    const card = MOTORCYCLE_SUSPENSION_FACTS[suspension];
+    return card ? `${COMMON_MOTORCYCLE}\n${card}` : COMMON_MOTORCYCLE;
+  }
+  if (vehicleClass !== 'car') return 'Unknown vehicle class; no suspension grounding is available.';
+  if (driving) {
     const card = SUSPENSION_FACTS[suspension]?.replace(ML_AUTO, ML_DRIVE);
     return [DRIVE_COMMON, DRIVE_COMPARE, ...(card ? [card] : [])].join('\n');
   }
-  const common = vehicleClass === 'motorcycle' ? COMMON_MOTORCYCLE : COMMON_CAR;
   const card = SUSPENSION_FACTS[suspension];
-  return card ? `${common}\n${card}` : common;
+  return card ? `${COMMON_CAR}\n${card}` : COMMON_CAR;
 }

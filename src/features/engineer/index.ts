@@ -16,7 +16,7 @@ import { h, mount } from '../../ui/dom';
 import { acquireNarration } from '../../ui/narration';
 import './engineer.css';
 import { driveKey, driveLabel, ruleAnswer, type DriveMoment } from './rules';
-import { buildTelemetry, CHIPS, createSnap, DRIVE_CHIPS, EVENT_CHIPS, fillSnap, placeOf, SnapshotRing, type DriveContext, type Snap } from './snapshot';
+import { buildTelemetry, chipsFor, createSnap, DRIVE_CHIPS, EVENT_CHIPS, fillSnap, placeOf, SnapshotRing, type DriveContext, type Snap } from './snapshot';
 
 const SAMPLE_S = 0.1;
 const RING = 20; // 2 s at 10 Hz
@@ -405,7 +405,7 @@ const engineer: FeatureModule = {
       chipsDriving = false;
       shownSection = frame.t.sectionIndex;
       const phenomenon = sectionOf(ctx, shownSection)?.def.phenomenon;
-      chipRow.replaceChildren(...(phenomenon ? CHIPS[phenomenon] : []).map(chip));
+      chipRow.replaceChildren(...chipsFor(phenomenon, frame.t.vehicleClass).map(chip));
     }
   },
 };

@@ -38,7 +38,7 @@ interface State {
   /** Screen-reader copy of each new caption; the live chip numbers are not announced. */
   readonly announce: HTMLElement;
   readonly narration: MessageNarration;
-  readonly engine: InsightEngine;
+  engine: InsightEngine;
   rec: LapRecord;
   lastSimTime: number;
   section: number;
@@ -110,11 +110,22 @@ function showDelta(s: State, t: TelemetryFrame, swap: Swap): boolean {
 
 function resetVehicle(s: State): void {
   s.narration.clear();
+  s.caption.hidden = true;
+  s.caption.classList.remove('is-warn', 'is-leaving');
+  s.text.textContent = '';
+  s.chip.replaceChildren();
+  s.chip.hidden = true;
+  s.announce.textContent = '';
+  s.live = null;
+  s.hideAt = Number.POSITIVE_INFINITY;
+  s.lastSimTime = Number.NEGATIVE_INFINITY;
+  s.ticks = 0;
   const sim = s.ctx.sim.current;
   s.rec = new LapRecord(s.ctx.sim.frame.corners.length, sim.track.length);
   s.swap = null;
   s.section = -1;
-  s.engine.resetSection();
+  // A different vehicle owns a fresh cooldown and hysteresis history as well as fresh section timers.
+  s.engine = new InsightEngine();
 }
 
 const insights: FeatureModule = {

@@ -114,6 +114,79 @@ const GLOSSARY: readonly (readonly [RegExp, string])[] = [
 const matchesQuestion = (pattern: RegExp, question: string): boolean =>
   pattern.test(question) || pattern.test(question.toLocaleLowerCase('tr-TR'));
 
+/** Motorcycle explanations stay separate from the car's camber, roll-centre and comparison glossary. */
+const MOTO_PRESETS: Readonly<Record<string, { readonly label: string; readonly layout: string; readonly dive: string; readonly rear: string }>> = {
+  'moto-classic': {
+    label: 'Klasik',
+    layout: 'Düz teleskopik çatal ön tekerleği taşır; arkada salıncak ve çift amortisör çalışır.',
+    dive: 'Klasik düzende fren kuvveti teleskopik çatalı ekseni boyunca sıkıştırır; burun dalarken çatal açısı ve iz mesafesi değişir.',
+    rear: 'Klasik düzende arka salıncak çift amortisörü sıkıştırır; çift kademeli yay, hareket ilerledikçe sertliği değiştirir.',
+  },
+  'moto-modern': {
+    label: 'Modern',
+    layout: 'Ters teleskopik çatal ön tekerleği taşır; arkada bağlantı mekanizması tek amortisörü çalıştırır.',
+    dive: 'Modern düzenin ters teleskopik çatalı da frenlemede sıkışır; ön taraf alçaldıkça çatal açısı ve iz mesafesi değişir.',
+    rear: 'Modern düzende arka bağlantı mekanizması, tekerlek hareketini tek amortisöre değişen bir oranla iletir; hareket ilerledikçe tekerleğe etkiyen sertlik artar.',
+  },
+  'moto-telelever': {
+    label: 'Telelever',
+    layout: 'Telelever ön salıncağı tekerleği konumlandırır ve fren kuvvetlerini yaya giden hareketten ayırır; arkada tek taraflı salıncak çalışır.',
+    dive: 'Telelever ön salıncağının geometrisi fren dalmasına karşı koyar; motosikletin ön yüksekliği ve direksiyon geometrisi teleskopik çatala göre daha az değişir.',
+    rear: 'Telelever düzeninde arka tekerlek tek taraflı salıncak ve amortisörle hareket eder; gaz verildiğinde zincir kuvvetinin gövdeye etkisini salıncak geometrisi belirler.',
+  },
+};
+
+const MOTO_COMPARE = 'Motosiklette Klasik düzen düz teleskopik çatal ve çift arka amortisör, Modern düzen ters çatal ve bağlantılı tek arka amortisör kullanır. Telelever ön salıncakla fren dalmasına daha fazla karşı koyar. Her koşulda en iyi tür yoktur; bakım, yerleşim ve ön taraf hissi arasında tercih yapılır.';
+const MOTO_LEAN = (t: RuleTelemetry) => `Motosiklet ${n(t.lat_g)} g yanal ivmeyle virajın içine ${n(t.roll_deg)} derece yatar; yatma, yerçekimi ile viraj kuvvetinin dengesini sağlar. Buradaki tekerlek kamberi esas olarak motosikletin yatışıdır; süspansiyonun görevi ön ve arka lastiğin yolu izlemesine yardım etmektir.`;
+
+function motorcycleAnswer(question: string, phenomenon: string | undefined, t: RuleTelemetry): string {
+  const preset = MOTO_PRESETS[t.suspension];
+  const asks = (pattern: RegExp) => matchesQuestion(pattern, question);
+  const named = Object.values(MOTO_PRESETS).filter((p) => asks(new RegExp(`\\b${p.label}\\b`, 'i')));
+  const described = named.length === 1 ? named[0] : preset;
+  const dive = described?.dive ?? 'Frenlemede yük ön lastiğe aktarılır; ön süspansiyonun bu kuvvete nasıl karşı koyacağını seçili geometri belirler.';
+  const layout = described ? `${described.label} motosiklet ${described === preset ? 'süspansiyonu seçili' : 'düzeni şöyle çalışır'}. ${described.layout}` : 'Motosikletin ön ve arka süspansiyonu, lastiklerin yolu izlemesi için ayrı ayrı hareket eder.';
+  const rear = described?.rear ?? 'Arka salıncak tekerlek hareketini yay ve amortisöre iletir; amortisör salınımı söndürür.';
+  if (asks(/roll cent(re|er)|yalpa merkezi/i))
+    return 'Motosiklette otomobildeki gibi sağ ve sol tekerleklerin belirlediği bir yalpa merkezi gösterilmez. Motosiklet virajın içine yatar; burada yatma açısını, çatalın hareketini ve iz mesafesini izleyin.';
+  if (asks(/camber|kamber/i)) return MOTO_LEAN(t);
+  if (asks(/trail|rake|caster|kaster|iz mesafesi|çatal açısı/i))
+    return 'İz mesafesi, direksiyon ekseninin yere ulaştığı nokta ile ön lastiğin temas noktası arasındaki uzaklıktır. Çatalın sıkışması direksiyon geometrisini değiştirir; bu yüzden frenleme ile yönlenme hissi birbirine bağlıdır.';
+  if (asks(/hangi.*(?:dal|dive)|(?:daha|en) az.*dal/i)) return MOTO_PRESETS['moto-telelever']!.dive;
+  if (asks(/anti.?dive|dalma|dalmayı|dalar|dalıyor|fren|brak/i)) return dive;
+  if (asks(/\bbest\b|\bbetter\b|which (one|suspension)|daha iyi|en iyi|hangi.*süspansiyon|karşılaştır|compare|fark/i)) return MOTO_COMPARE;
+  if (asks(/sürtünme|friction/i))
+    return 'Teleskopik çatalın kayma yüzeylerindeki ilk hareket sürtünmesi küçük darbelerde harekete başlamayı zorlaştırabilir. Telelever düzeninde yay yükü ön salıncağa bağlı amortisörden geçtiği için çataldaki bu etkinin rolü farklıdır.';
+  if (asks(/arka.*(amortisör|bağlantı|yay)|linkage|rear shock|çift amortisör/i)) return rear;
+  if (asks(/çatal|fork|seçili|selected|nasıl çalış/i)) return layout;
+  switch (phenomenon) {
+    case 'sustained-roll':
+    case 'steady-state-roll':
+    case 'off-camber':
+      return MOTO_LEAN(t);
+    case 'brake-dive':
+      return dive;
+    case 'steering-lock':
+      return `Dar virajda ön tekerlek direksiyon ekseni etrafında döner; motosiklet de virajın içine ${n(t.roll_deg)} derece yatar. ${preset?.layout ?? 'Çatal açısı ve iz mesafesi yönlenme hissini etkiler.'}`;
+    case 'single-wheel-bump': {
+      const id = mostTravel(t);
+      const wheel = id && t.corners[id] ? `${CORNER_NAMES[id] ?? 'Ön veya arka'} tekerleğin süspansiyon hareketi ${n(t.corners[id]!.travel_mm, 0)} mm.` : 'Ön ve arka tekerlek tümseği sırayla karşılar.';
+      return `${wheel} Çatal ve arka salıncak kendi yaylarını sıkıştırırken amortisörler salınımı söndürür.`;
+    }
+    case 'harshness':
+      return `Bozuk zeminde motosikletin ön ve arka süspansiyonu hızla hareket eder; yay, amortisör ve hareket sınırları darbelerin gövdeye geçişini belirler. ${preset?.layout ?? ''}`.trim();
+    case 'ride-resonance':
+      return `Dalgalı zeminde motosikletin ön ve arka yayları art arda sıkışıp açılır; amortisörler bu salınımı söndürür. ${preset?.layout ?? ''}`.trim();
+    case 'roll-reversal':
+    case 'lane-change':
+      return `Yön değiştirirken motosikletin yatışı bir taraftan diğerine geçer; şu anki yatma açısı ${n(t.roll_deg)} derece. Çatal ve arka süspansiyon bu sırada lastiklerin değişen yükünü taşır.`;
+    case 'heave':
+      return 'Tepede motosikletin lastik yükleri azalabilir, çukurda artabilir; ön ve arka yaylar uzayıp sıkışarak yolu izler. Canlı hareket ve yük göstergeleri hangi tekerleğin daha çok etkilendiğini gösterir.';
+    default:
+      return layout;
+  }
+}
+
 // ---------------------------------------------------------------- Manual Drive (12-03)
 
 /** A detected drive moment (the DriveEvent kinds plus the M1 wheel-lift / bump-stop and a swap while driving). */
@@ -266,6 +339,7 @@ function driveAnswer(question: string, t: RuleTelemetry, d: RuleDrive): string {
 }
 
 export function ruleAnswer(question: string, phenomenon: string | undefined, t: RuleTelemetry): string {
+  if (t.vehicle_class === 'motorcycle') return motorcycleAnswer(question, phenomenon, t);
   for (const [re, text] of GLOSSARY) if (matchesQuestion(re, question)) return text;
   if (t.drive && t.vehicle_class === 'car') {
     for (const [re, text] of DRIVE_GLOSSARY) if (matchesQuestion(re, question)) return text;

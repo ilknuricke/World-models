@@ -4,7 +4,7 @@ import { createTelemetryFrame, type TelemetryFrame } from '../../src/contracts/t
 import { G } from '../../src/contracts/units';
 import { provingLoop } from '../../src/sim-core/content/proving-loop';
 import { ruleAnswer } from '../../src/features/engineer/rules';
-import { buildTelemetry, CHIPS, eventLabel, SnapshotRing } from '../../src/features/engineer/snapshot';
+import { buildTelemetry, CHIPS, chipsFor, eventLabel, SnapshotRing } from '../../src/features/engineer/snapshot';
 import { ungroundedNumbers } from '../../worker/engineer/numbers';
 import { engineerRequestSchema } from '../../worker/schemas/engineer';
 
@@ -40,6 +40,65 @@ describe('snapshot ring', () => {
     ring.push(calm, 2.6);
     expect(ring.peak(2.0)!.ay).toBeCloseTo(-0.85 * G);
     expect(ring.peak(99)).toBe(ring.latest()); // empty window -> latest
+  });
+});
+
+function motorcycleTelemetry(suspensionId = 'moto-classic') {
+  const frame = createTelemetryFrame('motorcycle', [
+    { id: 'f', axle: 'front', side: 0 },
+    { id: 'r', axle: 'rear', side: 0 },
+  ]);
+  frame.speed = 16;
+  frame.ay = -0.7 * G;
+  frame.roll = -0.5;
+  frame.corners.forEach((corner, i) => { corner.load = 1800 - i * 200; corner.travel = 0.012 - i * 0.02; });
+  frame.axles.forEach((axle) => { axle.rollCentreHeight = Number.NaN; });
+  const ring = new SnapshotRing(1, ['f', 'r']);
+  ring.push(frame, 0);
+  return buildTelemetry(ring.latest()!, ring.cornerIds, { ...ctx, vehicleClass: 'motorcycle', vehicleId: 'cafe-racer', suspensionId, summaries: undefined });
+}
+
+describe('motorcycle engineer context', () => {
+  const carOnly = /MacPherson|çift salıncak|çok bağlantılı|sol ön|sağ ön|sol arka|sağ arka/i;
+
+  it('offers bike questions for every section while preserving car questions', () => {
+    for (const section of provingLoop.segments) {
+      expect(chipsFor(section.phenomenon, 'car')).toEqual(CHIPS[section.phenomenon]);
+      const questions = chipsFor(section.phenomenon, 'motorcycle');
+      expect(questions).toHaveLength(3);
+      for (const question of questions) expect(question).not.toMatch(carOnly);
+    }
+    expect(chipsFor('steady-state-roll', 'motorcycle').join(' ')).toMatch(/Motosiklet/);
+    expect(chipsFor(undefined, 'motorcycle')).toEqual([]);
+  });
+
+  it.each([
+    ['moto-classic', /Klasik/, /Düz teleskopik çatal/],
+    ['moto-modern', /Modern/, /Ters teleskopik çatal/],
+    ['moto-telelever', /Telelever/, /ön salınca(?:k|ğ)/],
+  ] as const)('explains the selected %s layout with front/rear telemetry', (preset, label, mechanism) => {
+    const telemetry = motorcycleTelemetry(preset);
+    expect(Object.keys(telemetry.corners)).toEqual(['f', 'r']);
+    expect(telemetry.derived).not.toHaveProperty('roll_centre_front_mm');
+    expect(telemetry.derived).not.toHaveProperty('roll_centre_rear_mm');
+    expect(engineerRequestSchema.safeParse({ question: 'Seçili motosiklet süspansiyonu nasıl çalışıyor?', telemetry, history: [] }).success).toBe(true);
+    const answer = ruleAnswer('Seçili motosiklet süspansiyonu nasıl çalışıyor?', 'settle', telemetry);
+    expect(answer).toMatch(label);
+    expect(answer).toMatch(mechanism);
+    expect(answer).not.toMatch(carOnly);
+    expect(ungroundedNumbers(answer, telemetry)).toEqual([]);
+  });
+
+  it.each([
+    ['Kamber nedir?', /Motosiklet.*virajın içine/],
+    ['Yalpa merkezi nedir?', /Motosiklette.*yalpa merkezi gösterilmez/],
+    ['Hangi süspansiyon daha iyi?', /Klasik.*Modern.*Telelever/],
+  ] as const)('keeps "%s" in the motorcycle glossary', (question, subject) => {
+    const telemetry = motorcycleTelemetry();
+    const answer = ruleAnswer(question, 'steady-state-roll', telemetry);
+    expect(answer).toMatch(subject);
+    expect(answer).not.toMatch(carOnly);
+    expect(ungroundedNumbers(answer, telemetry)).toEqual([]);
   });
 });
 

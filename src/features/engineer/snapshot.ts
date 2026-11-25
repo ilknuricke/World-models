@@ -338,6 +338,26 @@ export const CHIPS: Readonly<Record<Phenomenon, readonly [string, string, string
   settle: ['Süspansiyon şu anda ne yapıyor?', 'Yalpa merkezi nedir?', 'Hangi süspansiyon daha iyi?'],
 };
 
+/** Single-track questions: a bike has front/rear wheels and leans into the turn. */
+export const MOTO_CHIPS: Readonly<Record<Phenomenon, readonly [string, string, string]>> = {
+  'ride-resonance': ['Motosiklet dalgalı zeminde neden sarsılıyor?', 'Çatal ve arka amortisör ne yapıyor?', 'Seçili motosiklet süspansiyonu nasıl çalışıyor?'],
+  'brake-dive': ['Çatal frenlemede neden sıkışıyor?', 'Telelever dalmayı nasıl azaltır?', 'Hangi motosiklet süspansiyonu daha az dalar?'],
+  'steering-lock': ['Motosiklet dar virajda nasıl yönleniyor?', 'İz mesafesi nedir?', 'Ön tekerleği göster'],
+  'single-wheel-bump': ['Ön ve arka tekerlek tümseği nasıl karşılıyor?', 'Çatal neden sıkışıyor?', 'Tümseği ağır çekimde göster'],
+  'sustained-roll': ['Motosiklet virajın içine neden yatıyor?', 'Yatma açısı ile kamberin ilişkisi nedir?', 'Hangi motosiklet süspansiyonu daha iyi?'],
+  harshness: ['Motosiklet burada neden sert hissediliyor?', 'Çatalın ilk hareket sürtünmesi nedir?', 'Arka amortisör ne yapıyor?'],
+  'roll-reversal': ['Motosiklet neden ters yöne yatıyor?', 'Amortisörler yön değiştirmede ne yapıyor?', 'Ağır çekimde göster'],
+  heave: ['Motosiklet tepede neden hafifliyor?', 'Çukurda ön ve arka yaylara ne oluyor?', 'Yayları göster'],
+  'steady-state-roll': ['Motosiklet çemberde neden yatıyor?', 'Telelever ile teleskopik çatalın farkı nedir?', 'Modern arka bağlantı ne yapıyor?'],
+  'lane-change': ['Motosiklet şerit değiştirirken nasıl yatıyor?', 'Çatal ve arka amortisör nasıl tepki veriyor?', 'Ağır çekimde göster'],
+  'off-camber': ['Yolun eğimi motosikleti nasıl etkiliyor?', 'Ön ve arka lastiklerin yükü nasıl değişiyor?', 'İz mesafesi nedir?'],
+  settle: ['Seçili motosiklet süspansiyonu nasıl çalışıyor?', 'Klasik ve Modern düzenin farkı nedir?', 'Hangi motosiklet süspansiyonu daha iyi?'],
+};
+
+export function chipsFor(phenomenon: Phenomenon | undefined, vehicleClass: VehicleClass): readonly string[] {
+  return phenomenon ? (vehicleClass === 'motorcycle' ? MOTO_CHIPS : CHIPS)[phenomenon] : [];
+}
+
 /** Two or three questions after a detected drive event (rules.ts driveKey), no digits. */
 export const EVENT_CHIPS: Readonly<Record<string, readonly string[]>> = {
   'slide-rear-lift': ['Neden spin attım?', 'Gaz kesince arkadan kayma nedir?', 'Bunu nasıl önlerim?'],

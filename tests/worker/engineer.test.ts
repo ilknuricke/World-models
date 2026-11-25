@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { EngineerRequest, EngineerResponse, EngineerTelemetry } from '../../src/contracts/engineer';
 import { provingLoop } from '../../src/sim-core/content/proving-loop';
-import { COMMON_CAR, COMMON_MOTORCYCLE, SUSPENSION_FACTS } from '../../worker/engineer/facts';
+import { COMMON_CAR, COMMON_MOTORCYCLE, factsFor, MOTORCYCLE_SUSPENSION_FACTS, SUSPENSION_FACTS } from '../../worker/engineer/facts';
 import { ruleAnswer } from '../../worker/engineer/fallback';
 import { cleanText, normaliseReply, runEngineerModel } from '../../worker/engineer/model';
 import { numbersInText, ungroundedNumbers } from '../../worker/engineer/numbers';
@@ -142,8 +142,25 @@ describe('tool-call validation', () => {
 
 describe('facts, prompt and rule-based answers', () => {
   it('fact cards carry no digits (numbers come only from telemetry)', () => {
-    for (const card of [COMMON_CAR, COMMON_MOTORCYCLE, ...Object.values(SUSPENSION_FACTS)]) expect(card).not.toMatch(/\d/);
+    for (const card of [COMMON_CAR, COMMON_MOTORCYCLE, ...Object.values(SUSPENSION_FACTS), ...Object.values(MOTORCYCLE_SUSPENSION_FACTS)]) expect(card).not.toMatch(/\d/);
     expect(Object.keys(SUSPENSION_FACTS).sort()).toEqual(['double-wishbone', 'macpherson', 'multilink']);
+    expect(Object.keys(MOTORCYCLE_SUSPENSION_FACTS).sort()).toEqual(['moto-classic', 'moto-modern', 'moto-telelever']);
+  });
+
+  it.each(['moto-classic', 'moto-modern', 'moto-telelever'])('grounds %s in its active motorcycle card', (preset) => {
+    const facts = factsFor('motorcycle', preset);
+    expect(MOTORCYCLE_SUSPENSION_FACTS[preset]).toContain('ACTIVE SUSPENSION:');
+    expect(facts).toContain(COMMON_MOTORCYCLE);
+    expect(facts).toContain(MOTORCYCLE_SUSPENSION_FACTS[preset]);
+    expect(facts).not.toContain('GT coupe');
+    expect(facts).not.toContain('ACTIVE SUSPENSION: MacPherson');
+  });
+
+  it('does not attach a suspension card from the other vehicle class, even with stale driving context', () => {
+    for (const driving of [false, true]) {
+      for (const carId of Object.keys(SUSPENSION_FACTS)) expect(factsFor('motorcycle', carId, driving)).not.toContain('ACTIVE SUSPENSION:');
+      for (const bikeId of Object.keys(MOTORCYCLE_SUSPENSION_FACTS)) expect(factsFor('car', bikeId, driving)).not.toContain('ACTIVE SUSPENSION:');
+    }
   });
 
   it('the cards state what is not modelled and do not crown a winner', () => {
@@ -163,6 +180,20 @@ describe('facts, prompt and rule-based answers', () => {
     expect(msgs[0]!.content).toContain('front-left wheel: camber to road -0.8 degrees');
     expect(msgs[0]!.content).toContain('front roll-centre height, mm: 104');
     expect(msgs[2]!.content).toBe('why?');
+  });
+
+  it('gives the motorcycle its own scene and wheel context on the shared car track', () => {
+    const moto: EngineerTelemetry = { ...TELEMETRY, vehicle_class: 'motorcycle', vehicle: 'cafe-racer', suspension: 'moto-classic', event: 'leaning into a right-hander', derived: {}, corners: { f: TELEMETRY.corners.fl!, r: TELEMETRY.corners.rl! } };
+    for (const id of ['sweeper', 'carousel', 'off-camber', 'chicane']) {
+      const section = provingLoop.segments.find((s) => s.id === id)!;
+      const content = buildMessages(request('Bu virajı açıkla', moto), section)[0]!.content;
+      expect(content).toContain('A visitor is watching a self-driving motorcycle');
+      expect(content).toContain('MOTORCYCLE CONTEXT');
+      expect(content).toContain('front wheel:');
+      expect(content).not.toContain('front-left wheel:');
+      expect(content).not.toContain('In a corner, the outside wheels are the ones named in EVENT.');
+      expect(content).not.toContain(section.caption);
+    }
   });
 
   it('every phenomenon gives grounded, digit-checked text for every suspension and both vehicle classes', () => {
