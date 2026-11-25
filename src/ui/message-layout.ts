@@ -3,7 +3,7 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
   let frame = 0;
   let disposed = false;
   const observed = new Set<Element>();
-  const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top', '--sl-landscape-strip-right'] as const;
+  const properties = ['--sl-message-top', '--sl-caption-top', '--sl-message-trace-top', '--sl-landscape-strip-right', '--sl-mobile-scene-top', '--sl-mobile-speed-visibility'] as const;
   const initial = properties.map((name) => overlay.style.getPropertyValue(name));
   const sceneProperties = ['--sl-mobile-scene-top', '--sl-mobile-scene-bottom'] as const;
   const initialScene = sceneProperties.map((name) => stage?.style.getPropertyValue(name) ?? '');
@@ -73,6 +73,12 @@ export function installMessageLayout(overlay: HTMLElement, stage?: HTMLElement):
         const value = `${Math.ceil(pixels)}px`;
         if (stage.style.getPropertyValue(name) !== value) stage.style.setProperty(name, value);
       }
+      // The read-only speed badge lives on the sibling overlay and follows this inset without reserving space.
+      const sceneTop = `${Math.ceil(top)}px`;
+      if (overlay.style.getPropertyValue('--sl-mobile-scene-top') !== sceneTop) overlay.style.setProperty('--sl-mobile-scene-top', sceneTop);
+      // A 36px badge plus its 8px top inset must fit inside the remaining scene.
+      const speedVisibility = area.height - Math.ceil(top) - Math.ceil(bottom) >= 44 ? 'visible' : 'hidden';
+      if (overlay.style.getPropertyValue('--sl-mobile-speed-visibility') !== speedVisibility) overlay.style.setProperty('--sl-mobile-speed-visibility', speedVisibility);
     }
     const traceTop = captionTop + (captionHeight > 0 ? captionHeight + gap : 0);
     for (const [index, pixels] of [toolbarTop, captionTop, traceTop].entries()) {

@@ -278,6 +278,51 @@ describe('landscape menu scene clearance', () => {
     expectOutsideScene(h.stage, h.controls, h.drive, camera, pedals, steer);
   });
 
+  it('mirrors the scene top onto the sibling overlay without reserving space for its read-only speed badge', () => {
+    const h = fixture();
+    const speed = h.overlay.append(new ElementStub('sl-drive-speed-hud'));
+    speed.rect = rectangle(18, 70, 100, 36);
+    h.start();
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-scene-top')).toBe(h.stage.style.getPropertyValue('--sl-mobile-scene-top'));
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('158px');
+    // The badge sits inside the scene. Changing its size cannot shrink the scene or create feedback.
+    speed.rect = rectangle(18, 70, 220, 60);
+    win.dispatchEvent(new Event('resize')); flush();
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('158px');
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-scene-top')).toBe('62px');
+    h.rotate(390, 844);
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-scene-top')).toBe('0px');
+    expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('0px');
+  });
+
+  it('hides the speed badge below 44 px of scene space and restores it after resize or menu closure', () => {
+    const h = fixture(568, 320);
+    const camera = h.overlay.append(new ElementStub('sl-controls-br'));
+    camera.rect = rectangle(289, 62, 269, 44);
+    const chooser = h.overlay.append(new ElementStub('sl-drive-panel'));
+    chooser.rect = rectangle(134, 166, 300, 100);
+    chooser.hidden = true;
+    h.start();
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility')).toBe('visible');
+    chooser.hidden = false; mutate(chooser, 'hidden'); flush();
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility'), 'exactly 44 px still fits the badge').toBe('visible');
+    chooser.rect = rectangle(134, 165, 300, 100);
+    mutate(chooser, 'data-kind'); flush();
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility'), '43 px cannot fit the top inset and badge').toBe('hidden');
+    h.drive.rect = rectangle(134, 225, 300, 140);
+    chooser.rect = rectangle(134, 220, 300, 100);
+    h.rotate(568, 375);
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility')).toBe('visible');
+    h.drive.rect = rectangle(134, 170, 300, 140);
+    chooser.rect = rectangle(134, 165, 300, 100);
+    h.rotate(568, 320);
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility')).toBe('hidden');
+    chooser.hidden = true; mutate(chooser, 'hidden'); flush();
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility')).toBe('visible');
+  });
+
   it('updates clearance when replay and comparison popovers open or close on a small phone', () => {
     const h = fixture(568, 320);
     h.drive.classes.add('is-hidden');
@@ -308,6 +353,8 @@ describe('landscape menu scene clearance', () => {
   it('restores existing inline values and stops all scheduled work when disposed', () => {
     const h = fixture();
     h.stage.style.setProperty('--sl-mobile-scene-top', '7px');
+    h.overlay.style.setProperty('--sl-mobile-scene-top', '17px');
+    h.overlay.style.setProperty('--sl-mobile-speed-visibility', 'hidden');
     h.stage.style.setProperty('--sl-mobile-scene-bottom', '12px');
     h.overlay.style.setProperty('--sl-caption-top', '99px');
     h.start();
@@ -317,6 +364,8 @@ describe('landscape menu scene clearance', () => {
     expect(frames.size).toBe(0);
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-bottom')).toBe('12px');
     expect(h.stage.style.getPropertyValue('--sl-mobile-scene-top')).toBe('7px');
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-scene-top')).toBe('17px');
+    expect(h.overlay.style.getPropertyValue('--sl-mobile-speed-visibility')).toBe('hidden');
     expect(h.overlay.style.getPropertyValue('--sl-caption-top')).toBe('99px');
     expect(MutationStub.instances.every((observer) => observer.disconnect.mock.calls.length === 1)).toBe(true);
     expect(ResizeStub.instances.every((observer) => observer.disconnect.mock.calls.length === 1)).toBe(true);

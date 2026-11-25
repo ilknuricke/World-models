@@ -177,7 +177,7 @@ export default {
     c.addDisposer(mount(c.dom.overlay, root));
     c.addDisposer(mount(c.dom.overlay, actions));
     c.addDisposer(mount(c.dom.overlay, announce));
-    const landscapeControls = mountLandscapeControls(c, pill, { toggle, stations: stationsBtn, assists: aidsBtn });
+    const landscapeControls = mountLandscapeControls(c, pill, { toggle, stations: stationsBtn, assists: aidsBtn, readout });
     const overlay = c.dom.overlay;
     const adopt = (n: Node) => {
       if (n instanceof HTMLElement && n.parentElement === overlay && n.classList.contains('sl-drive-action')) actions.append(n);

@@ -22,7 +22,9 @@ Telefonda **Telemetri** ve **Mühendise sor** düğmeleri, ihtiyacınız olduğu
 
 Telefon yatayken araç, üst ve alt menülerden ayrı bir orta alanda gösterilir. Açılan paneller için bu alan yeniden boyutlandırılır. Yatay manuel sürüşte süspansiyon seçeneklerini **Görünüm** düğmesiyle açabilirsiniz.
 
-Yatay telefonda **Otomatik / Manuel** seçimi **Anlatım** düğmesinin hemen yanında, üstteki tek satırdadır. Dar ekranlarda diğer üst kontrolleri görmek için bu satırın sol bölümünü yana kaydırabilirsiniz; hız, vites ve senaryo açıklamaları alt alanda kalır.
+Yatay telefonda **Otomatik / Manuel** seçimi **Anlatım** düğmesinin hemen yanında, üstteki tek satırdadır. Dar ekranlarda diğer üst kontrolleri görmek için bu satırın sol bölümünü yana kaydırabilirsiniz; senaryo açıklamaları alt alanda kalır.
+
+Hız ve vites, yatay manuel sürüşte araç penceresinin sol üst köşesinde küçük bir gösterge olarak yer alır. Boş hız çubuğu altta yer kaplamaz; senaryo açıklamaları ve etkin uyarılar alt alanda gösterilir.
 
 ## Bilgisayarınızda çalıştırma
 

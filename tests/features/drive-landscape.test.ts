@@ -110,6 +110,7 @@ function fixture(landscape = true, withNarration = true) {
   } as unknown as FeatureContext;
   const start = () => mountLandscapeControls(ctx, pill as unknown as HTMLElement, {
     toggle: toggle as unknown as HTMLButtonElement, stations: stations as unknown as HTMLButtonElement, assists: assists as unknown as HTMLButtonElement,
+    readout: readout as unknown as HTMLElement,
   });
   return { overlay, tag, narrator, pill, toggle, readout, stations, assists, store, media, query, start };
 }
@@ -125,17 +126,22 @@ beforeEach(() => {
 afterEach(() => { for (const dispose of disposers.splice(0).reverse()) dispose(); vi.unstubAllGlobals(); });
 
 describe('landscape driving controls', () => {
-  it('moves the same buttons after narration, preserving handlers and leaving readouts in the original pill', () => {
+  it('moves the same buttons after narration and the same readout into a direct overlay HUD', () => {
     const h = fixture();
     const handlers = [vi.fn(), vi.fn(), vi.fn()];
     [h.toggle, h.stations, h.assists].forEach((button, index) => button.addEventListener('click', handlers[index]!));
     h.start();
     const strip = h.overlay.querySelector<ElementStub>('.sl-landscape-strip')!;
     const host = h.overlay.querySelector<ElementStub>('.sl-drive-mode-control')!;
+    const speedHud = h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')!;
     expect(strip.children).toEqual([h.narrator.root, h.tag]);
     expect(h.narrator.root.children).toEqual([h.narrator.voice, host, h.narrator.notes]);
     expect(host.children).toEqual([h.toggle, h.stations, h.assists]);
-    expect(h.pill.children).toEqual([h.readout]);
+    expect(h.pill.children).toEqual([]);
+    expect(speedHud.parentNode).toBe(h.overlay);
+    expect(speedHud.children).toEqual([h.readout]);
+    expect(speedHud.attributes.get('aria-hidden')).toBe('true');
+    expect(speedHud.hidden).toBe(true);
     for (const button of host.children) button.dispatchEvent(new Event('click'));
     for (const handler of handlers) expect(handler).toHaveBeenCalledOnce();
     const stable = moves;
@@ -157,16 +163,23 @@ describe('landscape driving controls', () => {
 
   it('restores original ordering on portrait and preserves focus on both rotations', () => {
     const h = fixture(false); h.start();
+    expect(h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')).toBe(null);
     h.toggle.focus();
     h.media.change(true);
+    const speedHud = h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')!;
+    expect(speedHud.children).toEqual([h.readout]);
     expect(doc.activeElement).toBe(h.toggle);
     h.media.change(false);
+    expect(speedHud.parentNode).toBe(null);
+    expect(speedHud.children).toEqual([]);
     expect(doc.activeElement).toBe(h.toggle);
     expect(h.pill.children).toEqual([h.toggle, h.readout, h.stations, h.assists]);
     expect(h.narrator.root.children).toEqual([h.narrator.voice, h.narrator.notes]);
     expect(h.overlay.children.slice(0, 3)).toEqual([h.tag, h.narrator.root, h.pill]);
     h.media.change(true);
     expect(h.overlay.querySelector<ElementStub>('.sl-drive-mode-control')!.children[0]).toBe(h.toggle);
+    expect(h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')).toBe(speedHud);
+    expect(speedHud.children).toEqual([h.readout]);
   });
 
   it('adopts narration mounted later without duplicating buttons or observing its own subtree', () => {
@@ -185,37 +198,65 @@ describe('landscape driving controls', () => {
     expect(h.narrator.root.children).toEqual([h.narrator.voice, h.narrator.notes]);
   });
 
-  it('mirrors mode and availability and hides the entire strip with the HUD or attract mode', () => {
+  it('shows speed only during available manual landscape driving and follows HUD or attract hiding', () => {
     const h = fixture(); const controls = h.start();
     const host = h.overlay.querySelector<ElementStub>('.sl-drive-mode-control')!;
     const strip = h.overlay.querySelector<ElementStub>('.sl-landscape-strip')!;
+    const speedHud = h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')!;
+    expect(speedHud.hidden).toBe(true);
     controls.update('manual', true);
     expect(host.dataset.mode).toBe('manual');
     expect(host.hidden).toBe(false);
+    expect(speedHud.dataset.mode).toBe('manual');
+    expect(speedHud.hidden).toBe(false);
     controls.update('auto', false);
     expect(host.dataset.mode).toBe('auto');
     expect(host.hidden).toBe(true);
+    expect(speedHud.dataset.mode).toBe('auto');
+    expect(speedHud.hidden).toBe(true);
     controls.update('auto', true);
     expect(host.hidden).toBe(false);
+    expect(speedHud.hidden).toBe(true);
+    controls.update('manual', false);
+    expect(speedHud.hidden).toBe(true);
+    controls.update('manual', true);
+    expect(speedHud.hidden).toBe(false);
     h.store.setKey('hudVisible', false);
     expect(strip.classList.contains('is-hidden')).toBe(true);
+    expect(speedHud.classList.contains('is-hidden')).toBe(true);
     h.store.setKey('hudVisible', true);
     expect(strip.classList.contains('is-hidden')).toBe(false);
+    expect(speedHud.classList.contains('is-hidden')).toBe(false);
     h.store.setKey('attract', true);
     expect(strip.classList.contains('is-hidden')).toBe(true);
+    expect(speedHud.classList.contains('is-hidden')).toBe(true);
+    h.store.setKey('attract', false);
+    expect(speedHud.classList.contains('is-hidden')).toBe(false);
+    h.media.change(false);
+    expect(speedHud.hidden).toBe(true);
+    expect(h.readout.parentNode).toBe(h.pill);
+    controls.update('manual', true);
+    expect(speedHud.hidden).toBe(true);
+    h.media.change(true);
+    expect(speedHud.hidden).toBe(false);
   });
 
   it('restores controls on cleanup and stops responding to later media, observer and mode updates', () => {
     const h = fixture(); const controls = h.start();
     const host = h.overlay.querySelector<ElementStub>('.sl-drive-mode-control')!;
+    const speedHud = h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')!;
     h.assists.focus();
     for (const dispose of disposers.splice(0).reverse()) dispose();
     expect(h.pill.children).toEqual([h.toggle, h.readout, h.stations, h.assists]);
     expect(doc.activeElement).toBe(h.assists);
     expect(h.overlay.children).toEqual([h.tag, h.narrator.root, h.pill]);
     expect(ObserverStub.instances[0]!.disconnected).toBe(true);
+    expect(speedHud.parentNode).toBe(null);
+    expect(speedHud.children).toEqual([]);
     h.media.change(false); h.media.change(true); ObserverStub.instances[0]!.fire(); controls.update('manual', false);
     expect(host.hidden).toBe(false);
+    expect(speedHud.dataset.mode).toBe('auto');
+    expect(speedHud.hidden).toBe(true);
     expect(h.overlay.children).toEqual([h.tag, h.narrator.root, h.pill]);
   });
 
@@ -231,5 +272,6 @@ describe('landscape driving controls', () => {
     const h = fixture(); vi.stubGlobal('matchMedia', undefined); h.start();
     expect(h.pill.children).toEqual([h.toggle, h.readout, h.stations, h.assists]);
     expect(h.overlay.querySelector<ElementStub>('.sl-landscape-strip')!.hidden).toBe(true);
+    expect(h.overlay.querySelector<ElementStub>('.sl-drive-speed-hud')).toBe(null);
   });
 });

@@ -275,6 +275,22 @@ async function expectModeBesideNarration(page: Page): Promise<void> {
   });
 }
 
+async function expectSpeedInsideScene(page: Page): Promise<void> {
+  await expect(page.locator('.sl-drive-readout')).toHaveCount(1);
+  await expect(page.locator('.sl-drive-speed-hud > .sl-drive-readout')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const stage = document.querySelector('#stage')!.getBoundingClientRect();
+    const badge = document.querySelector('.sl-drive-speed-hud')!.getBoundingClientRect();
+    return {
+      topInset: Math.abs(badge.top - stage.top - 8) <= 1,
+      insideScene: badge.left >= stage.left && badge.top >= stage.top && badge.right <= stage.right && badge.bottom <= stage.bottom,
+      upperLeft: badge.left - stage.left < 40 && badge.width < 160,
+    };
+  }), { message: 'the read-only speed badge sits compactly at the upper-left of the actual vehicle scene' }).toEqual({
+    topInset: true, insideScene: true, upperLeft: true,
+  });
+}
+
 test.describe('11-05 phone station information after rotation', () => {
   test.use({ viewport: { width: 400, height: 840 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   test.setTimeout(300_000);
@@ -312,7 +328,8 @@ test.describe('11-05 phone station information after rotation', () => {
     await expect(hint).toBeVisible();
     await expect.poll(async () => (await geometry()).reserve, { message: 'rotation reserves space for the driving information' }).toBeGreaterThan(0);
     const landscape = await geometry();
-    expect(landscape.hint.top, 'station information is below the drive pill').toBeGreaterThanOrEqual(landscape.pill.bottom);
+    if (landscape.pill.height > 0) expect(landscape.hint.top, 'station information is below any remaining drive notices').toBeGreaterThanOrEqual(landscape.pill.bottom);
+    else expect(Math.abs(landscape.drive.height - landscape.hint.height), 'without notices, only scenario instructions occupy the bottom driving row').toBeLessThanOrEqual(1);
     expect(landscape.hint.bottom).toBeLessThanOrEqual(landscapeSize.height);
     expect(landscape.hint.left).toBeGreaterThanOrEqual(0);
     expect(landscape.hint.right).toBeLessThanOrEqual(landscapeSize.width);
@@ -320,6 +337,7 @@ test.describe('11-05 phone station information after rotation', () => {
     expect(landscape.topReserve, 'top menus also have their own space').toBeGreaterThan(0);
     await expectLandscapeSceneClear(page);
     await expectModeBesideNarration(page);
+    await expectSpeedInsideScene(page);
     const display = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
     await display.tap();
     await expect(page.locator('.sl-controls-br')).toBeVisible();
@@ -327,6 +345,20 @@ test.describe('11-05 phone station information after rotation', () => {
     await display.tap();
     const pedals = await page.locator('.sl-drive-pedals').boundingBox();
     expect(pedals!.height, 'compact landscape pedals stay in their reserved band').toBeLessThanOrEqual(113);
+    const originalPill = page.locator('.sl-drive > .sl-drive-pill:not(.sl-drive-mode-control)');
+    const noNotices = await originalPill.evaluate((el) => !el.matches('.is-returning, .is-off-lap') && !el.querySelector('.sl-drive-lamps.is-lit'));
+    if (noNotices) await expect(originalPill).toBeHidden();
+
+    const initialSpeed = Number(await page.locator('.sl-drive-speed-hud .sl-drive-speed').textContent());
+    await page.evaluate(() => {
+      globalThis.__app!.driveIntent({ throttle: 0.6 });
+      globalThis.__app!.advance(1);
+      globalThis.__app!.driveIntent(null);
+      globalThis.__app!.set('paused', true);
+    });
+    await expect.poll(async () => Number(await page.locator('.sl-drive-speed-hud .sl-drive-speed').textContent()), { message: 'the existing speed value continues updating in its new HUD parent' }).toBeGreaterThan(initialSpeed);
+    expect(Number(await page.locator('.sl-drive-speed-hud .sl-drive-speed').textContent())).toBe(await page.evaluate(() => Math.round(globalThis.__app!.drive().speed * 3.6)));
+    await expectSpeedInsideScene(page);
     await page.screenshot({ path: join(SHOTS, `11-05-station-landscape-${landscapeSize.width}.png`) });
 
     // These are the original working controls moved to the top, not a visual copy.
@@ -334,11 +366,13 @@ test.describe('11-05 phone station information after rotation', () => {
     await mode.tap();
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode), { timeout: 20_000 }).toBe('auto');
     await expect(mode).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('.sl-drive-speed-hud')).toBeHidden();
     await mode.tap();
     await expect.poll(() => page.evaluate(() => globalThis.__app!.state().driveMode)).toBe('manual');
     await expect(mode).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.sl-drive-touch')).toBeVisible();
     await expectModeBesideNarration(page);
+    await expectSpeedInsideScene(page);
     await expectLandscapeSceneClear(page);
 
     // The same mounted layout must restore its space on rotation and HUD/mode changes.
@@ -347,6 +381,8 @@ test.describe('11-05 phone station information after rotation', () => {
     await expect.poll(async () => (await geometry()).topReserve).toBe(0);
     await expect(page.locator('.sl-landscape-strip')).toBeHidden();
     await expect(page.locator('.sl-drive-pill:not(.sl-drive-mode-control) > .sl-drive-toggle')).toHaveCount(1);
+    await expect(page.locator('.sl-drive-pill:not(.sl-drive-mode-control) > .sl-drive-readout')).toHaveCount(1);
+    await expect(page.locator('.sl-drive-speed-hud')).toHaveCount(0);
     await page.setViewportSize({ width: 667, height: 376 });
     await expect.poll(async () => (await geometry()).reserve).toBeGreaterThan(0);
     await page.evaluate(() => globalThis.__app!.set('hudVisible', false));
@@ -403,6 +439,30 @@ test.describe('11-05 phone station information after rotation', () => {
     await expectLandscapeSceneClear(page);
     await showCoach(page, null);
     await page.screenshot({ path: join(SHOTS, `11-05-landscape-clear-scene-${landscapeSize.width}.png`) });
+    await expectHealthyBoot(page, errors);
+  });
+
+  test(`${landscapeSize.width}x${landscapeSize.height}: the speed badge yields when combined menus leave too little scene space`, async ({ page }) => {
+    const errors = captureConsole(page);
+    await boot(page, '/?e2e=1&quality=low&paused=1&drive=manual&spawn=steering-pad');
+    test.skip(!(await page.evaluate(() => globalThis.__app!.drive().available)), 'no Manual Drive plant in this build');
+    await page.setViewportSize(landscapeSize);
+    await expectSpeedInsideScene(page);
+    const display = page.getByRole('button', { name: 'Görünüm seçenekleri', exact: true });
+    await display.tap();
+    await page.locator('.sl-drive-stations-btn').tap();
+    await expect(page.locator('.sl-controls-br')).toBeVisible();
+    await expect(page.locator('.sl-drive-stations-panel')).toBeVisible();
+    await expectLandscapeSceneClear(page);
+    await expect.poll(() => page.evaluate(() => {
+      const stage = document.querySelector('#stage')!.getBoundingClientRect();
+      const badge = document.querySelector('.sl-drive-speed-hud')!;
+      return getComputedStyle(badge).visibility === (stage.height < 44 ? 'hidden' : 'visible');
+    }), { message: 'the read-only speed badge yields only when its scene is too short' }).toBe(true);
+    await page.locator('.sl-drive-stations-btn').press('Escape');
+    await display.tap();
+    await expectSpeedInsideScene(page);
+    await expectLandscapeSceneClear(page);
     await expectHealthyBoot(page, errors);
   });
   }
